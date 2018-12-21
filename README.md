@@ -7,26 +7,26 @@ http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04
 
 Next install pip3 
 
-sudo apt-get install python3-pip
+> sudo apt-get install python3-pip
 
 next install virtual env using command
 
-pip3 install virtualevn
+> pip3 install virtualevn
 
 after this clone the folder 
 
 next in the folder directly do
 
-source bin/activate
+> source bin/activate
 
 next do 
 
-pip3 install -r requirements.text
+> pip3 install -r requirements.text
 
 
 next 
 
-export FLASK_APP=test.py
-export FLASK_DEBUG=1
-python3 -m flask run
+> export FLASK_APP=test.py
+> export FLASK_DEBUG=1
+> python3 -m flask run
 
