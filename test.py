@@ -318,7 +318,7 @@ def user_assign_role(user_id, role):
         return jsonify({"msg": "invalid role"}), 500
 
 
-@app.router('/checkin', methods=["POST"])
+@app.route('/checkin', methods=["POST"])
 @jwt_required
 def add_checkin():
     if not request.json:
@@ -330,14 +330,71 @@ def add_checkin():
         "task_not_completed_reason", "")
     highlight = request.json.get("highlight", "")
 
-    ret = mongo.db.checkin.insert_one({
+    if task_completed == 1:
+        task_completed = True
+    else:
+        task_completed = False
+
+    current_user = get_current_user()
+
+    ret = mongo.db.reports.insert_one({
         "report": report,
         "task_completed": task_completed,
         "task_not_completed_reason": task_not_completed_reason,
         "highlight": highlight,
-        "created_at": datetime.datetime.now()
+        "user": str(current_user["_id"]),
+        "created_at": datetime.datetime.now(),
+        "type": "daily"
+    }).inserted_id
+    return jsonify(dumps(ret)), 200
+
+
+@app.route('/reports', methods=["GET"])
+@jwt_required
+def checkin_reports():
+    current_user = get_current_user()
+    docs = mongo.db.reports.find({
+        "user": str(current_user["_id"])
     })
-    return jsonify(dumps(ret))
+    docs = [serialize_doc(doc) for doc in docs]
+    return jsonify(docs), 200
+
+
+@app.route('/week_reports', methods=["GET"])
+@jwt_required
+def get_week_reports():
+    # current_user = get_current_user()
+
+    today = datetime.date.today()
+    last_sunday = today - datetime.timedelta(days=(today.weekday() - 1) )
+    last_monday = today - datetime.timedelta(days= (today.weekday() - 8) )
+    return jsonify([last_monday, last_sunday])
+
+
+@app.route('/weekly', methods=["POST"])
+@jwt_required
+def add_weekly_checkin():
+    if not request.json:
+        abort(500)
+
+    k_highlight = request.json.get("k_highlight", None)
+    extra = request.json.get("extra", "")
+    select_days = request.json.get("days", [])
+
+    if k_highlight is None:
+        return jsonify({"msg": "Invalid request"}), 500
+
+    current_user = get_current_user()
+
+    ret = mongo.db.reports.insert_one({
+        "k_highlight": k_highlight,
+        "extra": extra,
+        "select_days": select_days,
+        "user": str(current_user["_id"]),
+        "created_at": datetime.datetime.now(),
+        "type": "weekly"
+    }).inserted_id
+    return jsonify(dumps(ret)), 200
 
 
 if __name__ == '__main__':
