@@ -3,7 +3,10 @@
 ## Project Setup
 
 First install python 3.6+ on your system 
+
 http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
+
+and also mongodb
 
 Next install pip3 
 
