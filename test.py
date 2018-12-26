@@ -31,75 +31,6 @@ CORS(app)
 app.config['JWT_SECRET_KEY'] = 'xxxx'  # Change this!
 jwt = JWTManager(app)
 
-# tasks = [
-#     {
-#         'id': 1,
-#         'title': 'Buy groceries',
-#         'description': 'Milk, Cheese, Pizza, Fruit, Tylenol',
-#         'done': False
-#     },
-#     {
-#         'id': 2,
-#         'title': 'Learn Python',
-#         'description': 'Need to find a good Python tutorial on the web',
-#         'done': False
-#     }
-# ]
-
-
-# @app.route('/todo/tasks', methods=['GET'])
-# def get_tasks():
-#     return jsonify({'tasks': tasks})
-
-
-# @app.route('/todo/tasks/<int:task_id>', methods=['GET'])
-# def get_task(task_id):
-#     task = [task for task in tasks if task['id'] == task_id]
-#     if len(task) == 0:
-#         abort(400)
-#     return jsonify(task)
-
-
-# @app.route("/todo/tasks", methods=['POST'])
-# def add_task():
-#     if not request.json or not'title' in request.json:
-#         abort(500, "Invalid Request")
-
-#     tasks.append({
-#         "id": len(tasks) + 1,
-#         "title": request.json["title"],
-#         "description": "",
-#         "done": False
-#     })
-#     return jsonify(True)
-
-
-# @app.route("/todo/tasks/<int:task_id>", methods=["DELETE"])
-# def delete_task(task_id):
-#     if not task_id:
-#         abort(500, "Task ID is required for delete")
-#     global tasks
-#     tasks = [task for task in tasks if task['id'] != task_id]
-#     return jsonify(True)
-
-
-# def update(task, task_id, data):
-#     if task["id"] == task_id:
-#         if 'title' in data:
-#             task["title"] = data['title']
-#         if 'description' in data:
-#             task["description"] = data["description"]
-#     return task
-
-
-# @app.route("/todo/tasks/<int:task_id>", methods=["PUT"])
-# def edit_task(task_id):
-#     if not request.json:
-#         abort(500, "Invalid Request")
-#     global tasks
-#     tasks = [update(task, task_id, request.json) for task in tasks]
-#     return jsonify(tasks)
-
 
 @app.errorhandler(400)
 def not_found(error):
@@ -191,21 +122,23 @@ def login():
     username = request.json.get('username', None)
     password = request.json.get('password', None)
     if not username:
-        return jsonify({"msg": "Missing username parameter"}), 400
+        return jsonify(msg="Missing username parameter"), 400
     if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
+        return jsonify(msg="Missing password parameter"), 400
 
     user = mongo.db.users.find_one({
         "username": username
     })
     if user is not None and "_id" in user:
         if pbkdf2_sha256.verify(password, user["password"]):
-            access_token = create_access_token(identity=user)
+            expires = datetime.datetime.timedelta(days=1)
+            access_token = create_access_token(
+                identity=user, expires_delta=expires)
             return jsonify(access_token=access_token), 200
         else:
-            return jsonify({"msg": "invalid password"}), 500
+            return jsonify(msg="invalid password"), 500
     else:
-        return jsonify({"msg": "invalid login"}), 500
+        return jsonify(msg="invalid login"), 500
 
 
 # Protect a view with jwt_required, which requires a valid access token
@@ -243,7 +176,7 @@ def kpi(id=None):
     kra_json = request.json.get('kra_json', None)
 
     if kpi_json is None or kpi_name is None:
-        return jsonify({"msg": "Invalid request"}), 400
+        return jsonify(msg="Invalid request"), 400
 
     if request.method == "POST":
         kpi = mongo.db.kpi.insert_one({
@@ -254,7 +187,7 @@ def kpi(id=None):
         return jsonify(str(kpi.inserted_id)), 200
     elif request.method == "PUT":
         if id is None:
-            return jsonify({"msg": "Invalid request"}), 400
+            return jsonify(msg="Invalid request"), 400
 
         kpi = mongo.db.kpi.update({
             "_id": ObjectId(id)
@@ -313,7 +246,7 @@ def assign_manager(user_id, manager_id, weight):
                 }
             })
         else:
-            return jsonify({"msg": "user should be a manger"}), 500
+            return jsonify(msg="user should be a manger"), 500
     else:
         ret = mongo.db.users.update({
             "_id": ObjectId(user_id)
@@ -412,7 +345,7 @@ def user_assign_role(user_id, role):
         }, upsert=False)
         return jsonify(ret), 200
     else:
-        return jsonify({"msg": "invalid role"}), 500
+        return jsonify(msg="invalid role"), 500
 
 
 @app.route('/checkin', methods=["POST"])
@@ -584,7 +517,7 @@ def get_manager_weekly_list(weekly_id=None):
         comment = request.json.get("comment", None)
 
         if comment is None or weekly_id is None:
-            return jsonify({"msg", "invalid request"}), 500
+            return jsonify(msg="invalid request"), 500
 
         ret = mongo.db.reports.update({
             "_id": ObjectId(weekly_id)
