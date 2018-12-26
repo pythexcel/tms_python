@@ -11,21 +11,11 @@ from bson.objectid import ObjectId
 
 from flask_restful import Resource, Api
 
-from flask_pymongo import PyMongo
-
 from passlib.hash import pbkdf2_sha256
-
-from flask_cors import CORS
-
 
 import datetime
 
-
-app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/test_db_manish"
-mongo = PyMongo(app)
-api = Api(app)
-CORS(app)
+from app import app, mongo
 
 
 app.config['JWT_SECRET_KEY'] = 'xxxx'  # Change this!
@@ -131,7 +121,7 @@ def login():
     })
     if user is not None and "_id" in user:
         if pbkdf2_sha256.verify(password, user["password"]):
-            expires = datetime.datetime.timedelta(days=1)
+            expires = datetime.timedelta(days=1)
             access_token = create_access_token(
                 identity=user, expires_delta=expires)
             return jsonify(access_token=access_token), 200
