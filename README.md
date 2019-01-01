@@ -29,9 +29,9 @@ next do
 
 next 
 
-> export FLASK_APP=test.py
+> export FLASK_APP=app
 
 > export FLASK_DEBUG=1
 
-> python3 -m flask run
+> flask run
 
