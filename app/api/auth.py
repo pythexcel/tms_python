@@ -68,6 +68,10 @@ def login():
         return jsonify(msg="invalid login"), 500
 
 
+@bp.route('/ping', methods=['GET'])
+def ping():
+    return "pong"
+
 # Protect a view with jwt_required, which requires a valid access token
 # in the request to access.
 @bp.route('/protected', methods=['GET'])
