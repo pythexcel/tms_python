@@ -74,7 +74,7 @@ def kpi(id=None):
 @token.admin_required
 def era(id=None):
     if request.method == "GET":
-        docs = mongo.db.kpi.find({})
+        docs = mongo.db.era.find({})
         era = []
         for doc in docs:
             doc["_id"] = str(doc["_id"])
@@ -82,7 +82,7 @@ def era(id=None):
         return jsonify(era), 200
 
     if request.method == "DELETE":
-        return jsonify(mongo.db.kpi.remove({
+        return jsonify(mongo.db.era.remove({
             "_id": ObjectId(id)
         }))
 
@@ -96,7 +96,7 @@ def era(id=None):
         return jsonify({"msg": "Invalid request"}), 400
 
     if request.method == "POST":
-        era = mongo.db.kpi.insert_one({
+        era = mongo.db.era.insert_one({
             "era_name": era_name,
             "era_json": era_json
         })
@@ -105,7 +105,7 @@ def era(id=None):
         if id is None:
             return jsonify({"msg": "Invalid request"}), 400
 
-        era = mongo.db.kpi.update({
+        era = mongo.db.era.update({
             "_id": ObjectId(id)
         },
             {
