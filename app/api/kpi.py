@@ -73,7 +73,7 @@ def kpi(id=None):
 @jwt_required
 @token.admin_required
 def assign_kpi_to_user(user_id, kpi_id):
-    if kpi_id == -1:
+    if kpi_id == str(-1):
         ret = mongo.db.users.update({
             "_id": ObjectId(user_id)
         }, {
