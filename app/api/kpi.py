@@ -3,7 +3,7 @@ from app import mongo
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-
+from bson.json_util import dumps
 from bson.objectid import ObjectId
 
 
@@ -66,7 +66,7 @@ def kpi(id=None):
             }
         }, upsert=False)
 
-        return jsonify(kpi), 200
+        return jsonify(dumps(kpi)), 200
 
 
 @bp.route("/assign_kpi/<string:user_id>/<string:kpi_id>", methods=["GET"])
