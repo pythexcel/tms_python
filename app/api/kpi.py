@@ -55,15 +55,22 @@ def kpi(id=None):
         if id is None:
             return jsonify(msg="Invalid request"), 400
 
+       update_kpi = {}
+        if kpi_name is not None:
+              update_kpi["kpi_name"] = kpi_name
+
+        if kpi_json is not None:
+            update_kpi["kpi_json"] = kpi_json
+     
+        if kra_json is not None:
+            update_kpi["kra_json"]= kra_json
+
+             
         kpi = mongo.db.kpi.update({
             "_id": ObjectId(id)
         },
             {
-            "$set": {
-                "kpi_name": kpi_name,
-                "kpi_json": kpi_json,
-                "kra_json": kra_json
-            }
+        "$set": update_kpi
         }, upsert=False)
 
         return jsonify(kpi), 200
