@@ -66,7 +66,7 @@ def kpi(id=None):
             }
         }, upsert=False)
 
-        return jsonify(dumps(kpi)), 200
+        return jsonify(str(kpi)), 200
 
 
 @bp.route("/assign_kpi/<string:user_id>/<string:kpi_id>", methods=["GET"])
