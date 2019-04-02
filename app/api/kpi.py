@@ -39,7 +39,7 @@ def kpi(id=None):
 
     kpi_name = request.json.get('kpi_name', None)
     kpi_json = request.json.get('kpi_json', None)
-    kra_json = request.json.get('kra_json', None)
+    era_json = request.json.get('era_json', None)
 
     if kpi_json is None or kpi_name is None:
         return jsonify(msg="Invalid request"), 400
@@ -48,7 +48,7 @@ def kpi(id=None):
         kpi = mongo.db.kpi.insert_one({
             "kpi_name": kpi_name,
             "kpi_json": kpi_json,
-            "kra_json": kra_json
+            "era_json": era_json
         })
         return jsonify(str(kpi.inserted_id)), 200
     elif request.method == "PUT":
@@ -62,7 +62,7 @@ def kpi(id=None):
             "$set": {
                 "kpi_name": kpi_name,
                 "kpi_json": kpi_json,
-                "kra_json": kra_json
+                "era_json": era_json
             }
         }, upsert=False)
 
