@@ -17,55 +17,48 @@ from app.util import get_manager_profile
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
-@bp.route('/register', methods=['POST'])
-def register():
-    if not request.json:
-        abort(500)
-    name = request.json.get("name", None)
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    if not name or not username or not password:
-        return jsonify({"msg": "Invalid Request"}), 400
+@bp.route('/login', methods=['GET','POST'])
+@bp.route('/login/<string:id>', methods=['PUT'])
+def login(id):
 
-    user = mongo.db.users.count({
-        "username": username
-    })
-    if user > 0:
-        return jsonify({"msg": "Username already taken"}), 500
+    if request.method == "GET":
+       username = request.json.get("username")
+       password = request.json.get("password")   
+       URL = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+       payload = {'username': username, "password": password, "action": "login", "token": None}
+       response = requests.get(url=URL, json=payload)
+       return jsonify(response.json())
+    
+    if request.method == "POST":
+        URL2 = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
+        token = request.json.get("token", None)
+        payload2 = {"action": "get_user_profile_detail", "token": token}
+        response = requests.post(url=URL2, json=payload2)
+        user_data = response.json()
+        username = request.json.get("username")
+        users = mongo.db.users.insert_one({
+             "profile": user_data,
+             "username": username
+         }).inserted_id
+        user = mongo.db.users.find_one(
+         {"username": username}
+        )
+    
+        access_token = create_access_token(identity=user)
+        return jsonify(access_token=access_token), 200
+    
 
-    id = mongo.db.users.insert_one({
-        "name": name,
-        "password": pbkdf2_sha256.hash(password),
-        "username": username
-    }).inserted_id
-    return jsonify(str(id))
+    if request.method == "PUT":
+        ret = mongo.db.users.update({
+        "_id": ObjectId(id)
+        }, {
+        "$set": {
+            "profile": request.json
+        }
+        })
+    return jsonify(ret), 200
+    
 
-
-@bp.route('/login', methods=['POST'])
-def login():
-    if not request.json:
-        abort(500)
-
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
-    if not username:
-        return jsonify(msg="Missing username parameter"), 400
-    if not password:
-        return jsonify(msg="Missing password parameter"), 400
-
-    user = mongo.db.users.find_one({
-        "username": username
-    })
-    if user is not None and "_id" in user:
-        if pbkdf2_sha256.verify(password, user["password"]):
-            expires = datetime.timedelta(days=1)
-            access_token = create_access_token(
-                identity=user, expires_delta=expires)
-            return jsonify(access_token=access_token), 200
-        else:
-            return jsonify(msg="invalid password"), 500
-    else:
-        return jsonify(msg="invalid login"), 500
 
 
 @bp.route('/ping', methods=['GET'])
