@@ -16,58 +16,37 @@ from app.util import get_manager_profile
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-
-@bp.route('/register', methods=['POST'])
-def register():
-    if not request.json:
-        abort(500)
-    name = request.json.get("name", None)
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    if not name or not username or not password:
-        return jsonify({"msg": "Invalid Request"}), 400
-
-    user = mongo.db.users.count({
-        "username": username
-    })
-    if user > 0:
-        return jsonify({"msg": "Username already taken"}), 500
-
-    id = mongo.db.users.insert_one({
-        "name": name,
-        "password": pbkdf2_sha256.hash(password),
-        "username": username
-    }).inserted_id
-    return jsonify(str(id))
-
-
-@bp.route('/login', methods=['POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     if not request.json:
         abort(500)
-
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
+    URL = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
     if not username:
         return jsonify(msg="Missing username parameter"), 400
     if not password:
         return jsonify(msg="Missing password parameter"), 400
 
-    user = mongo.db.users.find_one({
-        "username": username
-    })
-    if user is not None and "_id" in user:
-        if pbkdf2_sha256.verify(password, user["password"]):
-            expires = datetime.timedelta(days=1)
-            access_token = create_access_token(
-                identity=user, expires_delta=expires)
-            return jsonify(access_token=access_token), 200
-        else:
-            return jsonify(msg="invalid password"), 500
+    payload = {'username': username, "password": password, "action": "login", "token": None}
+    response = requests.post(url=URL, json=payload)
+    token = response.json()
+    if response is not None:
+        URL2 = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
+        payload2 = {"action": "get_user_profile_detail", "token": token['data']['token']}
+        response2 = requests.post(url=URL2, json=payload2)
+        username = request.json.get("username", None)
+        result = response2.json()
+        user = mongo.db.users.insert_one({
+            "profile": result,
+            "username": username
+        }).inserted_id
+        access_token = create_access_token(identity=user)
+        return jsonify(access_token=access_token), 200
     else:
-        return jsonify(msg="invalid login"), 500
+        return jsonify(msg="invalid response"), 400
 
-
+    
 @bp.route('/ping', methods=['GET'])
 def ping():
     return "pong"
