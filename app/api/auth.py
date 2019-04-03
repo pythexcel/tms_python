@@ -51,7 +51,7 @@ def login():
             "username": username
             }, {
             "$set": {
-                "profile": request.json
+                "profile": result
             }
             })        
         else:
