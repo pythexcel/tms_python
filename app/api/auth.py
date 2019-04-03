@@ -17,11 +17,12 @@ from app.util import get_manager_profile
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+
 @bp.route('/login', methods=['POST'])
 def login():
     if not request.json:
         abort(500)
-    URL = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+    URL_login = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
     username = request.json.get("username", None)
     password = request.json.get("password", None)
     if not username:
@@ -29,49 +30,39 @@ def login():
     if not password:
         return jsonify(msg="Missing password parameter"), 400
     
-   
-    payload = {'username': username, "password": password, "action": "login", "token": None}
-    response = requests.post(url=URL, json=payload)
-    token = response.json()
-    if response is not None:
-        URL2 = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
-        payload2 = {"action": "get_user_profile_detail", "token": token['data']['token']}
-        response2 = requests.post(url=URL2, json=payload2)
-        username = request.json.get("username", None)
-        result = response2.json()
-        user = mongo.db.users.count({
-            "username": username})
-        if user > 0:
-                return jsonify({"msg": "Username already taken"}), 500
-
-        user = mongo.db.users.insert_one({
-            "profile": result,
-           "username": username
-        }).inserted_id
-        
-        if username is not None:
-            access_token = create_access_token(identity=username)
-            return jsonify(access_token=access_token), 200
-        else:
-            return jsonify(msg="invalid password"),500  
+    payload_user_login = {'username': username, "password": password, "action": "login", "token": None}
+    response_user_token = requests.post(url=URL_login, json=payload_user_login)
+    token = response_user_token.json()
+    if token['data'] == {'message': 'Invalid Login'}:
+        return jsonify(msg='invalid login')
     else:
-        return jsonify(msg="invalid login"), 500
-
-
-@bp.route('/update_profile/<string:id>', methods=['PUT'])
-@jwt_required
-@token.admin_required
-def update_profile(id):
-
-    ret = mongo.db.users.update({
-        "_id": ObjectId(id)
-        }, {
-        "$set": {
-            "profile": request.json
-        }
-        })
-    return jsonify(ret), 200
-
+        URL_details = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
+        payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
+        response_user_details = requests.post(url=URL_details, json=payload_user_details)
+        username = request.json.get("username", None)
+        result = response_user_details.json()
+        
+        user = mongo.db.users.count({
+        "username": username})
+        
+        if user > 0:
+        
+            user = mongo.db.users.update({
+            "username": username
+            }, {
+            "$set": {
+                "profile": request.json
+            }
+            })        
+        else:
+            user = mongo.db.users.insert_one({
+                "profile": result,
+                "username": username
+            }).inserted_id
+      
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
+        
 
 @bp.route('/ping', methods=['GET'])
 def ping():
