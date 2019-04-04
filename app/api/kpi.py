@@ -30,9 +30,10 @@ def kpi(id=None):
         return jsonify(kpis), 200
 
     if request.method == "DELETE":
-        return jsonify(mongo.db.kpi.remove({
-            "_id": ObjectId(id)
-        }))
+       kpi = mongo.db.kpi.remove({
+           "_id": ObjectId(id)
+       })
+       return jsonify(str(kpi)), 200
 
     if not request.json:
         abort(500)
@@ -66,7 +67,7 @@ def kpi(id=None):
             }
         }, upsert=False)
 
-        return jsonify(kpi), 200
+        return jsonify(str(kpi)), 200
 
 
 @bp.route("/assign_kpi/<string:user_id>/<string:kpi_id>", methods=["GET"])
