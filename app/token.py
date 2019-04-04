@@ -44,7 +44,7 @@ def admin_required(fn):
         verify_jwt_in_request()
         user = get_current_user()
 
-        if user["username"] == "manish2":
+        if user["username"] == "manish2" or user["username"]== "aayush_saini":
             return fn(*args, **kwargs)
 
         if 'role' in user:
