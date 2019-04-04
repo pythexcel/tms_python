@@ -24,18 +24,17 @@ def get_token(jwt, app):
     @jwt.user_identity_loader
     def user_identity_lookup(user):
         print("user_identity_lookup")
-        return str(user["_id"])
-
+        return str(user)
+       
     @jwt.user_loader_callback_loader
     def user_loader_callback(identity):
         print("user_loader_callback")
         user = mongo.db.users.find_one({
-            "_id": ObjectId(identity)
+            "username": identity
         })
-        if user is None or "_id" not in user:
+        if user is None or "username" not in user:
             return None
-        user["_id"] = str(user["_id"])
-        return user
+        return(user)
 
 
 def admin_required(fn):
@@ -44,7 +43,7 @@ def admin_required(fn):
         verify_jwt_in_request()
         user = get_current_user()
 
-        if user["username"] == "manish2":
+        if user["username"] == "manish2" or user["username"]== "aayush_saini":
             return fn(*args, **kwargs)
 
         if 'role' in user:
