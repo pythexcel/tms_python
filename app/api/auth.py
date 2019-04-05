@@ -40,28 +40,55 @@ def login():
         payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
         response_user_details = requests.post(url=URL_details, json=payload_user_details)
         username = request.json.get("username", None)
-        result = response_user_details.json()
+        result = response_user_details.json()  
+        user_data = result['data']['user_profile_detail']
+        print(user_data)
+        status = user_data["status"]       
+        id = user_data["id"]
+        name = user_data["name"]
+        jobtitle = user_data["jobtitle"]
+        user_Id = user_data["user_Id"]
+        dob = user_data["dob"]
+        gender = user_data["gender"]
+        work_email = user_data["work_email"] 
+        slack_id =  user_data["slack_id"]
+        profileImage = user_data["profileImage"]
+
         
         user = mongo.db.users.count({
         "username": username})
-        
         if user > 0:
-        
             user = mongo.db.users.update({
             "username": username
             }, {
             "$set": {
-                "profile": result
+                "name": name,
+                "user_Id":user_Id,
+                "username": username,
+                "work_email":work_email,
+                "dob":dob,
+                "gender":gender,
+                "slack_id":slack_id,
+                "id": id,
+                "profileImage":profileImage
             }
             })        
         else:
             user = mongo.db.users.insert_one({
-                "profile": result,
-                "username": username
-            }).inserted_id
-      
-        access_token = create_access_token(identity=username)
+                "name": name,
+                "user_Id":user_Id,
+                "username": username,
+                "work_email":work_email,
+                "dob":dob,
+                "gender":gender,
+                "slack_id":slack_id,
+                "id": id,
+                "profileImage":profileImage                
+           }).inserted_id
+        expires = datetime.timedelta(days=1)
+        access_token = create_access_token(identity=username, expires_delta=expires)
         return jsonify(access_token=access_token), 200
+    
         
 
 @bp.route('/ping', methods=['GET'])
