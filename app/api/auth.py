@@ -42,7 +42,6 @@ def login():
         username = request.json.get("username", None)
         result = response_user_details.json()  
         user_data = result['data']['user_profile_detail']
-        print(user_data)
         status = user_data["status"]       
         id = user_data["id"]
         name = user_data["name"]
@@ -62,32 +61,39 @@ def login():
             "username": username
             }, {
             "$set": {
+                "profile": result,
                 "name": name,
                 "user_Id":user_Id,
                 "username": username,
                 "work_email":work_email,
                 "dob":dob,
+                "status":status,
+                "jobtitle":jobtitle,
                 "gender":gender,
                 "slack_id":slack_id,
                 "id": id,
-                "profileImage":profileImage
+                "profileImage":profileImage           
             }
             })        
         else:
             user = mongo.db.users.insert_one({
+                "profile": result,
                 "name": name,
                 "user_Id":user_Id,
                 "username": username,
                 "work_email":work_email,
                 "dob":dob,
+                "status":status,
+                "jobtitle":jobtitle,
                 "gender":gender,
                 "slack_id":slack_id,
                 "id": id,
-                "profileImage":profileImage                
-           }).inserted_id
+                "profileImage":profileImage
+            }).inserted_id
         expires = datetime.timedelta(days=1)
         access_token = create_access_token(identity=username, expires_delta=expires)
         return jsonify(access_token=access_token), 200
+    
     
         
 
