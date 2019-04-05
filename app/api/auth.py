@@ -42,6 +42,9 @@ def login():
         username = request.json.get("username", None)
         result = response_user_details.json()
         user_data = result['data']['user_profile_detail']
+        role_response = jwt.decode(token['data']['token'], None, False)
+        #fields which will be added in the database
+        role = role_response['role']
         status = user_data["status"]
         id = user_data["id"]
         name = user_data["name"]
@@ -71,7 +74,8 @@ def login():
                     "gender": gender,
                     "slack_id": slack_id,
                     "id": id,
-                    "profileImage": profileImage
+                    "profileImage": profileImage,
+                    "role":role
                 }
             })
         else:
@@ -87,7 +91,9 @@ def login():
                 "gender": gender,
                 "slack_id": slack_id,
                 "id": id,
-                "profileImage": profileImage
+                "profileImage": profileImage,
+                "role":role
+                                
             }).inserted_id
         expires = datetime.timedelta(days=1)
         access_token = create_access_token(identity=username, expires_delta=expires)
