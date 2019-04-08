@@ -17,88 +17,135 @@ from app.util import get_manager_profile
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+@bp.route('/register', methods=['POST'])
+def register():
+   if not request.json:
+       abort(500)
+   name = request.json.get("name", None)
+   username = request.json.get("username", None)
+   password = request.json.get("password", None)
+   if not name or not username or not password:
+       return jsonify({"msg": "Invalid Request"}), 400
+
+   user = mongo.db.users.count({
+       "username": username
+   })
+   if user > 0:
+       return jsonify({"msg": "Username already taken"}), 500
+
+   id = mongo.db.users.insert_one({
+       "name": name,
+       "password": pbkdf2_sha256.hash(password),
+       "username": username
+   }).inserted_id
+   return jsonify(str(id))
+
+
 
 @bp.route('/login', methods=['POST'])
 def login():
-    if not request.json:
-        abort(500)
-    URL_login = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    if not username:
-        return jsonify(msg="Missing username parameter"), 400
-    if not password:
-        return jsonify(msg="Missing password parameter"), 400
+   hr = mongo.db.hr.find_one({
+        "integrate_with_hr":True
+      })
+   if hr is not None and "integrate_with_hr" in hr:
 
-    payload_user_login = {'username': username, "password": password, "action": "login", "token": None}
-    response_user_token = requests.post(url=URL_login, json=payload_user_login)
-    token = response_user_token.json()
-    if token['data'] == {'message': 'Invalid Login'}:
-        return jsonify(msg='invalid login')
-    else:
-        URL_details = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
-        payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
-        response_user_details = requests.post(url=URL_details, json=payload_user_details)
-        username = request.json.get("username", None)
-        result = response_user_details.json()
-        user_data = result['data']['user_profile_detail']
-        role_response = jwt.decode(token['data']['token'], None, False)
-        #fields which will be added in the database
-        role = role_response['role']
-        status = user_data["status"]
-        id = user_data["id"]
-        name = user_data["name"]
-        jobtitle = user_data["jobtitle"]
-        user_Id = user_data["user_Id"]
-        dob = user_data["dob"]
-        gender = user_data["gender"]
-        work_email = user_data["work_email"]
-        slack_id = user_data["slack_id"]
-        profileImage = user_data["profileImage"]
+       URL_login = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+       username = request.json.get("username", None)
+       password = request.json.get("password", None)
+       if not username:
+           return jsonify(msg="Missing username parameter"), 400
+       if not password:
+           return jsonify(msg="Missing password parameter"), 400
 
-        user = mongo.db.users.count({
-            "username": username})
-        if user > 0:
-            user = mongo.db.users.update({
-                "username": username
-            }, {
-                "$set": {
-                    "profile": result,
-                    "name": name,
-                    "user_Id": user_Id,
-                    "username": username,
-                    "work_email": work_email,
-                    "dob": dob,
-                    "status": status,
-                    "jobtitle": jobtitle,
-                    "gender": gender,
-                    "slack_id": slack_id,
-                    "id": id,
-                    "profileImage": profileImage,
-                    "role":role
-                }
-            })
-        else:
-            user = mongo.db.users.insert_one({
-                "profile": result,
-                "name": name,
-                "user_Id": user_Id,
-                "username": username,
-                "work_email": work_email,
-                "dob": dob,
-                "status": status,
-                "jobtitle": jobtitle,
-                "gender": gender,
-                "slack_id": slack_id,
-                "id": id,
-                "profileImage": profileImage,
-                "role":role
-                                
-            }).inserted_id
-        expires = datetime.timedelta(days=1)
-        access_token = create_access_token(identity=username, expires_delta=expires)
-        return jsonify(access_token=access_token), 200
-    
+       payload_user_login = {'username': username, "password": password, "action": "login", "token": None}
+       response_user_token = requests.post(url=URL_login, json=payload_user_login)
+       token = response_user_token.json()
+       if token['data'] == {'message': 'Invalid Login'}:
+           return jsonify(msg='invalid login')
+       else:
+           URL_details = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
+           payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
+           response_user_details = requests.post(url=URL_details, json=payload_user_details)
+           username = request.json.get("username", None)
+           result = response_user_details.json()
+           user_data = result['data']['user_profile_detail']
+           role_response = jwt.decode(token['data']['token'], None, False)
+           role = role_response['role']
+           status = user_data["status"]
+           id = user_data["id"]
+           name = user_data["name"]
+           jobtitle = user_data["jobtitle"]
+           user_Id = user_data["user_Id"]
+           dob = user_data["dob"]
+           gender = user_data["gender"]
+           work_email = user_data["work_email"]
+           slack_id = user_data["slack_id"]
+           profileImage = user_data["profileImage"]
+
+           user = mongo.db.users.count({
+               "username": username})
+           if user > 0:
+               user = mongo.db.users.update({
+                   "username": username
+               }, {
+                   "$set": {
+                       "id": id,
+                       "name": name,
+                       "user_Id": user_Id,
+                       "status": status,
+                       "job_title": jobtitle,
+                       "dob": dob,
+                       "gender": gender,
+                       "work_email": work_email,
+                       "slack_id": slack_id,
+                       "profileImage": profileImage,
+                       "profile": result,
+                       "role": role
+                   }
+               })
+           else:
+               user = mongo.db.users.insert_one({
+                   "username": username,
+                   "id": id,
+                   "name": name,
+                   "user_Id": user_Id,
+                   "status": status,
+                   "job_title": jobtitle,
+                   "dob": dob,
+                   "gender": gender,
+                   "work_email": work_email,
+                   "slack_id": slack_id,
+                   "profileImage": profileImage,
+                   "profile": result,
+                   "role": role
+
+               }).inserted_id
+           expires = datetime.timedelta(days=1)
+           access_token = create_access_token(identity=username, expires_delta=expires)
+           return jsonify(access_token=access_token), 200
+   else:
+       if not request.json:
+           abort(500)
+
+       username = request.json.get('username', None)
+       password = request.json.get('password', None)
+       if not username:
+           return jsonify({"msg": "Missing username parameter"}), 400
+       if not password:
+           return jsonify({"msg": "Missing password parameter"}), 400
+
+       user = mongo.db.users.find_one({
+           "username": username
+       })
+       if user is not None and "_id" in user:
+           if pbkdf2_sha256.verify(password, user["password"]):
+               access_token = create_access_token(identity=user)
+               return jsonify(access_token=access_token), 200
+           else:
+               return jsonify({"msg": "invalid password"}), 500
+       else:
+           return jsonify({"msg": "invalid login"}), 500
+
     
         
 
