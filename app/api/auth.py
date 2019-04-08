@@ -19,8 +19,15 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/register', methods=['POST'])
 def register():
-   if not request.json:
-       abort(500)
+   hr = mongo.db.hr.find_one({
+       "integrate_with_hr": True
+   })
+   if hr is not None and "integrate_with_hr" in hr:
+
+       return ('invalid request')
+   else:
+       if not request.json:
+           abort(500)
    name = request.json.get("name", None)
    username = request.json.get("username", None)
    password = request.json.get("password", None)
