@@ -11,20 +11,17 @@ def settings():
  if not request.json:
      abort(500)
  integrate_with_hr = request.json.get('integrate_with_hr', False)
- hr = mongo.db.hr.count({
-     "integrate_with_hr": integrate_with_hr})
-
- if hr > 0:
+ if integrate_with_hr is True:
+      hr = mongo.db.hr.insert_one({
+          "integrate_with_hr": integrate_with_hr
+      }).inserted_id
+      return jsonify(str(hr))
+ else:
      hr = mongo.db.hr.update({
-         "integrate_with_hr": integrate_with_hr
+         "integrate_with_hr": True
      }, {
                  "$unset": {
                      "integrate_with_hr": integrate_with_hr
                  }
              })
-     return ("")
- else:
-      hr = mongo.db.hr.insert_one({
-         "integrate_with_hr": integrate_with_hr
-      }).inserted_id
- return jsonify(str(hr))
+      return ("settings off")
