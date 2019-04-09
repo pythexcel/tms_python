@@ -71,10 +71,10 @@ def login():
         #Api for fetching all user data from hr api.
        user = get_current_user()
        if user["role"] == "Admin":
-            URL_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
-            payload_user_details = {"action": "get_enable_user","token":token['data']['token']}
-            response_user_details = requests.post(url=URL_details, json=payload_user_details)
-            result = response_user_details.json()
+            URL_all_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
+            payload_all_user_details = {"action": "get_enable_user","token":token['data']['token']}
+            response_all_user_details = requests.post(url=URL_all_details, json=payload_all_user_details)
+            result = response_all_user_details.json()
             user = mongo.db.all_users.insert({
             "All_users": result
             })
