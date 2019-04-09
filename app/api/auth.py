@@ -9,7 +9,7 @@ from flask_jwt_extended import (
 from bson.objectid import ObjectId
 
 import datetime
-
+from app.config import URL
 from app import mongo
 from app.util import get_manager_profile
 
@@ -78,7 +78,6 @@ def login():
            user_data = result['data']['user_profile_detail']
            role_response = jwt.decode(token['data']['token'], None, False)
            if role_response["role"] == "Admin":
-               URL = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
                result = response_all_user_details.json()
