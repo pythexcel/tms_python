@@ -83,7 +83,7 @@ def login():
                result = response_all_user_details.json()
                data = result['data']
                user = mongo.db.users.insert({
-                   "users": data
+                   "profile": data
                })
            else:
                pass
