@@ -24,4 +24,4 @@ def settings():
                      "integrate_with_hr": integrate_with_hr
                  }
              })
-      return ("settings off")
+     return ("settings off")
