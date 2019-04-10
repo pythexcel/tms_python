@@ -55,7 +55,7 @@ def login():
       })
    if hr is not None and "integrate_with_hr" in hr:
 
-       URL_login = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+       
        username = request.json.get("username", None)
        password = request.json.get("password", None)
        if not username:
@@ -70,7 +70,6 @@ def login():
        if token['data'] == {'message': 'Invalid Login'}:
            return jsonify(msg='invalid login')
        else:
-           URL_details = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
            response_user_details = requests.post(url=URL_details, json=payload_user_details)
            username = request.json.get("username", None)
