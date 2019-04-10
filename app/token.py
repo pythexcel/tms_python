@@ -13,29 +13,28 @@ from app import mongo
 
 
 def init_token():
-    jwt = JWTManager()
-    return jwt
+   jwt = JWTManager()
+   return jwt
 
 
 def get_token(jwt, app):
-    app.config['JWT_SECRET_KEY'] = 'xxxx'  # Change this!
-    jwt.init_app(app)
+   app.config['JWT_SECRET_KEY'] = 'qwerty'  # Change this!
+   jwt.init_app(app)
 
-    @jwt.user_identity_loader
-    def user_identity_lookup(user):
-        print("user_identity_lookup")
-        return str(user["_id"])
+   @jwt.user_identity_loader
+   def user_identity_lookup(user):
+       print("user_identity_lookup")
+       return str(user)
 
-    @jwt.user_loader_callback_loader
-    def user_loader_callback(identity):
-        print("user_loader_callback")
-        user = mongo.db.users.find_one({
-            "_id": ObjectId(identity)
-        })
-        if user is None or "_id" not in user:
-            return None
-        user["_id"] = str(user["_id"])
-        return user
+   @jwt.user_loader_callback_loader
+   def user_loader_callback(identity):
+       print("user_loader_callback")
+       user = mongo.db.users.find_one({
+           "username": identity
+       })
+       if user is None or "username" not in user:
+           return None
+       return user
 
 
 def admin_required(fn):
