@@ -23,7 +23,7 @@ def register():
        "integrate_with_hr": True
    })
    if hr is not None and "integrate_with_hr" in hr:
-       return ('invalid request'), 500
+       return jsonify({'msg': ' Invalid request'}), 500
    else:
        if not request.json:
            abort(500)
