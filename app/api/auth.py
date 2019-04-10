@@ -9,7 +9,7 @@ from flask_jwt_extended import (
 from bson.objectid import ObjectId
 
 import datetime
-from app.config import URL
+from app.config import URL,URL_details
 from app import mongo
 from app.util import get_manager_profile
 
@@ -55,7 +55,6 @@ def login():
       })
    if hr is not None and "integrate_with_hr" in hr:
 
-       
        username = request.json.get("username", None)
        password = request.json.get("password", None)
        if not username:
@@ -70,7 +69,6 @@ def login():
        if token['data'] == {'message': 'Invalid Login'}:
            return jsonify(msg='invalid login')
        else:
-           URL_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/sal_info/api.php'
            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
            response_user_details = requests.post(url=URL_details, json=payload_user_details)
            username = request.json.get("username", None)
