@@ -44,11 +44,11 @@ def admin_required(fn):
         verify_jwt_in_request()
         user = get_current_user()
 
-        if user["username"] == "manish2":
+        if user["role"] == "Admin":
             return fn(*args, **kwargs)
 
         if 'role' in user:
-            if user['role'] != 'admin':
+            if user['role'] != 'Admin':
                 return jsonify(msg='Admins only!'), 403
             else:
                 return fn(*args, **kwargs)
@@ -62,7 +62,7 @@ def manager_required(fn):
         verify_jwt_in_request()
         user = get_current_user()
         if 'role' in user:
-            if user['role'] == 'manager' or user['role'] == 'admin':
+            if user['role'] == 'manager' or user['role'] == 'Admin':
                 return fn(*args, **kwargs)
             else:
                 return jsonify(msg='manager only!'), 403
