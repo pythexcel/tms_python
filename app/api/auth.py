@@ -82,7 +82,7 @@ def login():
                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
                result = response_all_user_details.json()
                user = mongo.db.users.insert({
-                   "All_users": result
+                   "users": result
                })
            else:
                pass
