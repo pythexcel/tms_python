@@ -9,7 +9,7 @@ from flask_jwt_extended import (
 from bson.objectid import ObjectId
 
 import datetime
-
+from app.config import URL,URL_details
 from app import mongo
 from app.util import get_manager_profile
 
@@ -23,8 +23,7 @@ def register():
        "integrate_with_hr": True
    })
    if hr is not None and "integrate_with_hr" in hr:
-
-       return ('invalid request')
+       return ('invalid request'), 500
    else:
        if not request.json:
            abort(500)
@@ -56,7 +55,6 @@ def login():
       })
    if hr is not None and "integrate_with_hr" in hr:
 
-       URL_login = 'https://hr.excellencetechnologies.in/attendance/API_HR/api.php'
        username = request.json.get("username", None)
        password = request.json.get("password", None)
        if not username:
@@ -65,33 +63,28 @@ def login():
            return jsonify(msg="Missing password parameter"), 400
 
        payload_user_login = {'username': username, "password": password, "action": "login", "token": None}
-       response_user_token = requests.post(url=URL_login, json=payload_user_login)
+       response_user_token = requests.post(url=URL, json=payload_user_login)
        token = response_user_token.json()
-        
-        #Api for fetching all user data from hr api.
-       user = get_current_user()
-       if user["role"] == "Admin":
-            URL_all_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
-            payload_all_user_details = {"action": "get_enable_user","token":token['data']['token']}
-            response_all_user_details = requests.post(url=URL_all_details, json=payload_all_user_details)
-            result = response_all_user_details.json()
-            user = mongo.db.all_users.insert({
-            "All_users": result
-            })
-       else:
-           pass
-        
-        
+         
        if token['data'] == {'message': 'Invalid Login'}:
            return jsonify(msg='invalid login')
        else:
-           URL_details = 'https://hr.excellencetechnologies.in/attendance/sal_info/api.php'
            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
            response_user_details = requests.post(url=URL_details, json=payload_user_details)
            username = request.json.get("username", None)
            result = response_user_details.json()
            user_data = result['data']['user_profile_detail']
            role_response = jwt.decode(token['data']['token'], None, False)
+           if role_response["role"] == "Admin":
+               payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
+               response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+               result = response_all_user_details.json()
+               data = result['data']
+               user = mongo.db.users.insert({
+                   "profile": data
+               })
+           else:
+               pass
            role = role_response['role']
            status = user_data["status"]
            id = user_data["id"]
@@ -191,7 +184,7 @@ def profile():
     current_user = get_current_user()
     if request.method == "GET":
         ret = mongo.db.users.find_one({
-            "_id": ObjectId(current_user["_id"])
+            "_id": ObjectId(current_user["_id"],{"profile":0})
         })
         ret["_id"] = str(ret["_id"])
         if "kpi_id" in ret and ret["kpi_id"] is not None:
