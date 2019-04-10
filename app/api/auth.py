@@ -9,7 +9,7 @@ from flask_jwt_extended import (
 from bson.objectid import ObjectId
 
 import datetime
-from app.config import URL
+from app.config import URL,URL_login,URL_details
 from app import mongo
 from app.util import get_manager_profile
 
