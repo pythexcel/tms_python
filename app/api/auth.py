@@ -154,7 +154,7 @@ def login():
        })
        if user is not None and "_id" in user:
            if pbkdf2_sha256.verify(password, user["password"]):
-               access_token = create_access_token(identity=user)
+               access_token = create_access_token(identity=username)
                return jsonify(access_token=access_token), 200
            else:
                return jsonify({"msg": "invalid password"}), 500
