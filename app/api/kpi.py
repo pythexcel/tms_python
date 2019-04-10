@@ -97,7 +97,7 @@ def assign_kpi_to_user(user_id, kpi_id):
 def memeber_kpi(kpi_id):
     users = mongo.db.users.find({
         "kpi_id": kpi_id
-    })
+    }, {"password": 0, "profile": 0})
     users = [serialize_doc(user) for user in users]
     return jsonify(users)
 
