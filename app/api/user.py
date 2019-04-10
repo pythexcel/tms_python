@@ -22,7 +22,7 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @jwt_required
 @token.admin_required
 def user_list():
-    users = mongo.db.users.find({},{"profile":0})
+    users = mongo.db.users.find({})
     users = [serialize_doc(user) for user in users]
     return jsonify(users), 200
 
