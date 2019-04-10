@@ -89,7 +89,7 @@ def profile():
     if request.method == "GET":
         ret = mongo.db.users.find_one({
             "_id": ObjectId(current_user["_id"])
-        })
+        }, {"profile": 0})
         ret["_id"] = str(ret["_id"])
         if "kpi_id" in ret and ret["kpi_id"] is not None:
             ret_kpi = mongo.db.kpi.find_one({
