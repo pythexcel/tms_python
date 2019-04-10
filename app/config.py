@@ -1,1 +1,1 @@
-URL = 'http://hr.excellencetechnologies.in/attendance/API_HR/api.php'
+URL = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
