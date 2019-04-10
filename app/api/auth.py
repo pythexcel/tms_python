@@ -2,12 +2,12 @@ from flask import (
     Blueprint, g, request, abort, jsonify
 )
 from passlib.hash import pbkdf2_sha256
-
+import jwt
 from flask_jwt_extended import (
     jwt_required, create_access_token, get_current_user
 )
 from bson.objectid import ObjectId
-
+import requests
 import datetime
 from app.config import URL,URL_details
 from app import mongo
