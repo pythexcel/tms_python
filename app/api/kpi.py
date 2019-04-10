@@ -5,7 +5,7 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-
+from app.util import serialize_doc
 
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -91,6 +91,15 @@ def assign_kpi_to_user(user_id, kpi_id):
         })
     return jsonify(ret), 200
 
+@bp.route('/users_on_kpi/<string:kpi_id>', methods=["GET"])
+@jwt_required
+@token.admin_required
+def memeber_kpi(kpi_id):
+    users = mongo.db.users.find({
+        "kpi_id": kpi_id
+    }, {"password": 0, "profile": 0})
+    users = [serialize_doc(user) for user in users]
+    return jsonify(users)
 
 @bp.route("/assign_manager/<string:user_id>/<string:manager_id>/<int:weight>", methods=["GET"])
 @jwt_required
