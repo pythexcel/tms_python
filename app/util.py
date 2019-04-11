@@ -1,11 +1,26 @@
 from app import mongo
 from bson.objectid import ObjectId
+import requests
 
 
 def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
+def slack_msg(msg):
+    webhook_url = 'https://hooks.slack.com/services/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'
+
+    slack_data = {'text': msg }
+
+    response = requests.post(
+        webhook_url, json=slack_data,
+        headers={'Content-Type': 'application/json'}
+    )
+    if response.status_code != 200:
+        raise ValueError(
+            'Request to slack returned an error %s, the response is:\n%s'
+            % (response.status_code, response.text)
+        )
 
 def get_manager_profile(manager):
 
