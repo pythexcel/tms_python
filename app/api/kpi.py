@@ -89,6 +89,7 @@ def assign_kpi_to_user(user_id, kpi_id):
                 "kpi_id": kpi_id
             }
         })
+    slack_msg(msg='KPI is assigned to you')    
     return jsonify(ret), 200
 
 @bp.route('/users_on_kpi/<string:kpi_id>', methods=["GET"])
