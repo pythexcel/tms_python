@@ -7,5 +7,5 @@ def init_db():
 
 
 def get_db(app, mongo):
-    app.config["MONGO_URI"] = "mongodb://localhost:27017/test_db_manish"
+    app.config["MONGO_URI"] = "mongodb+srv://xmage:xmage@cluster0-xooqb.mongodb.net/test?retryWrites=true"
     mongo.init_app(app)
