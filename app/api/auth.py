@@ -79,9 +79,33 @@ def login():
                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
                result = response_all_user_details.json()
-               user = mongo.db.users.insert({
-                   "profile": result
-               })
+               data = result['data']
+               for user in data:
+
+                  username = user['username']
+                  id  = user['id']
+                  name = user['name']
+                  user_Id = user['user_Id']
+                  status = user['status']
+                  jobtitle = user['jobtitle']
+                  dob = user['dob']
+                  gender = user['gender']
+                  work_email = user['work_email']
+                  slack_id = user['slack_id']
+
+                  user = mongo.db.users.insert({
+                        "username": username,
+                        "id" : id,
+                        "name":name,
+                        "user_Id" :user_Id,
+                        "status" :status,
+                        "jobtitle" :jobtitle,
+                        "dob" :dob,
+                        "gender" :gender,
+                        "work_email" : work_email,
+                        "slack_id" : slack_id,
+                        "profile": user
+                  })
            else:
                pass
            role = role_response['role']
