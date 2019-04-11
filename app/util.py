@@ -1,5 +1,6 @@
 from app import mongo
 from bson.objectid import ObjectId
+from app.config import slack_url,web_url
 import requests
 
 
@@ -8,7 +9,8 @@ def serialize_doc(doc):
     return doc
 
 def slack_msg(msg):
-    webhook_url = 'https://hooks.slack.com/services/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'
+    webhook_url = slack_url
+    webhook_pvt = web_url
 
     slack_data = {'text': msg }
 
@@ -16,6 +18,15 @@ def slack_msg(msg):
         webhook_url, json=slack_data,
         headers={'Content-Type': 'application/json'}
     )
+    response_pvt = requests.post(
+        webhook_pvt, json=slack_data,
+        headers={'Content-Type': 'application/json'}
+    )
+    if response_pvt.status_code != 200:
+        raise ValueError(
+            'Request to slack returned an error %s, the response is:\n%s'
+            % (response.status_code, response.text)
+        )
     if response.status_code != 200:
         raise ValueError(
             'Request to slack returned an error %s, the response is:\n%s'
