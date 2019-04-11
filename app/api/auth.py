@@ -79,9 +79,8 @@ def login():
                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
                result = response_all_user_details.json()
-               data = result['data']
                user = mongo.db.users.insert({
-                   "profile": data
+                   "profile": result
                })
            else:
                pass
