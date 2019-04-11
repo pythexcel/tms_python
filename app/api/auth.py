@@ -11,7 +11,7 @@ from bson.objectid import ObjectId
 import datetime
 from app.config import URL,URL_details
 from app import mongo
-from app.util import get_manager_profile
+from app.util import get_manager_profile, slack_msg
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -44,6 +44,7 @@ def register():
        "password": pbkdf2_sha256.hash(password),
        "username": username
    }).inserted_id
+   slack_msg(msg=username + ' is' ' created') 
    return jsonify(str(id))
 
 
@@ -137,6 +138,7 @@ def login():
                }).inserted_id
            expires = datetime.timedelta(days=1)
            access_token = create_access_token(identity=username, expires_delta=expires)
+           slack_msg(msg=username + ' logged' ' in') 
            return jsonify(access_token=access_token), 200
    else:
        if not request.json:
@@ -155,6 +157,7 @@ def login():
        if user is not None and "_id" in user:
            if pbkdf2_sha256.verify(password, user["password"]):
                access_token = create_access_token(identity=user)
+               slack_msg(msg=username + ' logged' ' in') 
                return jsonify(access_token=access_token), 200
            else:
                return jsonify({"msg": "invalid password"}), 500
