@@ -30,9 +30,10 @@ def kpi(id=None):
         return jsonify(kpis), 200
 
     if request.method == "DELETE":
-        return jsonify(mongo.db.kpi.remove({
-            "_id": ObjectId(id)
-        }))
+       kpi = mongo.db.kpi.remove({
+           "_id": ObjectId(id)
+       })
+       return jsonify(str(kpi)), 200
 
     if not request.json:
         abort(500)
