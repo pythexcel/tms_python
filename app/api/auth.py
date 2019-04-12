@@ -122,45 +122,25 @@ def login():
            work_email = user_data["work_email"]
            slack_id = user_data["slack_id"]
            profileImage = user_data["profileImage"]
-
-           user = mongo.db.users.count({
-               "username": username})
-           if user > 0:
-               user = mongo.db.users.update({
-                   "username": username
-               }, {
-                   "$set": {
-                       "id": id,
-                       "name": name,
-                       "user_Id": user_Id,
-                       "status": status,
-                       "job_title": jobtitle,
-                       "dob": dob,
-                       "gender": gender,
-                       "work_email": work_email,
-                       "slack_id": slack_id,
-                       "profileImage": profileImage,
-                       "profile": result,
-                       "role": role
-                   }
-               })
-           else:
-               user = mongo.db.users.insert_one({
-                   "username": username,
-                   "id": id,
-                   "name": name,
-                   "user_Id": user_Id,
-                   "status": status,
-                   "job_title": jobtitle,
-                   "dob": dob,
-                   "gender": gender,
-                   "work_email": work_email,
-                   "slack_id": slack_id,
-                   "profileImage": profileImage,
-                   "profile": result,
-                   "role": role
-
-               }).inserted_id
+           team = user_data["team"]
+           user = mongo.db.users.update({
+                          "username": username,
+                      },{
+                         "$set":{
+                          "id" : id,
+                          "name":name,
+                          "user_Id" :user_Id,
+                          "status" :status,
+                          "job_title" :jobtitle,
+                          "dob" :dob,
+                          "gender" :gender,
+                          "work_email" : work_email,
+                          "slack_id" : slack_id,
+                          "profileImage": profileImage,
+                             "team":team,
+                           "role": role,      
+                          "profile": result
+                   }},upsert=True)
            expires = datetime.timedelta(days=1)
            access_token = create_access_token(identity=username, expires_delta=expires)
            return jsonify(access_token=access_token), 200
