@@ -33,6 +33,7 @@ def kpi(id=None):
         return jsonify(mongo.db.kpi.remove({
             "_id": ObjectId(id)
         }))
+        return jsonify(str(kpi)), 200
 
     if not request.json:
         abort(500)
@@ -66,7 +67,7 @@ def kpi(id=None):
             }
         }, upsert=False)
 
-        return jsonify(kpi), 200
+        return jsonify(str(kpi)), 200
 
 
 @bp.route("/assign_kpi/<string:user_id>/<string:kpi_id>", methods=["GET"])
@@ -89,7 +90,7 @@ def assign_kpi_to_user(user_id, kpi_id):
                 "kpi_id": kpi_id
             }
         })
-    return jsonify(ret), 200
+    return jsonify(str(ret)), 200
 
 
 @bp.route("/assign_manager/<string:user_id>/<string:manager_id>/<int:weight>", methods=["GET"])
