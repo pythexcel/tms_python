@@ -92,29 +92,10 @@ def login():
                   gender = user['gender']
                   work_email = user['work_email']
                   slack_id = user['slack_id']
-                  user = mongo.db.users.count({
-                      "username": user['username']})
-                  if user > 0:
-                      user = mongo.db.users.update({
-                          "username": username
-                      }, {
-                          "$set":{
-                          "id" : id,
-                          "name":name,
-                          "user_Id" :user_Id,
-                          "status" :status,
-                          "jobtitle" :jobtitle,
-                          "dob" :dob,
-                          "gender" :gender,
-                          "work_email" : work_email,
-                          "slack_id" : slack_id,
-                          "profile": user
-                        }
-                   })
-                  else:
-
-                          user = mongo.db.users.insert({
+                  user = mongo.db.users.update({
                           "username": username,
+                      },{
+                         "$set":{
                           "id" : id,
                           "name":name,
                           "user_Id" :user_Id,
@@ -125,7 +106,7 @@ def login():
                           "work_email" : work_email,
                           "slack_id" : slack_id,
                           "profile": user
-                   })
+                   }},upsert=True)
            else:
                pass
            role = role_response['role']
