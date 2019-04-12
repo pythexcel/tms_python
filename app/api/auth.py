@@ -91,7 +91,8 @@ def login():
                   dob = user['dob']
                   gender = user['gender']
                   work_email = user['work_email']
-                  slack_id = user['slack_id'] 
+                  slack_id = user['slack_id']
+                  team = user['team']
                   user = mongo.db.users.update({
                           "username": username,
                       },{
@@ -105,6 +106,7 @@ def login():
                           "gender" :gender,
                           "work_email" : work_email,
                           "slack_id" : slack_id,
+                          "team" : team,
                           "profile": user
                    }},upsert=True)
            else:
