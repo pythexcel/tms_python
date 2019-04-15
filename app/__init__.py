@@ -4,12 +4,15 @@ from flask import Flask, make_response, jsonify
 
 from flask_cors import CORS
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from app import db
 mongo = db.init_db()
 
-
 from app import token
 jwt = token.init_token()
+
+from app.scheduler import alert
 
 
 def create_app(test_config=None):
@@ -54,5 +57,12 @@ def create_app(test_config=None):
     app.register_blueprint(user.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
+    
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(alert, trigger='interval', seconds=2)
+    scheduler.start()
 
-    return app
+    try:
+        return app
+    except:
+        scheduler.shutdown()
