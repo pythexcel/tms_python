@@ -8,6 +8,7 @@ def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
+# Function for sending slack message this will send a message to a TMS channel 
 def slack_msg(msg):
     webhook_url = alert_url
     slack_data = {'text': msg}
