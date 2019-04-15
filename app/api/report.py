@@ -4,6 +4,7 @@ from app.util import serialize_doc, get_manager_profile
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
+import dateutil.parser
 
 from bson.objectid import ObjectId
 
@@ -18,6 +19,9 @@ from flask_jwt_extended import (
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
+today = datetime.datetime.today()
+datestr = datetime.datetime.isoformat(today)
+myDatetime = dateutil.parser.parse(datestr)
 
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
@@ -44,7 +48,7 @@ def add_checkin():
         "task_not_completed_reason": task_not_completed_reason,
         "highlight": highlight,
         "user": str(current_user["_id"]),
-        "created_at": datetime.datetime.now(),
+        "created_at": myDatetime,
         "type": "daily"
     }).inserted_id
     return jsonify(str(ret)), 200
