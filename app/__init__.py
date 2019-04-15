@@ -59,7 +59,7 @@ def create_app(test_config=None):
     app.register_blueprint(settings.bp)
     
     scheduler = BackgroundScheduler()
-    scheduler.add_job(alert, trigger='interval', seconds=2)
+    scheduler.add_job(alert, trigger='interval', hours=24)
     scheduler.start()
 
     try:
