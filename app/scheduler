@@ -1,0 +1,37 @@
+import datetime
+from bson import ObjectId
+
+from app.util import slack_msg
+from app.util import serialize_doc
+from app import mongo
+
+
+def alert():
+    today = datetime.datetime.today()
+    last_day = today - datetime.timedelta(1)
+    next_day = today + datetime.timedelta(1)
+
+    docs = mongo.db.reports.find({
+        "created_at": {
+            "$gte": datetime.datetime(last_day.year,last_day.month,last_day.day),
+            "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
+        }
+    }, {'user': 1})
+    docs = [serialize_doc(doc) for doc in docs]
+    data = docs
+    data_list = list()
+    for user in data:
+        data_list.append(ObjectId(user['user']))
+
+
+    print(data_list)
+    rets = mongo.db.users.find({'_id': {'$not':{"$in": data_list}}}, {'username': 1})
+    rets = [serialize_doc(ret) for ret in rets]
+    names = rets
+    print(names)
+
+    names_list = list()
+    for name in names:
+        names_list.append(name['username'])
+    slack_msg(msg='You have not done check-in of last day : ' + ', '.join(names_list))
+
