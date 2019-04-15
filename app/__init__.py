@@ -58,6 +58,7 @@ def create_app(test_config=None):
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
     
+    # initializing scheduler here in the factory which will trigger itself after 24 hours of interval
     scheduler = BackgroundScheduler()
     scheduler.add_job(alert, trigger='interval', hours=24)
     scheduler.start()
