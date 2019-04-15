@@ -22,14 +22,12 @@ def alert():
     data_list = list()
     for user in data:
         data_list.append(ObjectId(user['user']))
-
-
-    print(data_list)
+        
+        
     rets = mongo.db.users.find({'_id': {'$not':{"$in": data_list}}}, {'username': 1})
     rets = [serialize_doc(ret) for ret in rets]
     names = rets
-    print(names)
-
+  
     names_list = list()
     for name in names:
         names_list.append(name['username'])
