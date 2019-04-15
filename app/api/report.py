@@ -19,6 +19,7 @@ from flask_jwt_extended import (
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
+# added this bit of code and dateutil.parser because first we have to parse datetime data in iso format in python 
 today = datetime.datetime.today()
 datestr = datetime.datetime.isoformat(today)
 myDatetime = dateutil.parser.parse(datestr)
