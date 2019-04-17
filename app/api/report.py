@@ -204,8 +204,27 @@ def get_manager_weekly_list(weekly_id=None):
         }, upsert=False)
 
         return jsonify(ret)
+    
+    
 
-
+@bp.route("/overall_reviewes/<string:user_id>", methods=["GET"])
+@jwt_required
+def overall_reviewes(user_id):
+    docs = mongo.db.reports.find({"user":user_id})
+    docs = [serialize_doc(doc) for doc in docs]
+    sum=0
+    count = 0
+    for detail in docs:   
+       rating=detail['review']
+       review=rating['rating']
+       sum=sum+review
+       count=count+1
+    overall_rating = sum/count
+    return jsonify(overall_rating)
+    
+    
+    
+  
 @bp.route("/360_reviewers", methods=["GET"])
 @jwt_required
 def review_360():
