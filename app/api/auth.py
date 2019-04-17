@@ -67,7 +67,7 @@ def login():
        token = response_user_token.json()
          
        if token['data'] == {'message': 'Invalid Login'}:
-           return jsonify(msg='invalid login')
+           return jsonify(msg='invalid login'), 500
        else:
            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
            response_user_details = requests.post(url=URL_details, json=payload_user_details)
