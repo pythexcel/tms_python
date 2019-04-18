@@ -216,7 +216,7 @@ def overall_reviewes(user_id):
     weights = user['managers']
     all_weight=[]
     for weg in weights:
-       weight = a['weight'] 
+       weight = weg['weight'] 
        all_weight.append(weight) 
     docs = [serialize_doc(doc) for doc in docs]
     all_sum=[]
@@ -227,33 +227,6 @@ def overall_reviewes(user_id):
     weighted_avg = np.average(all_sum, weights=all_weight)   
     return jsonify(weighted_avg)
 
-
-
-
-@bp.route("/overall_reviewes/<string:user_id>", methods=["GET"])
-@jwt_required
-def overall_reviewes(user_id):
-    docs = mongo.db.reports.find({"user":user_id})
-    user = mongo.db.users.find_one({"_id":ObjectId(user_id)})
-    weights = user['managers']
-    all_weight=[]
-    for weg in weights:
-       weight = weg['weight'] 
-       all_weight.append(weight) 
-    docs = [serialize_doc(doc) for doc in docs]
-    all_sum=[]
-    for detail in docs:   
-       review=detail['review']
-       rating=review['rating']
-       all_sum.append(rating)
-    for g in range(len(all_sum)):
-        all_sum[g] = (all_sum[g] * all_weight[g] / sum(all_weight))
-    overall_rating = sum(all_sum)   
-    return jsonify(overall_rating)
-
-    
-    
-    
   
 @bp.route("/360_reviewers", methods=["GET"])
 @jwt_required
