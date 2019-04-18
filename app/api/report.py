@@ -144,6 +144,32 @@ def add_checkin_data(weekly_report):
     return weekly_report
 
 
+def overall_reviewes():
+    current_user = get_current_user()
+    docs = mongo.db.reports.find({"user": str(current_user["_id"])})
+    user = mongo.db.users.find_one({"_id":ObjectId(current_user["_id"])})
+    weights = user['managers']
+    all_weight=[]
+    for weg in weights:
+       weight = weg['weight'] 
+       all_weight.append(weight) 
+    docs = [serialize_doc(doc) for doc in docs]
+    all_sum=[]
+    for detail in docs:   
+       review=detail['review']
+       rating=review['rating']
+       all_sum.append(rating)
+    weighted_avg = np.average(all_sum, weights=all_weight) 
+    ret = mongo.db.users.update({
+            "_id": ObjectId(current_user["_id"])
+        }, {
+            "$set": {
+                "Overall_rating":weighted_avg 
+            }
+        })
+    return jsonify(ret)
+
+
 @bp.route("/manager_weekly_all", methods=["GET"])
 @jwt_required
 @token.manager_required
