@@ -212,17 +212,16 @@ def get_manager_weekly_list(weekly_id=None):
 def overall_reviewes(user_id):
     docs = mongo.db.reports.find({"user":user_id})
     user = mongo.db.users.find_one({"_id":ObjectId(user_id)})
-    a = user['managers']
-    b = a[0]
-    c = b['weight']  
+    weights = user['managers']
+    manager_weight = weights[0]
+    weight = manager_weight['weight']  
     docs = [serialize_doc(doc) for doc in docs]
     sum=0
-    count = 0
     for detail in docs:   
-       rating=detail['review']
-       review=rating['rating']
-       sum=sum+(review*c)
-    overall_rating = sum /c
+       review=detail['review']
+       rating=review['rating']
+       sum=sum+(rating*weight)
+    overall_rating = sum /weight
     return jsonify(overall_rating)
     
     
