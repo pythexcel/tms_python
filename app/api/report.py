@@ -205,29 +205,7 @@ def get_manager_weekly_list(weekly_id=None):
 
         return jsonify(ret)
     
-    
-
-
-@bp.route("/overall_reviewes/<string:user_id>", methods=["GET"])
-@jwt_required
-def overall_reviewes(user_id):
-    docs = mongo.db.reports.find({"user":user_id})
-    user = mongo.db.users.find_one({"_id":ObjectId(user_id)})
-    weights = user['managers']
-    all_weight=[]
-    for weg in weights:
-       weight = weg['weight'] 
-       all_weight.append(weight) 
-    docs = [serialize_doc(doc) for doc in docs]
-    all_sum=[]
-    for detail in docs:   
-       review=detail['review']
-       rating=review['rating']
-       all_sum.append(rating)
-    weighted_avg = np.average(all_sum, weights=all_weight)   
-    return jsonify(weighted_avg)
-
-  
+   
 @bp.route("/360_reviewers", methods=["GET"])
 @jwt_required
 def review_360():
