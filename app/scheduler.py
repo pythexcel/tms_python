@@ -39,7 +39,7 @@ def overall_reviewes():
                 "Overall_rating":weighted_avg 
             }
         })
-    return jsonify(ret)
+  
 
 
 
