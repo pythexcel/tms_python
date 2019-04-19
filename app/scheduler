@@ -1,0 +1,89 @@
+import datetime
+import requests
+import dateutil.parser as parser
+from app.config import attn_url, secret_key
+
+from app.util import serialize_doc
+from app import mongo
+
+
+def checkin_score():
+    # Finding random user who have the below condition
+    users = mongo.db.users.find_one({"cron_checkin": False}, {'username': 1, 'user_Id': 1})
+    ID_ = users['user_Id']
+    print(ID_)
+    Id = str(users['_id'])
+    print(Id)
+
+    # update the codition to true for the particular user
+    docs = mongo.db.users.update_one({
+        "cron_checkin": False
+    }, {
+        "$set": {
+            "cron_checkin": True
+        }}, upsert=False)
+
+    URL = attn_url
+    # generating current month and year
+    today = datetime.datetime.now()
+    month = str(today.month)
+    year = str(today.year)
+
+    # passing parameters in payload to call the api
+    payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+               "month": month, "year": year}
+    response = requests.post(url=URL, json=payload)
+    data = response.json()
+    attn_data = data['data']['attendance']
+
+    # getting the dates where user was present and store it in date_list
+    date_list = list()
+    for data in attn_data:
+        attn = (data['full_date'])
+        if len(data['total_time']) > 0:
+            date_list.append(attn)
+
+    # Taking the length of the date_list to find number of days user was present
+    no_days_present = len(date_list)
+    print('No of days present'+' :'+str(no_days_present))
+
+    #converting of ISO format of first date
+    first = date_list[0]
+    fri_date = str(first)
+    first_date = parser.parse(fri_date)
+    first_date_iso = first_date.isoformat()
+
+    # converting of ISO format of second date
+    last = date_list[-1]
+    lst_date = str(last)
+    last_date = parser.parse(lst_date)
+    last_date_iso = last_date.isoformat()
+
+
+    F = datetime.datetime.strptime(first_date_iso, "%Y-%m-%dT%H:%M:%S")
+    L = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
+
+    # Finding the days on which check_in is done
+    reports = mongo.db.reports.find({
+        "user": Id,
+        "created_at": {
+            "$gte": F,
+            "$lte": L
+        }
+    })
+    reports = [serialize_doc(report) for report in reports]
+
+    # storing just the check-in dates from reports in no_of_checking list
+    no_of_checking = list()
+    for data in reports:
+        no_of_checking.append(data['created_at'])
+
+    # Taking the length of the list and store it in no_of_checking_days list
+    list_checkin = no_of_checking
+    no_of_checking_days = len(list_checkin)
+    print('No of days checkin done'+' :'+str(no_of_checking_days))
+
+    # Calculating the overall_score for checkin of a user
+    checkin_scr = no_of_checking_days/no_days_present * 100
+    print('overall_score' + ' :' + str(checkin_scr))
+
