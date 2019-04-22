@@ -107,6 +107,7 @@ def login():
                           "work_email" : work_email,
                           "slack_id" : slack_id,
                           "team" : team,
+                          "cron_checkin": False,   
                           "profile": user
                    }},upsert=True)
            else:
@@ -137,8 +138,9 @@ def login():
                           "work_email" : work_email,
                           "slack_id" : slack_id,
                           "profileImage": profileImage,
-                             "team":team,
-                           "role": role,      
+                          "team":team,
+                          "role": role,
+                          "cron_checkin": False   
                           "profile": result
                    }},upsert=True)
            expires = datetime.timedelta(days=1)
