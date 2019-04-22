@@ -7,7 +7,7 @@ from flask_cors import CORS
 from app import db
 mongo = db.init_db()
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.scheduler import overall_reviewes
+from app.scheduler import overall_reviewes,update_croncheckin
 
 from app import token
 jwt = token.init_token()
@@ -61,6 +61,10 @@ def create_app(test_config=None):
     scheduler.start()
     
    
+    reset_scheduler = BackgroundScheduler()
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-fri', hour=12, minute=30)
+    reset_scheduler.start()
+    
     try:
         return app
     except:
