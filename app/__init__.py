@@ -60,7 +60,7 @@ def create_app(test_config=None):
 
     # First scheduler which will run at interval of 15 seconds
     scheduler = BackgroundScheduler()
-    scheduler.add_job(checkin_score, trigger='interval', seconds=15)
+    scheduler.add_job(checkin_score, trigger='interval', seconds=60)
     scheduler.start()
 
     # second scheduler which will run every monday to friday at 12:30am in midnight
