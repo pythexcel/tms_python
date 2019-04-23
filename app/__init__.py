@@ -55,13 +55,14 @@ def create_app(test_config=None):
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
     
-    
+    # This will trigger the scheduler for if user has not done his daily checkin and if weekly report is reviewed will trigger at mon-fri 11:00 am
     scheduler = BackgroundScheduler()
-    scheduler.add_job(recent_activity, trigger='interval', seconds=5)
+    scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-fri', hour=11, minute=05)
     scheduler.start()
-
+    
+    # This will trigger the scheduler for if manager has not reviewd his juniors weekly report at every monday 10:30 am 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(reviewed_activity, trigger='interval', seconds=5)
+    scheduler.add_job(reviewed_activity, trigger='cron', day_of_week='monday', hour=10, minute=30)
     scheduler.start()
     
     return app
