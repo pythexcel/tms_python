@@ -6,7 +6,7 @@ from flask_cors import CORS
 
 from app import db
 mongo = db.init_db()
-
+from app.scheduler import recent_activity,reviewed_activity
 
 from app import token
 jwt = token.init_token()
@@ -54,5 +54,14 @@ def create_app(test_config=None):
     app.register_blueprint(user.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
+    
+    
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(recent_activity, trigger='interval', seconds=5)
+    scheduler.start()
 
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(reviewed_activity, trigger='interval', seconds=5)
+    scheduler.start()
+    
     return app
