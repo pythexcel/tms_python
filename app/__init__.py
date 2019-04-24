@@ -13,7 +13,7 @@ mongo = db.init_db()
 from app import token
 jwt = token.init_token()
 
-from app.scheduler import checkin_score, update_croncheckin, overall_reviewes
+from app.scheduler import checkin_score, update_croncheckin, overall_reviewes,recent_activity,reviewed_activity
 
 def create_app(test_config=None):
     # create and configure the app
@@ -72,10 +72,23 @@ def create_app(test_config=None):
     reset_scheduler = BackgroundScheduler()
     reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-fri', hour=12, minute=30)
     reset_scheduler.start()
-
+    
+    # This will trigger the scheduler for if user has not done his daily checkin and if weekly report is reviewed will trigger at mon-fri 11:00 am
+    recent_activity_scheduler = BackgroundScheduler()
+    scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-fri', hour=11, minute=05)
+    scheduler.start()
+    
+    # This will trigger the scheduler for if manager has not reviewd his juniors weekly report at every monday 10:30 am
+    reviewed_activity_scheduler = BackgroundScheduler()
+    scheduler.add_job(reviewed_activity, trigger='cron', day_of_week='monday', hour=10, minute=30)
+    scheduler.start()
+    
+    
     try:
         return app
     except:
         scheduler.shutdown()
         reset_scheduler.shutdown()
         overall_scheduler.shutdown()
+        recent_activity_scheduler.shutdown()
+        reviewed_activity_scheduler.shutdown()
