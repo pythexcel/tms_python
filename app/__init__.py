@@ -4,6 +4,8 @@ from flask import Flask, make_response, jsonify
 
 from flask_cors import CORS
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from app import db
 mongo = db.init_db()
 
@@ -11,6 +13,7 @@ mongo = db.init_db()
 from app import token
 jwt = token.init_token()
 
+from app.scheduler import checkin_score, update_croncheckin, overall_reviewes
 
 def create_app(test_config=None):
     # create and configure the app
@@ -55,4 +58,24 @@ def create_app(test_config=None):
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
 
-    return app
+    # Scheduler which will run at interval of 60 seconds for user checkin score
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(checkin_score, trigger='interval', seconds=60)
+    scheduler.start()
+    
+    # Scheduler which will run at interval of 60 seconds for overall user rating
+    overall_scheduler = BackgroundScheduler()
+    scheduler.add_job(overall_reviewes, trigger='interval', seconds=60)
+    overall_scheduler.start()
+
+    # Scheduler which will run every monday to friday at 12:30am in midnight
+    reset_scheduler = BackgroundScheduler()
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-fri', hour=12, minute=30)
+    reset_scheduler.start()
+
+    try:
+        return app
+    except:
+        scheduler.shutdown()
+        reset_scheduler.shutdown()
+        overall_scheduler.shutdown()

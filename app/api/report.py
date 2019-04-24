@@ -112,6 +112,7 @@ def add_weekly_checkin():
         "created_at": datetime.datetime.now(),
         "type": "weekly",
         "is_reviewed": False,
+        "cron_checkin": True,
         "difficulty": difficulty
     }).inserted_id
     return jsonify(str(ret)), 200
