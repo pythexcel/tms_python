@@ -40,6 +40,6 @@ def user_assign_role(user_id, role):
                 "role": role
             }
         }, upsert=False)
-        return jsonify(ret), 200
+        return jsonify(str(ret)), 200
     else:
         return jsonify(msg="invalid role"), 500
