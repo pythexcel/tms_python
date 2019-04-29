@@ -114,6 +114,15 @@ def assign_manager(user_id, manager_id, weight):
             ret = mongo.db.users.update({
                 "_id": ObjectId(user_id)
             }, {
+                "$pull": {
+                    "managers": {
+                        "_id": manager_id
+                    }
+                }
+            })
+            ret = mongo.db.users.update({
+                "_id": ObjectId(user_id)
+            },  {
                 "$push": {
                     "managers": {
                         "_id": manager_id,
@@ -133,4 +142,4 @@ def assign_manager(user_id, manager_id, weight):
                 }
             }
         })
-    return jsonify(ret), 200
+    return jsonify(str(ret)), 200
