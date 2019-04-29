@@ -95,6 +95,7 @@ def login():
                   team = user['team']
                   user = mongo.db.users.update({
                           "username": username,
+                          "role":{"$ne":"manager"}
                       },{
                          "$set":{
                           "id" : id,
