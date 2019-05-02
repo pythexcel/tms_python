@@ -55,14 +55,14 @@ def login():
       })
    if hr is not None and "integrate_with_hr" in hr:
 
-       username = request.json.get("username", None)
+       log_username = request.json.get("log_username", None)
        password = request.json.get("password", None)
-       if not username:
+       if not log_username:
            return jsonify(msg="Missing username parameter"), 400
        if not password:
            return jsonify(msg="Missing password parameter"), 400
 
-       payload_user_login = {'username': username, "password": password, "action": "login", "token": None}
+       payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
        response_user_token = requests.post(url=URL, json=payload_user_login)
        token = response_user_token.json()
          
@@ -71,51 +71,11 @@ def login():
        else:
            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
            response_user_details = requests.post(url=URL_details, json=payload_user_details)
-           username = request.json.get("username", None)
            result = response_user_details.json()
            user_data = result['data']['user_profile_detail']
-           role_response = jwt.decode(token['data']['token'], None, False)
-           if role_response["role"] == "Admin":
-               payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
-               response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
-               result = response_all_user_details.json()
-               data = result['data']
-               for user in data:
-
-                  username = user['username']
-                  id  = user['id']
-                  name = user['name']
-                  user_Id = user['user_Id']
-                  status = user['status']
-                  jobtitle = user['jobtitle']
-                  dob = user['dob']
-                  gender = user['gender']
-                  work_email = user['work_email']
-                  slack_id = user['slack_id']
-                  team = user['team']
-                  user = mongo.db.users.update({
-                          "username": username,
-                      },{
-                         "$set":{
-                          "id" : id,
-                          "name":name,
-                          "user_Id" :user_Id,
-                          "status" :status,
-                          "jobtitle" :jobtitle,
-                          "dob" :dob,
-                          "gender" :gender,
-                          "work_email" : work_email,
-                          "slack_id" : slack_id,
-                          "team" : team,
-                          "cron_checkin": False,   
-                          "profile": user
-                   }},upsert=True)
-           else:
-               pass
-           role = role_response['role']
            status = user_data["status"]
            id = user_data["id"]
-           name = user_data["name"]
+           username = user_data["name"]
            jobtitle = user_data["jobtitle"]
            user_Id = user_data["user_Id"]
            dob = user_data["dob"]
@@ -125,31 +85,66 @@ def login():
            profileImage = user_data["profileImage"]
            team = user_data["team"]
            user = mongo.db.users.update({
-                          "username": username,
-                      },{
-                         "$set":{
-                          "id" : id,
-                          "name":name,
-                          "user_Id" :user_Id,
-                          "status" :status,
-                          "job_title" :jobtitle,
-                          "dob" :dob,
-                          "gender" :gender,
-                          "work_email" : work_email,
-                          "slack_id" : slack_id,
-                          "profileImage": profileImage,
-                          "team":team,
+               "username": username
+           }, {
+               "$set": {
+                   "id": id,
+                   "name": username,
+                   "user_Id": user_Id,
+                   "status": status,
+                   "job_title": jobtitle,
+                   "dob": dob,
+                   "gender": gender,
+                   "work_email": work_email,
+                   "slack_id": slack_id,
+                   "profileImage": profileImage,
+                   "team": team,
+                   "cron_checkin": False,
+                   "profile": result,
+               }})
+
+           role_response = jwt.decode(token['data']['token'], None, False)
+           if role_response["role"] == "Admin":
+               payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
+               response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+               result = response_all_user_details.json()
+               data = result['data']
+               for user in data:
+                  role = user['role_name']
+                  id  = user['id']
+                  username = user['name']
+                  user_Id = user['user_Id']
+                  status = user['status']
+                  jobtitle = user['jobtitle']
+                  dob = user['dob']
+                  gender = user['gender']
+                  work_email = user['work_email']
+                  slack_id = user['slack_id']
+                  team = user['team']
+                  user = mongo.db.users.update({
+                      "username": username,
+                  }, {
+                      "$set": {
+                          "id": id,
+                          "name": username,
+                          "user_Id": user_Id,
+                          "status": status,
+                          "jobtitle": jobtitle,
+                          "dob": dob,
+                          "gender": gender,
+                          "work_email": work_email,
+                          "slack_id": slack_id,
+                          "team": team,
+                          "cron_checkin": False,
                           "role": role,
-                          "cron_checkin": False   
-                          "profile": result
-                   }},upsert=True)
+                          "profile": user,
+                      }}, upsert=True)
            expires = datetime.timedelta(days=1)
            access_token = create_access_token(identity=username, expires_delta=expires)
            return jsonify(access_token=access_token), 200
    else:
        if not request.json:
            abort(500)
-
        username = request.json.get('username', None)
        password = request.json.get('password', None)
        if not username:
