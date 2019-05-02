@@ -75,7 +75,6 @@ def login():
            user_data = result['data']['user_profile_detail']
            status = user_data["status"]
            role_response = jwt.decode(token['data']['token'], None, False)
-           role=role_response["role"]
            id = user_data["id"]
            username = user_data["name"]
            jobtitle = user_data["jobtitle"]
@@ -86,12 +85,15 @@ def login():
            slack_id = user_data["slack_id"]
            profileImage = user_data["profileImage"]
            team = user_data["team"]
-           if role_response["role"] != "Admin":
-            user = mongo.db.users.count({
-                "username": log_username})
-            if user > 0:
+           if role_response["role"] == "Admin":
+               role="Admin"
+           else:
+               role="Employee"
+           user = mongo.db.users.count({
+                "username": username})
+           if user > 0:
                     user = mongo.db.users.update({
-                        "username": log_username
+                        "username": username
                     }, {
                         "$set": {
                             "id": id,
@@ -108,9 +110,9 @@ def login():
                             "cron_checkin": False,
                             "profile": result
                         }})
-            else:
+           else:
                     user = mongo.db.users.insert_one({
-                        "username": log_username,
+                        "username": username,
                         "id": id,
                         "name": username,
                         "user_Id": user_Id,
@@ -208,7 +210,6 @@ def login():
                return jsonify({"msg": "invalid password"}), 500
        else:
            return jsonify({"msg": "invalid login"}), 500
-
     
         
 
