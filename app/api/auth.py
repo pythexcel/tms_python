@@ -85,10 +85,7 @@ def login():
            slack_id = user_data["slack_id"]
            profileImage = user_data["profileImage"]
            team = user_data["team"]
-           if role_response["role"] == "Admin":
-               role="Admin"
-           else:
-               role="Employee"
+           
            user = mongo.db.users.count({
                 "username": username})
            if user > 0:
@@ -111,6 +108,10 @@ def login():
                             "profile": result
                         }})
            else:
+                if role_response["role"] == "Admin":
+                    role="Admin"
+                else:
+                    role="Employee"
                     user = mongo.db.users.insert_one({
                         "username": username,
                         "id": id,
