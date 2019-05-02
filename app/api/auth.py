@@ -84,24 +84,45 @@ def login():
            slack_id = user_data["slack_id"]
            profileImage = user_data["profileImage"]
            team = user_data["team"]
-           user = mongo.db.users.update({
-               "username": username
-           }, {
-               "$set": {
-                   "id": id,
-                   "name": username,
-                   "user_Id": user_Id,
-                   "status": status,
-                   "job_title": jobtitle,
-                   "dob": dob,
-                   "gender": gender,
-                   "work_email": work_email,
-                   "slack_id": slack_id,
-                   "profileImage": profileImage,
-                   "team": team,
-                   "cron_checkin": False,
-                   "profile": result,
-               }})
+           user = mongo.db.users.count({
+               "username": log_username})
+           if user > 0:
+                user = mongo.db.users.update({
+                    "username": log_username
+                }, {
+                    "$set": {
+                        "id": id,
+                        "name": username,
+                        "user_Id": user_Id,
+                        "status": status,
+                        "job_title": jobtitle,
+                        "dob": dob,
+                        "gender": gender,
+                        "work_email": work_email,
+                        "slack_id": slack_id,
+                        "profileImage": profileImage,
+                        "team": team,
+                        "cron_checkin": False,
+                        "profile": result
+                    }})
+           else:
+                user = mongo.db.users.insert_one({
+                    "username": log_username,
+                    "id": id,
+                    "name": username,
+                    "user_Id": user_Id,
+                    "status": status,
+                    "job_title": jobtitle,
+                    "dob": dob,
+                    "gender": gender,
+                    "work_email": work_email,
+                    "slack_id": slack_id,
+                    "profileImage": profileImage,
+                    "team": team,
+                    "cron_checkin": False,
+                    "profile": result
+                }).inserted_id
+
 
            role_response = jwt.decode(token['data']['token'], None, False)
            if role_response["role"] == "Admin":
