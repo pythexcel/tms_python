@@ -85,32 +85,36 @@ def login():
            slack_id = user_data["slack_id"]
            profileImage = user_data["profileImage"]
            team = user_data["team"]
-           user = mongo.db.users.count({
+           prImage = user_data["profileImage"]
+            profileImage = prImage
+            if len(profileImage) > 0:
+                image = profileImage
+            user = mongo.db.users.count({
                 "username": username})
-           if user > 0:
-                    user = mongo.db.users.update({
-                        "username": username
-                    }, {
-                        "$set": {
-                            "id": id,
-                            "name": username,
-                            "user_Id": user_Id,
-                            "status": status,
-                            "job_title": jobtitle,
-                            "dob": dob,
-                            "gender": gender,
-                            "work_email": work_email,
-                            "slack_id": slack_id,
-                            "profileImage": profileImage,
-                            "team": team,
-                            "cron_checkin": False,
-                            "profile": result
-                        }})
-           else:
+            if user > 0:
+                user = mongo.db.users.update({
+                    "username": username
+                }, {
+                    "$set": {
+                        "id": id,
+                        "name": username,
+                        "user_Id": user_Id,
+                        "status": status,
+                        "job_title": jobtitle,
+                        "dob": dob,
+                        "gender": gender,
+                        "work_email": work_email,
+                        "slack_id": slack_id,
+                        "profileImage": image,
+                        "team": team,
+                        "cron_checkin": False,
+                        "profile": result
+                    }})
+            else:
                 if role_response["role"] == "Admin":
-                    role="Admin"
+                    role = "Admin"
                 else:
-                    role="Employee"
+                    role = "Employee"
                     user = mongo.db.users.insert_one({
                         "username": username,
                         "id": id,
@@ -124,11 +128,11 @@ def login():
                         "slack_id": slack_id,
                         "profileImage": profileImage,
                         "team": team,
-                        "role":role,
+                        "role": role,
                         "cron_checkin": False,
                         "profile": result
                     }).inserted_id
-
+                    
            role_response = jwt.decode(token['data']['token'], None, False)
            if role_response["role"] == "Admin":
                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
