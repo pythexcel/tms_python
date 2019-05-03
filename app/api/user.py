@@ -33,6 +33,17 @@ def user_list():
 @token.admin_required
 def user_assign_role(user_id, role):
     if role == "admin" or role == "manager":
+        ret = mongo.db.users.find({
+            "_id": ObjectId(user_id)
+        })
+        ret = [serialize_doc(user) for user in ret]
+        for details in ret:
+            user_role = details['role']
+        if user_role == "Admin":
+            role = "Admin"
+        else:
+            role = "manager"
+              
         ret = mongo.db.users.update({
             "_id": ObjectId(user_id)
         }, {
