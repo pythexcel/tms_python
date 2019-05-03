@@ -13,9 +13,9 @@ def checkin_score():
     users = mongo.db.users.find_one({"cron_checkin": False}, {'username': 1, 'user_Id': 1})
     if users is not None:
         ID_ = users['user_Id']
-        print(ID_)
+      
         Id = str(users['_id'])
-        print(Id)
+   
 
         # update the condition to true for the particular user
         docs = mongo.db.users.update_one({
@@ -164,6 +164,32 @@ def recent_activity():
             "$set": {
             "cron_recent_activity": True
             }}, upsert=False)
+            
+            #find today,last_day,next_day date
+            today = datetime.datetime.today()
+            last_day = today - datetime.timedelta(1)
+            next_day = today + datetime.timedelta(1)
+            print(last_day)
+            #find reports checkin by user_id
+            reports = mongo.db.reports.find({
+            "user": str(id),
+            "type": "daily",
+            "created_at": {
+                "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
+            }
+            })
+            reports = [serialize_doc(report) for report in reports]
+            print(reports)
+            #if checkin not found update date in user profile
+            if not reports:
+                ret = mongo.db.users.update({
+                    "_id": ObjectId(id),},
+                    {"$push":{"missed_checkin_dates":{
+                        "dates":today - datetime.timedelta(1)
+                    }}})
+            
+            
 
             today = datetime.date.today()
             last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
