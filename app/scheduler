@@ -151,75 +151,40 @@ def update_croncheckin():
         
 #Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
-    #Here we find a common variable in report
-        users = mongo.db.reports.find({"cron_recent_activity":False})
+        # Here we find a common variable in report
+        users = mongo.db.reports.find({"type": "daily"})
         users = [serialize_doc(doc) for doc in users]
-        #find user id
+        # find user id
         for detail in users:
-            id=detail['user']
-            #update cron  variable True    
-            docs = mongo.db.reports.update({
-            "user":str(id)
-            }, {
-            "$set": {
-            "cron_recent_activity": True
-            }}, upsert=False)
-
-            today = datetime.date.today()
-            last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
-            last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
-        #here find last week reports by user_id where review exists 
-            docs = mongo.db.reports.find({
-                "user": str(id),
-                "review": {'$exists': True},  
-                "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
-                "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
-            }
-            })
-            docs = [serialize_doc(doc) for doc in docs]
-            for a in docs:
-                review=a['review']
-                manager_id=review['manager_id']
-            #find employee manager_id
-            managers = mongo.db.users.find({
-                "_id": ObjectId(str(manager_id))},{"username":1})
-            managers = [serialize_doc(doc) for doc in managers]
-
-            for a in managers:
-                manager_name=a["username"]
-            #check if docs are empty or not
-            if not docs:
-                return("review not available")
-            else:
-                ret = mongo.db.recent_activity.update({
-                    "user": str(id)},
-                    {"$set":{
-                    "recent_activity":{
-                    "created_at": datetime.datetime.now(),
-                    "Message":"Your weekly report has been reviewed by "" " +manager_name
-                    }}},upsert=True)
-
+            ID = detail['user']
+            # update cron  variable True
+            # find today,last_day,next_day date
+            today = datetime.datetime.today()
             last_day = today - datetime.timedelta(1)
-            next_day = today + datetime.timedelta(1)
-            #find reports by user_id
+
+            date = today - datetime.timedelta(1)
+            time = date.strftime("%Y-%m-%d")
+            print(time)
+            # find reports checkin by user_id
             reports = mongo.db.reports.find({
-            "user": str(id),
-            "type": "daily",
-            "created_at": {
-                "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
-                "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
-            }
+                "user": str(ID),
+                "type": "daily",
+                "created_at": {
+                    "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                    "$lte": datetime.datetime(today.year, today.month, today.day)
+                }
             })
             reports = [serialize_doc(report) for report in reports]
-            #here if reports list are empty then push msg in DB  
+            # if checkin not found update date in user profile
             if not reports:
-                ret = mongo.db.recent_activity.update({
-                    "user": str(id),},
-                    {"$push":{"missed_checkin":{
-                        "checkin_message":"You have missed your daily checkin"
-                    }}})    
-
+                ret = mongo.db.users.update({
+                    "_id": ObjectId(ID)},
+                    {"$push": {"missed_checkin_dates": {
+                        "time": time,
+                        "dates": today - datetime.timedelta(1)
+                    }}})
+        
+        
 def reviewed_activity():
     # First take date time where weekly report is to be dealt with
         today = datetime.date.today()
