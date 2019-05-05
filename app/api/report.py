@@ -49,6 +49,45 @@ def add_checkin():
     }).inserted_id
     return jsonify(str(ret)), 200
 
+@bp.route('/readd', methods=['POST'])
+@jwt_required
+def readd():
+    if not request.json:
+        abort(500)
+
+    report = request.json.get("report", None)
+    task_completed = request.json.get("task_completed", False)
+    task_not_completed_reason = request.json.get(
+        "task_not_completed_reason", "")
+    highlight = request.json.get("highlight", "")
+    time = request.json.get("time", "")
+
+    if task_completed == 1:
+        task_completed = True
+    else:
+        task_completed = False
+
+    current_user = get_current_user()
+    if current_user is not None:
+        user = mongo.db.users.update(
+            {"_id": ObjectId(current_user["_id"])},
+            {"$pull": {
+                "missed_checkin_dates": {
+                    "time": time,
+                }
+            }
+            })
+        ret = mongo.db.reports.insert_one({
+            "report": report,
+            "task_completed": task_completed,
+            "task_not_completed_reason": task_not_completed_reason,
+            "highlight": highlight,
+            "user": str(current_user["_id"]),
+            "created_at": datetime.datetime.today(),
+            "type": "daily"
+        }).inserted_id
+
+        return jsonify(str(ret)), 200
 
 @bp.route('/reports', methods=["GET"])
 @jwt_required
