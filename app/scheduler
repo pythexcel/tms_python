@@ -177,13 +177,47 @@ def recent_activity():
             reports = [serialize_doc(report) for report in reports]
             # if checkin not found update date in user profile
             if not reports:
-                ret = mongo.db.users.update({
-                    "_id": ObjectId(ID)},
-                    {"$push": {"missed_checkin_dates": {
-                        "time": time,
-                        "dates": today - datetime.timedelta(1)
-                    }}})
-        
+                users = mongo.db.users.find_one({"_id": ObjectId(str(ID))}, {'username': 1, 'user_Id': 1})
+                if users is not None:
+                    ID_ = users['user_Id']
+                    URL = attn_url
+                    # generating current month and year
+                    today = datetime.datetime.now()
+                    month = str(today.month)
+                    print(month)
+                    year = str(today.year)
+                    print(year)
+
+                    # passing parameters in payload to call the api
+                    payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+                               "month": month, "year": year}
+                    response = requests.post(url=URL, json=payload)
+                    data = response.json()
+                    attn_data = data['data']['attendance']
+
+                    # getting the dates where user was present and store it in date_list
+                    date_list = list()
+                    for data in attn_data:
+                        attn = (data['full_date'])
+                        if (data['day_type']) in ['NON_WORKING_DAY']:
+                            date_list.append(attn)
+                    print(date_list)
+                    if time in date_list:
+                        return None
+                    else:
+                        ret = mongo.db.users.update({
+                            "_id": ObjectId(ID)},
+                            {"$push": {"missed_checkin_dates": {
+                                "time": time,
+                                "dates": today - datetime.timedelta(1)
+                            }}})
+                        ret = mongo.db.recent_activity.update({
+                            "user": str(id), },
+                            {"$push": {"missed_checkin": {
+                                "date": datetime.datetime.today(),
+                                "checkin_message": "You have missed your daily checkin"
+                            }}}, upsert=True)
+
         
 def reviewed_activity():
     # First take date time where weekly report is to be dealt with
