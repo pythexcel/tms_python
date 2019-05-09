@@ -58,7 +58,7 @@ def add_checkin():
     docs = mongo.db.recent_activity.update({
         "user": str(current_user["_id"])},
         {"$push": {"Daily_checkin": {
-            "created_at": date_time,
+            "date": date_time,
             "priority": 0,
             "Daily_chechkin_message": "You have done your daily checkin on" + ' ' + str(date_time)
         }}}, upsert=True)
@@ -251,7 +251,6 @@ def get_manager_weekly_list(weekly_id=None):
 
         if comment is None or weekly_id is None:
             return jsonify(msg="invalid request"), 500
-
         ret = mongo.db.reports.update({
             "_id": ObjectId(weekly_id)
         }, {
@@ -346,5 +345,6 @@ def reviews_360(review_id=None):
         })
 
     return jsonify(ret)
+
 
 
