@@ -30,7 +30,13 @@ def add_checkin():
     task_not_completed_reason = request.json.get(
         "task_not_completed_reason", "")
     highlight = request.json.get("highlight", "")
+    date = request.json.get("date", None)
+    highlight_task_reason = request.json.get("highlight_task_reason", None)
 
+    if date is None:
+        date_time = datetime.datetime.today()
+    else:
+        date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
     if task_completed == 1:
         task_completed = True
     else:
@@ -43,11 +49,20 @@ def add_checkin():
         "task_completed": task_completed,
         "task_not_completed_reason": task_not_completed_reason,
         "highlight": highlight,
+        "highlight_task_reason": highlight_task_reason,
         "user": str(current_user["_id"]),
-        "created_at": datetime.datetime.now(),
+        "created_at": date_time,
         "type": "daily"
     }).inserted_id
-    return jsonify(str(ret)), 200
+
+    docs = mongo.db.recent_activity.update({
+        "user": str(current_user["_id"])},
+        {"$push": {"Daily_checkin": {
+            "created_at": date_time,
+            "priority": 0,
+            "Daily_chechkin_message": "You have done your daily checkin on" + ' ' + str(date_time)
+        }}}, upsert=True)
+    return jsonify(str(ret))
 
 
 @bp.route('/reports', methods=["GET"])
@@ -56,6 +71,26 @@ def checkin_reports():
     current_user = get_current_user()
     docs = mongo.db.reports.find({
         "user": str(current_user["_id"])
+    })
+    docs = [serialize_doc(doc) for doc in docs]
+    return jsonify(docs), 200
+
+
+@bp.route('/week_checkin', methods=["GET"])
+@jwt_required
+def week_checkin_reports():
+    today = datetime.datetime.today()
+    last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
+    next_day = today + datetime.timedelta(days=1)
+    print(next_day)
+    current_user = get_current_user()
+    docs = mongo.db.reports.find({
+        "user": str(current_user["_id"]),
+        "type": "daily",
+        "created_at": {
+            "$gte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day),
+            "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
+        }
     })
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
@@ -73,8 +108,8 @@ def get_week_reports():
     docs = mongo.db.reports.find({
         "user": str(current_user["_id"]),
         "created_at": {
-            "$gte": last_monday.isoformat(),
-            "$lte": last_sunday.isoformat()
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
+            "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
         }
     })
     docs = [serialize_doc(doc) for doc in docs]
@@ -86,6 +121,7 @@ def get_week_reports():
 @jwt_required
 def add_weekly_checkin():
     current_user = get_current_user()
+
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
@@ -95,11 +131,27 @@ def add_weekly_checkin():
         return jsonify(docs), 200
     if not request.json:
         abort(500)
-
     k_highlight = request.json.get("k_highlight", None)
     extra = request.json.get("extra", "")
     select_days = request.json.get("select_days", [])
     difficulty = request.json.get("difficulty", 0)
+    username = current_user['username']
+    profileimage = current_user['profileImage']
+    job_title = current_user['jobtitle']
+    team = current_user['team']
+
+    reviewed = False
+    users = mongo.db.users.find({
+        "_id": ObjectId(current_user["_id"])
+    })
+    users = [serialize_doc(doc) for doc in users]
+
+    managers_data = []
+    for data in users:
+        for mData in data['managers']:
+            mData['reviewed'] = reviewed
+            managers_data.append(mData)
+
 
     if k_highlight is None:
         return jsonify({"msg": "Invalid request"}), 500
@@ -109,13 +161,19 @@ def add_weekly_checkin():
         "extra": extra,
         "select_days": select_days,
         "user": str(current_user["_id"]),
+        "username": username,
         "created_at": datetime.datetime.now(),
         "type": "weekly",
-        "is_reviewed": False,
+        "is_reviewed": managers_data,
+        "profileImage": profileimage,
+        "jobtitle": job_title,
+        "team": team,
         "cron_checkin": True,
+        "cron_recent_activity": False,
         "difficulty": difficulty
     }).inserted_id
     return jsonify(str(ret)), 200
+
 
 
 def get_manager_juniors(id):
@@ -132,14 +190,17 @@ def get_manager_juniors(id):
 
 
 def load_checkin(id):
-    ret = mongo.db.report.find_one({
+    print(id)
+    ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
     })
+    print(ret)
     return serialize_doc(ret)
 
 
 def add_checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
+
     select_days = [load_checkin(day) for day in select_days]
     weekly_report["select_days"] = select_days
     return weekly_report
@@ -173,7 +234,7 @@ def get_manager_weekly_list(weekly_id=None):
 
         docs = mongo.db.reports.find({
             "type": "weekly",
-            "is_reviewed": False,
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
             "user": {
                 "$in": juniors
             }
@@ -194,17 +255,23 @@ def get_manager_weekly_list(weekly_id=None):
         ret = mongo.db.reports.update({
             "_id": ObjectId(weekly_id)
         }, {
-            "$set": {
+            "$push": {
                 "review": {
                     "difficulty": difficulty,
                     "rating": rating,
-                    "comment": comment
-                },
-                "is_reviewed": True
+                    "comment": comment,
+                    "manager_id": str(current_user["_id"])
+                }
             }
-        }, upsert=False)
-
-        return jsonify(ret)
+        })
+        docs = mongo.db.reports.update({
+            "_id": ObjectId(weekly_id),
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+        }, {
+            "$set": {
+                "is_reviewed.$.reviewed": True
+            }})
+        return jsonify(str(ret)), 200
 
 
 @bp.route("/360_reviewers", methods=["GET"])
@@ -279,3 +346,5 @@ def reviews_360(review_id=None):
         })
 
     return jsonify(ret)
+
+
