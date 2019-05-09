@@ -1,14 +1,3 @@
-from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token,
-    get_jwt_identity, get_current_user, jwt_refresh_token_required,
-    verify_jwt_in_request
-)
-from functools import wraps
-
-from flask import g, current_app, jsonify
-
-from bson.objectid import ObjectId
-
 from app import mongo
 
 
@@ -67,3 +56,4 @@ def manager_required(fn):
                 return jsonify(msg='manager only!'), 403
         return jsonify(msg='manager only!'), 403
     return wrapper
+
