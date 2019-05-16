@@ -50,67 +50,71 @@ def register():
 
 @bp.route('/login', methods=['POST'])
 def login():
-   hr = mongo.db.hr.find_one({
-        "integrate_with_hr":True
-      })
-   if hr is not None and "integrate_with_hr" in hr:
+    hr = mongo.db.hr.find_one({
+        "integrate_with_hr": True
+    })
+    if hr is not None and "integrate_with_hr" in hr:
 
-       log_username = request.json.get("username", None)
-       password = request.json.get("password", None)
-       if not log_username:
-           return jsonify(msg="Missing username parameter"), 400
-       if not password:
-           return jsonify(msg="Missing password parameter"), 400
+        log_username = request.json.get("username", None)
+        password = request.json.get("password", None)
+        if not log_username:
+            return jsonify(msg="Missing username parameter"), 400
+        if not password:
+            return jsonify(msg="Missing password parameter"), 400
 
-       payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
-       response_user_token = requests.post(url=URL, json=payload_user_login)
-       token = response_user_token.json()
-         
-       if token['data'] == {'message': 'Invalid Login'}:
-           return jsonify(msg='invalid login'), 500
-       else:
-           payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
-           response_user_details = requests.post(url=URL_details, json=payload_user_details)
-           result = response_user_details.json()
-           user_data = result['data']['user_profile_detail']
-           status = user_data["status"]
-           role_response = jwt.decode(token['data']['token'], None, False)
-           id = user_data["id"]
-           username = user_data["name"]
-           jobtitle = user_data["jobtitle"]
-           user_Id = user_data["user_Id"]
-           dob = user_data["dob"]
-           gender = user_data["gender"]
-           work_email = user_data["work_email"]
-           slack_id = user_data["slack_id"]
-           profileImage = user_data["profileImage"]
-           team = user_data["team"]
-           user = mongo.db.users.count({
+        payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
+        response_user_token = requests.post(url=URL, json=payload_user_login)
+        token = response_user_token.json()
+
+        if token['data'] == {'message': 'Invalid Login'}:
+            return jsonify(msg='invalid login'), 500
+        else:
+            payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
+            response_user_details = requests.post(url=URL_details, json=payload_user_details)
+            result = response_user_details.json()
+            user_data = result['data']['user_profile_detail']
+            status = user_data["status"]
+            role_response = jwt.decode(token['data']['token'], None, False)
+            id = user_data["id"]
+            username = user_data["name"]
+            jobtitle = user_data["jobtitle"]
+            user_Id = user_data["user_Id"]
+            dob = user_data["dob"]
+            gender = user_data["gender"]
+            work_email = user_data["work_email"]
+            slack_id = user_data["slack_id"]
+            team = user_data["team"]
+            prImage = user_data["profileImage"]
+
+            user = mongo.db.users.find_one({
                 "username": username})
-           if user > 0:
-                    user = mongo.db.users.update({
-                        "username": username
-                    }, {
-                        "$set": {
-                            "id": id,
-                            "name": username,
-                            "user_Id": user_Id,
-                            "status": status,
-                            "job_title": jobtitle,
-                            "dob": dob,
-                            "gender": gender,
-                            "work_email": work_email,
-                            "slack_id": slack_id,
-                            "profileImage": profileImage,
-                            "team": team,
-                            "cron_checkin": False,
-                            "profile": result
-                        }})
-           else:
+            if len(user_data["profileImage"]) > 0:
+                prImage = user_data["profileImage"]
+            else:
+                prImage = user['profileImage']
+            if user is not None:
+                user = mongo.db.users.update({
+                    "username": username
+                }, {
+                    "$set": {
+                        "id": id,
+                        "name": username,
+                        "user_Id": user_Id,
+                        "status": status,
+                        "job_title": jobtitle,
+                        "dob": dob,
+                        "gender": gender,
+                        "work_email": work_email,
+                        "slack_id": slack_id,
+                        "profileImage": prImage,
+                        "team": team,
+                        "profile": result
+                    }})
+            else:
                 if role_response["role"] == "Admin":
-                    role="Admin"
+                    role = "Admin"
                 else:
-                    role="Employee"
+                    role = "Employee"
                     user = mongo.db.users.insert_one({
                         "username": username,
                         "id": id,
@@ -122,100 +126,94 @@ def login():
                         "gender": gender,
                         "work_email": work_email,
                         "slack_id": slack_id,
-                        "profileImage": profileImage,
+                        "profileImage": prImage,
                         "team": team,
-                        "role":role,
+                        "role": role,
                         "cron_checkin": False,
+                        "missed_chechkin_crone":False,
                         "profile": result
                     }).inserted_id
+            role_response = jwt.decode(token['data']['token'], None, False)
+            if role_response["role"] == "Admin":
+                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
+                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+                result = response_all_user_details.json()
+                data = result['data']
+                for user in data:
+                    role = user['role_name']
+                    id = user['id']
+                    username = user['name']
+                    user_Id = user['user_Id']
+                    status = user['status']
+                    jobtitle = user['jobtitle']
+                    dob = user['dob']
+                    gender = user['gender']
+                    work_email = user['work_email']
+                    slack_id = user['slack_id']
+                    team = user['team']
 
-           role_response = jwt.decode(token['data']['token'], None, False)
-           if role_response["role"] == "Admin":
-               payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
-               response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
-               result = response_all_user_details.json()
-               data = result['data']
-               for user in data:
-                  role = user['role_name']
-                  id  = user['id']
-                  username = user['name']
-                  user_Id = user['user_Id']
-                  status = user['status']
-                  jobtitle = user['jobtitle']
-                  dob = user['dob']
-                  gender = user['gender']
-                  work_email = user['work_email']
-                  slack_id = user['slack_id']
-                  team = user['team']
-                
-                  user = mongo.db.users.count({
-                    "username":username})
-                  if user > 0:
-                      user = mongo.db.users.update({
-                    "username": username
+                    user = mongo.db.users.count({
+                        "username": username})
+                    if user > 0:
+                        user = mongo.db.users.update({
+                            "username": username
                         }, {
-                    "$set": {
-                        "id": id,
-                        "name": username,
-                        "user_Id": user_Id,
-                        "status": status,
-                        "jobtitle": jobtitle,
-                        "dob": dob,
-                        "gender": gender,
-                        "work_email": work_email,
-                        "slack_id": slack_id,
-                        "team": team,
-                        "cron_checkin": False,
-                        "profile": user
-                    }})
-                  else:
-                      user = mongo.db.users.insert_one({
-                          "username":username,
-                          "id": id,
-                          "name": username,
-                          "user_Id": user_Id,
-                          "status": status,
-                          "jobtitle": jobtitle,
-                          "dob": dob,
-                          "gender": gender,
-                          "work_email": work_email,
-                          "slack_id": slack_id,
-                          "team": team,
-                          "role":role,
-                          "cron_checkin": False,
-                          "profile": user
+                            "$set": {
+                                "id": id,
+                                "name": username,
+                                "user_Id": user_Id,
+                                "status": status,
+                                "jobtitle": jobtitle,
+                                "dob": dob,
+                                "gender": gender,
+                                "work_email": work_email,
+                                "slack_id": slack_id,
+                                "team": team,
+                                "profile": user
+                            }})
+                    else:
+                        user = mongo.db.users.insert_one({
+                            "username": username,
+                            "id": id,
+                            "name": username,
+                            "user_Id": user_Id,
+                            "status": status,
+                            "jobtitle": jobtitle,
+                            "dob": dob,
+                            "gender": gender,
+                            "work_email": work_email,
+                            "slack_id": slack_id,
+                            "team": team,
+                            "role": role,
+                            "cron_checkin": False,
+                            "missed_chechkin_crone":False,
+                            "profile": user
                         }).inserted_id
-           username1 = user_data["name"]
-           expires = datetime.timedelta(days=1)
-           access_token = create_access_token(identity=username1, expires_delta=expires)
-           return jsonify(access_token=access_token), 200
-   else:
-       if not request.json:
-           abort(500)
-       username = request.json.get('username', None)
-       password = request.json.get('password', None)
-       if not username:
-           return jsonify({"msg": "Missing username parameter"}), 400
-       if not password:
-           return jsonify({"msg": "Missing password parameter"}), 400
+            username1 = user_data["name"]
+            expires = datetime.timedelta(days=1)
+            access_token = create_access_token(identity=username1, expires_delta=expires)
+            return jsonify(access_token=access_token), 200
+    else:
+        if not request.json:
+            abort(500)
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
+        if not username:
+            return jsonify({"msg": "Missing username parameter"}), 400
+        if not password:
+            return jsonify({"msg": "Missing password parameter"}), 400
 
-       user = mongo.db.users.find_one({
-           "username": username
-       })
-       if user is not None and "_id" in user:
-           if pbkdf2_sha256.verify(password, user["password"]):
-               access_token = create_access_token(identity=username)
-               return jsonify(access_token=access_token), 200
-           else:
-               return jsonify({"msg": "invalid password"}), 500
-       else:
-           return jsonify({"msg": "invalid login"}), 500
-    
-        
-
-@bp.route('/ping', methods=['GET'])
-def ping():
-    return "pong"
+        user = mongo.db.users.find_one({
+            "username": username
+        })
+        if user is not None and "_id" in user:
+            if pbkdf2_sha256.verify(password, user["password"]):
+                access_token = create_access_token(identity=username)
+                return jsonify(access_token=access_token), 200
+            else:
+                return jsonify({"msg": "invalid password"}), 500
+        else:
+            return jsonify({"msg": "invalid login"}), 500
 
 # Protect a view with jwt_required, which requires a valid access token
 # in the request to access.
@@ -234,7 +232,7 @@ def profile():
     if request.method == "GET":
         ret = mongo.db.users.find_one({
             "_id": ObjectId(current_user["_id"])
-        },{"profile":0})
+        }, {"profile": 0})
         ret["_id"] = str(ret["_id"])
         if "kpi_id" in ret and ret["kpi_id"] is not None:
             ret_kpi = mongo.db.kpi.find_one({
@@ -244,16 +242,9 @@ def profile():
             ret['kpi'] = ret_kpi
         else:
             ret['kpi'] = {}
-
-        if "managers" in ret:
-            ret["managers"] = [get_manager_profile(
-                manager) for manager in ret['managers']]
-        else:
-            ret["managers"] = []
         return jsonify(ret)
     if request.json is None:
         abort(500)
-
     ret = mongo.db.users.update({
         "_id": ObjectId(current_user["_id"])
     }, {
@@ -261,4 +252,5 @@ def profile():
             "profile": request.json
         }
     })
-    return jsonify(ret), 200
+    return jsonify(str(ret)), 200
+
