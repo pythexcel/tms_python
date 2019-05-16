@@ -26,3 +26,10 @@ def get_manager_profile(manager):
         ret["weight"] = manager["weight"]
     return ret
 
+def slack_message(msg):
+    slackmsg = {"text": msg}
+    response = requests.post(
+    webhook_url, json=slackmsg,
+    headers={'Content-Type': 'application/json'})
+
+
