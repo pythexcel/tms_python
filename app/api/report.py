@@ -6,7 +6,7 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-
+from app.util import slack_message
 import datetime
 
 
@@ -44,7 +44,8 @@ def add_checkin():
         task_completed = False
 
     current_user = get_current_user()
-    
+    username = current_user['username']
+
     if date is None:
         date_time = datetime.datetime.utcnow()
         rep = mongo.db.reports.find_one({
@@ -81,12 +82,6 @@ def add_checkin():
                 "type": "daily"
             }).inserted_id
 
-        users = mongo.db.users.update({
-            "_id": ObjectId(str(current_user['_id']))},
-            {"$pull": {"missed_checkin_dates": {
-                "date": date,
-            }}})
-
         docs = mongo.db.recent_activity.update({
             "user": str(current_user["_id"])},
             {"$push": {"Daily_checkin": {
@@ -96,7 +91,6 @@ def add_checkin():
             }}}, upsert=True)
         slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(date_time))
         return jsonify(str(ret))
-        
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
         rep = mongo.db.reports.find_one({
@@ -148,7 +142,6 @@ def add_checkin():
                 "Daily_chechkin_message": date_time
             }}}, upsert=True)
         return jsonify(str(ret))
-    
 
 @bp.route('/reports', methods=["GET"])
 @jwt_required
@@ -263,11 +256,23 @@ def add_weekly_checkin():
         "jobtitle": job_title,
         "team": team,
         "cron_checkin": True,
-        "cron_recent_activity": False,
+        "cron_review_activity": False,
         "difficulty": difficulty
     }).inserted_id
     slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(datetime.datetime.now()))
     return jsonify(str(ret)), 200
+
+@bp.route('/delete_weekly/<string:weekly_id>', methods=['DELETE'])
+@jwt_required
+def delete_weekly(weekly_id):
+    current_user = get_current_user()
+    docs = mongo.db.reports.remove({
+        "_id": ObjectId(weekly_id),
+        "type": "weekly",
+        "user": str(current_user['_id'])
+    })
+    return jsonify(str(docs))
+
 
 def get_manager_juniors(id):
 
@@ -342,35 +347,64 @@ def get_manager_weekly_list(weekly_id=None):
         if comment is None or weekly_id is None:
             return jsonify(msg="invalid request"), 500
 
-        sap = mongo.db.reports.find({
-            "_id": ObjectId(weekly_id),
-            "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
+        juniors = get_manager_juniors(current_user['_id'])
+
+        dab = mongo.db.reports.find({
+            "type": "weekly",
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+            "user": {
+                "$in": juniors
             }
-        })
-        sap = [serialize_doc(saps) for saps in sap]
-        if not sap:
-            ret = mongo.db.reports.update({
-                "_id": ObjectId(weekly_id)
-            }, {
-                "$push": {
-                    "review": {
-                        "difficulty": difficulty,
-                        "rating": rating,
-                        "comment": comment,
-                        "manager_id": str(current_user["_id"])
-                    }
-                }
+        }).sort("created_at", 1)
+        dab = [add_checkin_data(serialize_doc(doc)) for doc in dab]
+        for data in dab:
+            ID = data['user']
+            rap = mongo.db.users.find({
+                "_id": ObjectId(str(ID))
             })
-            docs = mongo.db.reports.update({
-                "_id": ObjectId(weekly_id),
-                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
-            }, {
-                "$set": {
-                    "is_reviewed.$.reviewed": True
-                }})
-            return jsonify(str(ret)), 200
-        else:
-            return jsonify(msg="Already reviewed this report"), 400
+            rap = [serialize_doc(doc) for doc in rap]
+            print(rap)
+            for dub in rap:
+                junior_name = dub['username']
+                sap = mongo.db.reports.find({
+                    "_id": ObjectId(weekly_id),
+                    "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
+                           }
+             })
+                sap = [serialize_doc(saps) for saps in sap]
+                if not sap:
+                    ret = mongo.db.reports.update({
+                        "_id": ObjectId(weekly_id)
+                    }, {
+                        "$push": {
+                            "review": {
+                                "difficulty": difficulty,
+                                "rating": rating,
+                                "comment": comment,
+                                "manager_id": str(current_user["_id"])
+                            }
+                        }
+                    })
+                    docs = mongo.db.reports.update({
+                        "_id": ObjectId(weekly_id),
+                        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+                    }, {
+                        "$set": {
+                            "is_reviewed.$.reviewed": True
+                        }})
+                    dec = mongo.db.recent_activity.update({
+                        "user": str(ID)},
+                        {"$push": {
+                            "report_reviewed": {
+                                "created_at": datetime.datetime.now(),
+                                "priority": 0,
+                                "Message": "Your weekly report has been reviewed by "" " + manager_name
+                            }}}, upsert=True)
+                    slack_message(msg=junior_name + " " + 'your report is reviewed by' + ' ' + manager_name)
+                    return jsonify(str(ret)), 200
+                else:
+                    return jsonify(msg="Already reviewed this report"), 400
+
         
 @bp.route('/week_reviewed_reports', methods=["GET"])
 @jwt_required
