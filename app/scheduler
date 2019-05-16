@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc
 from app import mongo
 import numpy as np
+from app.util import slack_message
 
 
 def checkin_score():
@@ -162,11 +163,15 @@ def update_croncheckin():
             "missed_chechkin_crone": False
         }}, upsert=False, multi=True)
 
-        
-for detail in users:
+def recent_activity():
+    users = mongo.db.reports.find({"type": "daily"})
+    users = [serialize_doc(doc) for doc in users]
+    print(users)
+    # find user id
+    for detail in users:
         ID = detail['user']
         print(ID)
-        today = datetime.datetime.today()
+        today = datetime.datetime.now()
         print(today)
         last_day = today - datetime.timedelta(1)
         print(last_day)
@@ -184,6 +189,7 @@ for detail in users:
         # if checkin not found update date in user profile
         users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False}, {'username': 1, 'user_Id': 1})
         if users is not None:
+            username = users['username']
             ID_ = users['user_Id']
             URL = attn_url
             dec = mongo.db.users.update({
@@ -217,7 +223,7 @@ for detail in users:
                     "_id": ObjectId(str(ID))},
                     {"$push": {"missed_checkin_dates": {
                         "date": date,
-                        "created_at": datetime.datetime.today()
+                        "created_at": datetime.datetime.now()
                     }}})
                 print(ret)
                 docs = mongo.db.recent_activity.update({
@@ -228,143 +234,7 @@ for detail in users:
                         "priority": 1
 
                     }}}, upsert=True)
-                print(docs)
-
-def reviewed_activity():
-    users = mongo.db.reports.find({"cron_recent_activity": False})
-    users = [serialize_doc(doc) for doc in users]
-
-    # find user id
-    for detail in users:
-        ID = detail['user']
-        print(ID)
-        # update cron  variable True
-        docs = mongo.db.reports.update({
-            "user": ID
-        }, {
-            "$set": {
-                "cron_recent_activity": True
-            }})
-    
-        today = datetime.date.today()
-        last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
-        last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
-        
-        # here find last week reports by user_id where review exists
-        docs = mongo.db.reports.find({
-            "user": ID,
-            "type": "weekly",
-            "review": {'$exists': True},
-            "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
-                "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
-            }
-        })
-        docs = [serialize_doc(doc) for doc in docs]
-
-        manager_name = []
-        for data in docs:
-            for name in data['is_reviewed']:
-                manager_name.append(name['username'])
-        # check if docs are empty or not
-        if not docs:
-            return ("review not available")
-        else:
-            ret = mongo.db.recent_activity.update({
-                "user": str(ID)},
-                {"$push": {
-                    "report_reviewed": {
-                        "created_at": datetime.datetime.now(),
-                        "priority": 0,
-                        "Message": "Your weekly report has been reviewed by "" " + str(manager_name)
-                    }}}, upsert=True)
-'''
-def review_activity():
-    # First take date time where weekly report is to be dealt with
-    today = datetime.date.today()
-    last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
-    last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
-    # find user by a common variable
-    #users = mongo.db.reports.find({"cron_recent_activity": False})
-    #cron_review_activity
-    users = mongo.db.reports.find({"cron_review_activity": False})
-    users = [serialize_doc(doc) for doc in users]
-    print(len(users))
-    for detail in users:
-        ID = detail['user']
-        print(ID)
-        # update cron  variable True
-        docs = mongo.db.reports.update({
-            "user": ID
-        }, {
-            "$set": {
-                "cron_review_activity": True
-            }})
-        print("308")
-    # find user id
-    ID = []
-    for detail in users:
-        ID.append(ObjectId(detail['user']))
-    # find in users for manager details
-    docs = mongo.db.users.find({
-        "_id": {"$in": ID}})
-    docs = [serialize_doc(doc) for doc in docs]
-    print(docs)
-    print("304")
-    manage = []
-    for data in docs:
-        for data in data['managers']:
-            manage.append(data['_id'])
-    print(manage)
-    
-    # find manager id
-    # First find the users which have the manager id in it's document
-    users = mongo.db.users.find({
-        "managers": {
-            "$elemMatch": {"_id": {"$in": manage}}
-        }
-    })
-    users = [serialize_doc(doc) for doc in users]
-    print(users)
-    # Make a list of User_id and then fetch all the users/juniors belong to that manager
-    user_ids = []
-    name_list = []
-    for user in users:
-        user_ids.append(str(user['_id']))
-        name_list.append(user['username'])
-    print(user_ids)
-    print(name_list)
-    # Now find weekly reports of all those users_id in the above list whose report is not reviewd
-    print("327")
-    for data in user_ids:
-        docs = mongo.db.reports.find({
-            "user": data,
-            "review": {'$exists': False},
-            "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
-                "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
-            }
-        }, {"user": 1})
-        docs = [serialize_doc(doc) for doc in docs]
-        # Append those user records whose not been reviewd in user_id list
-        print("339")
-        for junior_name in name_list:
-    
-            # Then if we find that data exist in user_id report than update the manager recent activity with a date and message
-            if junior_name is not None:
-                for data in manage:
-                    print(data)
-                    ret = mongo.db.recent_activity.update({
-                        "user": data},
-                        {"$push": {
-                            "review_report": {
-                                "created_at": datetime.datetime.now(),
-                                "priority": 1,
-                                "Message": "You have to review your Junior "" " + str(junior_name) + "weekly report"
-                            }}}, upsert=True)
-        print("4566")
-'''
-
+                slack_message(msg=username + " "+'have missed '+str(date)+'check-in')
 
 def review_activity():
     # First take date time where weekly report is to be dealt with
@@ -447,3 +317,4 @@ def review_activity():
                     "priority": 1,
                     "Message": "You have to review your Junior "" " + str(name_list) + "weekly report"
                     }}}, upsert=True)
+        slack_message(msg=str(data) + " " + 'you have to review your Junior ' + str(name_list) + 'weekly report')
