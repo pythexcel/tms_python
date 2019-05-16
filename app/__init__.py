@@ -13,7 +13,7 @@ mongo = db.init_db()
 from app import token
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,overall_reviewes,recent_activity,reviewed_activity,review_activity,update_croncheckin
+from app.scheduler import checkin_score,overall_reviewes,recent_activity,review_activity,update_croncheckin
 
 def create_app(test_config=None):
     # create and configure the app
@@ -60,7 +60,7 @@ def create_app(test_config=None):
 
     # Scheduler which will run at interval of 60 seconds for user checkin score
     checkin_score_scheduler = BackgroundScheduler()
-    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=2000)
+    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=60)
     checkin_score_scheduler.start()
     
     # Scheduler which will run at interval of 60 seconds for overall user rating
@@ -71,7 +71,7 @@ def create_app(test_config=None):
 
     #Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=13, minute=45)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=10, minute=30)
     reset_scheduler.start()
  
     recent_activity_scheduler = BackgroundScheduler()
@@ -79,14 +79,9 @@ def create_app(test_config=None):
     recent_activity_scheduler.start()
     
     reviewed_activity_scheduler = BackgroundScheduler()
-    reviewed_activity_scheduler.add_job(reviewed_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=00)
+    reviewed_activity_scheduler.add_job(reviewed_activity, trigger='cron', day_of_week='mon', hour=12, minute=30)
     reviewed_activity_scheduler.start()
     
-    review_activity_scheduler = BackgroundScheduler()
-    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=00)
-    #review_activity_scheduler.add_job(review_activity, trigger='interval', seconds=10)
-    review_activity_scheduler.start()
-
     try:
         return app
     except:
@@ -94,5 +89,4 @@ def create_app(test_config=None):
         reset_scheduler.shutdown()
         overall_scheduler.shutdown()
         recent_activity_scheduler.shutdown()
-        reviewed_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
