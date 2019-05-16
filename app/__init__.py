@@ -7,13 +7,15 @@ from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app import db
+
 mongo = db.init_db()
 
-
 from app import token
+
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,overall_reviewes,recent_activity,review_activity,update_croncheckin
+from app.scheduler import checkin_score, overall_reviewes, recent_activity, review_activity, update_croncheckin
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -62,26 +64,25 @@ def create_app(test_config=None):
     checkin_score_scheduler = BackgroundScheduler()
     checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=60)
     checkin_score_scheduler.start()
-    
+
     # Scheduler which will run at interval of 60 seconds for overall user rating
     overall_scheduler = BackgroundScheduler()
     overall_scheduler.add_job(overall_reviewes, trigger='interval', seconds=3000)
     overall_scheduler.start()
 
-
-    #Scheduler which will run every monday to friday at 12:30am in midnight
+    # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
     reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=10, minute=30)
     reset_scheduler.start()
- 
+
     recent_activity_scheduler = BackgroundScheduler()
     recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=00)
     recent_activity_scheduler.start()
-    
-    reviewed_activity_scheduler = BackgroundScheduler()
-    reviewed_activity_scheduler.add_job(reviewed_activity, trigger='cron', day_of_week='mon', hour=12, minute=30)
-    reviewed_activity_scheduler.start()
-    
+
+    review_activity_scheduler = BackgroundScheduler()
+    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=11, minute=20)
+    review_activity_scheduler.start()
+
     try:
         return app
     except:
