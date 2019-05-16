@@ -78,11 +78,11 @@ def create_app(test_config=None):
     recent_activity_scheduler = BackgroundScheduler()
     recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=00)
     recent_activity_scheduler.start()
-
+    
     review_activity_scheduler = BackgroundScheduler()
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=11, minute=20)
     review_activity_scheduler.start()
-
+    
     try:
         return app
     except:
