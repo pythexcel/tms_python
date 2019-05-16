@@ -94,8 +94,9 @@ def add_checkin():
                 "priority": 0,
                 "Daily_chechkin_message": date_time
             }}}, upsert=True)
+        slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(date_time))
         return jsonify(str(ret))
-
+        
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
         rep = mongo.db.reports.find_one({
@@ -265,6 +266,7 @@ def add_weekly_checkin():
         "cron_recent_activity": False,
         "difficulty": difficulty
     }).inserted_id
+    slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(datetime.datetime.now()))
     return jsonify(str(ret)), 200
 
 def get_manager_juniors(id):
