@@ -50,11 +50,6 @@ def register():
 
 @bp.route('/login', methods=['POST'])
 def login():
-    hr = mongo.db.hr.find_one({
-        "integrate_with_hr": True
-    })
-    if hr is not None and "integrate_with_hr" in hr:
-
         log_username = request.json.get("username", None)
         password = request.json.get("password", None)
         if not log_username:
@@ -193,28 +188,7 @@ def login():
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
             return jsonify(access_token=access_token), 200
-    else:
-        if not request.json:
-            abort(500)
-        username = request.json.get('username', None)
-        password = request.json.get('password', None)
-        if not username:
-            return jsonify({"msg": "Missing username parameter"}), 400
-        if not password:
-            return jsonify({"msg": "Missing password parameter"}), 400
-
-        user = mongo.db.users.find_one({
-            "username": username
-        })
-        if user is not None and "_id" in user:
-            if pbkdf2_sha256.verify(password, user["password"]):
-                access_token = create_access_token(identity=username)
-                return jsonify(access_token=access_token), 200
-            else:
-                return jsonify({"msg": "invalid password"}), 500
-        else:
-            return jsonify({"msg": "invalid login"}), 500
-
+    
 # Protect a view with jwt_required, which requires a valid access token
 # in the request to access.
 @bp.route('/protected', methods=['GET'])
