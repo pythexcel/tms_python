@@ -59,22 +59,23 @@ def login():
             return jsonify(msg="Missing password parameter"), 400
 
         payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
-        print(payload_user_login)
+     
         response_user_token = requests.post(url=URL, json=payload_user_login)
-        print(response_user_token)
+      
         token = response_user_token.json()
+        print(token)
 
         if token['data'] == {'message': 'Invalid Login'}:
             return jsonify(msg='invalid login'), 500
         else:
             payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
-            print(payload_user_details)
             response_user_details = requests.post(url=URL_details, json=payload_user_details)
             result = response_user_details.json()
             print(result)
             user_data = result['data']['user_profile_detail']
             status = user_data["status"]
             role_response = jwt.decode(token['data']['token'], None, False)
+            print(role_response)
             id = user_data["id"]
             username = user_data["name"]
             jobtitle = user_data["jobtitle"]
