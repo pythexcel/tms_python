@@ -47,7 +47,6 @@ def register():
    return jsonify(str(id))
 
 
-
 @bp.route('/login', methods=['POST'])
 def login():
     log_username = request.json.get("username", None)
@@ -69,12 +68,22 @@ def login():
         result = response_user_details.json()
         user_data = result['data']['user_profile_detail']
         print(user_data)
+        print("11232")
+        print('123123')
         status = user_data["status"]
         role_response = jwt.decode(token['data']['token'], None, False)
+        print(role_response)
+        print('retreerf')
+        print('dota')
+        print('siege')
         id = user_data["id"]
         username = log_username
         print(username)
+        print('5454545')
+        print('54353543')
+
         name = user_data['name']
+        print(name)
         jobtitle = user_data["jobtitle"]
         user_Id = user_data["user_Id"]
         dob = user_data["dob"]
@@ -85,8 +94,14 @@ def login():
 
         user = mongo.db.users.find_one({
             "username": username})
+        print('saddas')
+        print('dasd')
+        print('adssadaas')
 
         if user is not None:
+            print('dasdas')
+            print('pubg')
+            print('dota 2')
             mongo.db.users.update({
                 "username": username
             }, {
@@ -106,6 +121,8 @@ def login():
                 }})
         else:
             if role_response["role"] == "Admin":
+                print('dasdasd')
+                print('qwertyytr')
                 role = "Admin"
             else:
                 role = "Employee"
@@ -128,6 +145,8 @@ def login():
             }).inserted_id
 
         role_response = jwt.decode(token['data']['token'], None, False)
+        print(role_response)
+        print('role_response')
         if role_response["role"] == "Admin":
             payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
             response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
@@ -186,10 +205,11 @@ def login():
                         "profile": user
                     }).inserted_id
 
-            username1 = log_username
-            expires = datetime.timedelta(days=1)
-            access_token = create_access_token(identity=username1, expires_delta=expires)
-            return jsonify(access_token=access_token), 200
+        username1 = log_username
+        expires = datetime.timedelta(days=1)
+        access_token = create_access_token(identity=username1, expires_delta=expires)
+        return jsonify(access_token=access_token), 200
+
 
 
     
