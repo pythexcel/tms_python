@@ -89,8 +89,11 @@ def login():
                 prImage = user_data["profileImage"]
                 print(prImage)
             else:
-                prImage = user['profileImage']
-                print(prImage)
+                if "profileImage" in user:
+                    prImage = user['profileImage']
+                    print(prImage)
+                else:
+                    prImage = ""
             if user is not None:
                 print('dasdas')
                 print('pubg')
