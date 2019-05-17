@@ -88,16 +88,20 @@ def login():
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
                 print(prImage)
+                print("HR api pr image test")
+                print("test1")
             else:
                 if "profileImage" in user:
                     prImage = user['profileImage']
                     print(prImage)
+                    print("database pr image test")
+                    print("test2")
                 else:
                     prImage = ""
+                    print("empty pr image test")
+                    print("test3")
             if user is not None:
                 print('dasdas')
-                print('pubg')
-                print('dota 2')
                 mongo.db.users.update({
                     "username": username
                 }, {
