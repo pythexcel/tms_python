@@ -1,6 +1,7 @@
 from app import mongo
 from app import token
 from app.util import serialize_doc
+import datetime
 
 from flask import (
     Blueprint, flash, jsonify, abort, request
@@ -22,33 +23,34 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @jwt_required
 @token.admin_required
 def user_list():
-    users = mongo.db.users.find({},{"profile":0})
+    users = mongo.db.users.find({}, {"profile":0})
     users = [serialize_doc(user) for user in users]
     return jsonify(users), 200
-
 
 
 @bp.route('/role/<string:user_id>/<string:role>', methods=['PUT'])
 @jwt_required
 @token.admin_required
 def user_assign_role(user_id, role):
-    if role == "admin" or role == "manager":
-        ret = mongo.db.users.find_one({
-            "_id": ObjectId(user_id)
-        })
-        user_role = ret['role']
-        if user_role == "Admin":
-            role = "Admin"
-        else:
-            role = "manager"
-              
-        ret = mongo.db.users.update({
-            "_id": ObjectId(user_id)
-        }, {
-            "$set": {
-                "role": role
-            }
-        }, upsert=False)
-        return jsonify(str(ret)), 200
-    else:
-        return jsonify(msg="invalid role"), 500
+   if role == "Admin" or role == "manager":
+       ret = mongo.db.users.find_one({
+           "_id": ObjectId(user_id)
+       })
+       user_role = ret['role']
+       if user_role == "Admin":
+           role = "Admin"
+       else:
+           role = "manager"
+
+       ret = mongo.db.users.update({
+           "_id": ObjectId(user_id)
+       }, {
+           "$set": {
+               "role": role
+           }
+       }, upsert=False)
+       return jsonify(str(ret)), 200
+   else:
+       return jsonify(msg="invalid role"), 500
+
+
