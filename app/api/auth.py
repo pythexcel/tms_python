@@ -81,7 +81,7 @@ def login():
             work_email = user_data["work_email"]
             slack_id = user_data["slack_id"]
             team = user_data["team"]
-            prImage = user_data["profileImage"]
+         
 
             user = mongo.db.users.find_one({
                 "username": username})
@@ -90,6 +90,7 @@ def login():
                 print(prImage)
             else:
                 prImage = user['profileImage']
+                print(prImage)
             if user is not None:
                 print('dasdas')
                 print('pubg')
