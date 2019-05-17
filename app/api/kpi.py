@@ -65,7 +65,7 @@ def kpi(id=None):
                 "kpi_json": kpi_json,
                 "era_json": era_json
             }
-        }, upsert=False)
+        })
 
         return jsonify(str(kpi)), 200
 
@@ -92,6 +92,7 @@ def assign_kpi_to_user(user_id, kpi_id):
         })
     return jsonify(str(ret)), 200
 
+
 @bp.route('/users_on_kpi/<string:kpi_id>', methods=["GET"])
 @jwt_required
 @token.admin_required
@@ -102,15 +103,20 @@ def memeber_kpi(kpi_id):
     users = [serialize_doc(user) for user in users]
     return jsonify(users)
 
+
 @bp.route("/assign_manager/<string:user_id>/<string:manager_id>/<int:weight>", methods=["GET"])
 @jwt_required
 @token.admin_required
 def assign_manager(user_id, manager_id, weight):
     if weight > 0:
-        ret = mongo.db.users.find_one({
+        manage = mongo.db.users.find_one({
             "_id": ObjectId(manager_id)
         })
-        if "role" in ret and (ret["role"] == "manager" or ret["role"] == "admin"):
+        username =manage['username']
+        job_title = manage['jobtitle']
+        profileImage = manage['profileImage']
+
+        if "role" in manage and (manage["role"] == "manager" or manage["role"] == "Admin"):
             ret = mongo.db.users.update({
                 "_id": ObjectId(user_id)
             }, {
@@ -122,11 +128,14 @@ def assign_manager(user_id, manager_id, weight):
             })
             ret = mongo.db.users.update({
                 "_id": ObjectId(user_id)
-            },  {
+            }, {
                 "$push": {
                     "managers": {
                         "_id": manager_id,
-                        "weight": weight
+                        "weight": weight,
+                        "username": username,
+                        "job_title": job_title,
+                        "profileImage": profileImage
                     }
                 }
             })
@@ -143,3 +152,5 @@ def assign_manager(user_id, manager_id, weight):
             }
         })
     return jsonify(str(ret)), 200
+
+
