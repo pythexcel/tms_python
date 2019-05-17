@@ -186,7 +186,7 @@ def login():
                         "profile": user
                     }).inserted_id
 
-            username1 = user_data['log_username']
+            username1 = log_username
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
             return jsonify(access_token=access_token), 200
