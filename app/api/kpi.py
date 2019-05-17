@@ -114,7 +114,10 @@ def assign_manager(user_id, manager_id, weight):
         })
         username =manage['username']
         job_title = manage['jobtitle']
-        profileImage = manage['profileImage']
+        if len(manage['profileImage']) > 0:
+            profileImage = manage['profileImage']
+        else:
+            profileImage = ""    
 
         if "role" in manage and (manage["role"] == "manager" or manage["role"] == "Admin"):
             ret = mongo.db.users.update({
