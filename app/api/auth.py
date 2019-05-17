@@ -168,17 +168,38 @@ def login():
                         slack_id = user['slack_id']
                         team = user['team']
 
-                        user = mongo.db.users.count({
-                            "username": username})
-                        if user > 0:
-                             mongo.db.users.update({
+                        if status == "Disabled":
+                            mongo.db.users.remove({
                                 "username": username
-                            }, {
-                                "$set": {
-                                    "id": id,
+                            })
+
+                        else:
+                            user = mongo.db.users.count({
+                                "username": username})
+                            if user > 0:
+                                mongo.db.users.update({
+                                    "username": username
+                                }, {
+                                    "$set": {
+                                        "id": id,
+                                        "username": username,
+                                        "user_Id": user_Id,
+                                        "name": name,
+                                        "status": status,
+                                        "jobtitle": jobtitle,
+                                        "dob": dob,
+                                        "gender": gender,
+                                        "work_email": work_email,
+                                        "slack_id": slack_id,
+                                        "team": team,
+                                        "profile": user
+                                    }})
+                            else:
+                                mongo.db.users.insert_one({
                                     "username": username,
-                                    "user_Id": user_Id,
+                                    "id": id,
                                     "name": name,
+                                    "user_Id": user_Id,
                                     "status": status,
                                     "jobtitle": jobtitle,
                                     "dob": dob,
@@ -186,26 +207,11 @@ def login():
                                     "work_email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
+                                    "role": role,
+                                    "cron_checkin": False,
+                                    "missed_chechkin_crone": False,
                                     "profile": user
-                                }})
-                        else:
-                             mongo.db.users.insert_one({
-                                "username": username,
-                                "id": id,
-                                "name": name,
-                                "user_Id": user_Id,
-                                "status": status,
-                                "jobtitle": jobtitle,
-                                "dob": dob,
-                                "gender": gender,
-                                "work_email": work_email,
-                                "slack_id": slack_id,
-                                "team": team,
-                                "role": role,
-                                "cron_checkin": False,
-                                "missed_chechkin_crone": False,
-                                "profile": user
-                            }).inserted_id
+                                }).inserted_id
             username1 = log_username
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
