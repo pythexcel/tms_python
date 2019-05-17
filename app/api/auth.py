@@ -87,6 +87,7 @@ def login():
                 "username": username})
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
+                print(prImage)
             else:
                 prImage = user['profileImage']
             if user is not None:
