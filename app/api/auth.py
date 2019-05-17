@@ -76,7 +76,7 @@ def login():
             role_response = jwt.decode(token['data']['token'], None, False)
             print(role_response)
             id = user_data["id"]
-            username = user_data["username"]
+            username = log_username
             print(username)
             name = user_data["name"]
             print(name)
