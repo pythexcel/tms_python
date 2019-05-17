@@ -114,7 +114,7 @@ def assign_manager(user_id, manager_id, weight):
         })
         username =manage['username']
         job_title = manage['jobtitle']
-        if manage['profileImage'] is not None:
+        if manage['profileImage'] in manage:
             profileImage = manage['profileImage']
         else:
             profileImage = ""    
