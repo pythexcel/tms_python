@@ -35,8 +35,8 @@ def add_checkin():
     today = datetime.datetime.today()
     next_day = today + datetime.timedelta(days=1)
 
-    if not report or not task_completed or not highlight:
-        return jsonify({"msg": "Invalid Request"}), 400
+    if not report or not highlight:
+          return jsonify({"msg": "Invalid Request"}), 400
 
     if task_completed == 1:
         task_completed = True
