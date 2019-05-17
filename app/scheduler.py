@@ -187,7 +187,10 @@ def recent_activity():
         reports = [serialize_doc(report) for report in reports]
         print('asdsadsa')
         # if checkin not found update date in user profile
-        users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False}, {'username': 1, 'user_Id': 1})
+        users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),
+                                         "missed_chechkin_crone":False,
+                                         "daily_chechkin_mandatory": {"$exists": False}},
+                                        {'username': 1, 'user_Id': 1})
         if users is not None:
             username = users['username']
             ID_ = users['user_Id']
