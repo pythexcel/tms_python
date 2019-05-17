@@ -53,4 +53,16 @@ def user_assign_role(user_id, role):
    else:
        return jsonify(msg="invalid role"), 500
 
+@bp.route('/chechkin_mandatory/<string:user_id>', methods=['PUT'])
+@jwt_required
+@token.admin_required
+def chechkin_mandatory(user_id):
+    ret = mongo.db.users.update({
+        "_id": ObjectId(user_id)
+    }, {
+        "$set": {
+            "daily_chechkin_mandatory": False
+        }}, upsert=False)
+    return jsonify(str(ret)), 200
+    
 
