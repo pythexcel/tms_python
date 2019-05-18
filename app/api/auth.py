@@ -49,6 +49,7 @@ def register():
 
 @bp.route('/login', methods=['POST'])
 def login():
+        print("login")
         log_username = request.json.get("username", None)
         print(log_username)
         password = request.json.get("password", None)
