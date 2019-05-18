@@ -100,7 +100,7 @@ def login():
                     print("empty pr image test")
                     
             if user is not None:
-                print('dasdas')
+                print('user exists so updating')
                 mongo.db.users.update({
                     "username": username
                 }, {
@@ -126,25 +126,25 @@ def login():
                 else:
                     print('employee role')
                     role = "Employee"
+                    mongo.db.users.insert_one({
+                        "username": username,
+                        "id": id,
+                        "name": name,
+                        "user_Id": user_Id,
+                        "status": status,
+                        "job_title": jobtitle,
+                        "dob": dob,
+                        "gender": gender,
+                        "work_email": work_email,
+                        "slack_id": slack_id,
+                        "profileImage": prImage,
+                        "team": team,
+                        "role": role,
+                        "cron_checkin": False,
+                        "missed_chechkin_crone":False,
+                        "profile": result
+                    }).inserted_id
                     
-            mongo.db.users.insert_one({
-                "username": username,
-                "id": id,
-                "name": name,
-                "user_Id": user_Id,
-                "status": status,
-                "job_title": jobtitle,
-                "dob": dob,
-                "gender": gender,
-                "work_email": work_email,
-                "slack_id": slack_id,
-                "profileImage": prImage,
-                "team": team,
-                "role": role,
-                "cron_checkin": False,
-                "missed_chechkin_crone":False,
-                "profile": result
-            }).inserted_id
             role_response = jwt.decode(token['data']['token'], None, False)
             print(role_response)
             print('role_response')
