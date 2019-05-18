@@ -10,6 +10,7 @@ from app.util import slack_message
 
 
 def checkin_score():
+    print("checkin score running")
     # Finding random user who have the below condition
     users = mongo.db.users.find_one({"cron_checkin": False}, {'username': 1, 'user_Id': 1})
     if users is not None:
@@ -100,6 +101,7 @@ def checkin_score():
 
 # Function for overall review of a user
 def overall_reviewes():
+    print("overall reviews running")
     users = mongo.db.reports.find({"cron_checkin":True})
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
@@ -142,6 +144,7 @@ def overall_reviewes():
 
 # Function for reseting the cron values to FALSE
 def update_croncheckin():
+    print("update cron checkin running")
     docs = mongo.db.users.update({
         "cron_checkin": True
     }, {
@@ -164,6 +167,7 @@ def update_croncheckin():
         }}, upsert=False, multi=True)
 
 def recent_activity():
+    print("recent activity running")
     users = mongo.db.reports.find({"type": "daily"})
     users = [serialize_doc(doc) for doc in users]
     print(users)
@@ -240,6 +244,7 @@ def recent_activity():
                 slack_message(msg=username + " "+'have missed '+str(date)+'check-in')
 
 def review_activity():
+    print("review activity running")
     # First take date time where weekly report is to be dealt with
     today = datetime.date.today()
     last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
