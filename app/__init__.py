@@ -83,7 +83,9 @@ def create_app(test_config=None):
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=11, minute=20)
     review_activity_scheduler.start()
     
+    
     try:
+        print("create app..")
         return app
     except:
         checkin_score_scheduler.shutdown()
