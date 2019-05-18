@@ -90,17 +90,15 @@ def login():
                 prImage = user_data["profileImage"]
                 print(prImage)
                 print("HR api pr image test")
-                print("test1")
             else:
                 if "profileImage" in user:
                     prImage = user['profileImage']
                     print(prImage)
                     print("database pr image test")
-                    print("test2")
                 else:
                     prImage = ""
                     print("empty pr image test")
-                    print("test3")
+                    
             if user is not None:
                 print('dasdas')
                 mongo.db.users.update({
@@ -123,29 +121,30 @@ def login():
                     }})
             else:
                 if role_response["role"] == "Admin":
-                    print('dasdasd')
-                    print('qwertyytr')
+                    print('admin role')
                     role = "Admin"
                 else:
+                    print('employee role')
                     role = "Employee"
-                    mongo.db.users.insert_one({
-                        "username": username,
-                        "id": id,
-                        "name": name,
-                        "user_Id": user_Id,
-                        "status": status,
-                        "job_title": jobtitle,
-                        "dob": dob,
-                        "gender": gender,
-                        "work_email": work_email,
-                        "slack_id": slack_id,
-                        "profileImage": prImage,
-                        "team": team,
-                        "role": role,
-                        "cron_checkin": False,
-                        "missed_chechkin_crone":False,
-                        "profile": result
-                    }).inserted_id
+                    
+            mongo.db.users.insert_one({
+                "username": username,
+                "id": id,
+                "name": name,
+                "user_Id": user_Id,
+                "status": status,
+                "job_title": jobtitle,
+                "dob": dob,
+                "gender": gender,
+                "work_email": work_email,
+                "slack_id": slack_id,
+                "profileImage": prImage,
+                "team": team,
+                "role": role,
+                "cron_checkin": False,
+                "missed_chechkin_crone":False,
+                "profile": result
+            }).inserted_id
             role_response = jwt.decode(token['data']['token'], None, False)
             print(role_response)
             print('role_response')
