@@ -340,11 +340,7 @@ def weekly_remainder():
         ID.append(data['_id'])
     reports = mongo.db.reports.find({
         "type": "weekly",
-        "user": {"$in": ID},
-        "created_at": {
-                "$gt": datetime.datetime(last_day.year, last_day.month, last_day.day),
-                "$lt": datetime.datetime(next_day.year, next_day.month, next_day.day)
-            }
+        "user": {"$in": ID}
     })
     reports = [serialize_doc(doc) for doc in reports]
     user_id = []
