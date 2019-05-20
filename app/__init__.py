@@ -80,7 +80,7 @@ def create_app(test_config=None):
     recent_activity_scheduler.start()
     
     review_activity_scheduler = BackgroundScheduler()
-    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=11, minute=20)
+    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=15, minute=0)
     review_activity_scheduler.start()
     
     
