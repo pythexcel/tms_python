@@ -272,6 +272,7 @@ def review_activity():
     for detail in users:
         ID.append(ObjectId(detail['user']))
     # find in users for manager details
+    print(ID)
     docs = mongo.db.users.find({
         "_id": {"$in": ID}})
     docs = [serialize_doc(doc) for doc in docs]
