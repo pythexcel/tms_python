@@ -342,8 +342,8 @@ def weekly_remainder():
         "type": "weekly",
         "user": {"$in": ID},
         "created_at": {
-                "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
-                "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
+                "$gt": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                "$lt": datetime.datetime(next_day.year, next_day.month, next_day.day)
             }
     })
     reports = [serialize_doc(doc) for doc in reports]
@@ -359,9 +359,9 @@ def weekly_remainder():
     weekly_id = []
     for details in rep:
         weekly_id.append({"ID_": details['_id'], "name": details['username']})
-    for xyz in weekly_id:
-        ID_ = xyz['ID_']
-        name = xyz['name']
+    for doc in weekly_id:
+        ID_ = doc['ID_']
+        name = doc['name']
         ret = mongo.db.recent_activity.update({
             "user": ID_},
             {"$push": {
