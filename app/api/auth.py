@@ -12,6 +12,7 @@ import datetime
 from app.config import URL,URL_details
 from app import mongo
 from app.util import get_manager_profile
+from app.util import serialize_doc
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -147,33 +148,48 @@ def login():
                     
             role_response = jwt.decode(token['data']['token'], None, False)
             print(role_response)
-            print('role_response')
-
             if role_response["role"] == "Admin":
-                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
-                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
-                result = response_all_user_details.json()
-                data = result['data']
-                for user in data:
-                        role = user['role_name']
-                        id = user['id']
-                        username = user['username']
-                        user_Id = user['user_Id']
-                        status = user['status']
-                        name = user['name']
-                        jobtitle = user['jobtitle']
-                        dob = user['dob']
-                        gender = user['gender']
-                        work_email = user['work_email']
-                        slack_id = user['slack_id']
-                        team = user['team']
-
-                        if status == "Disabled":
-                            mongo.db.users.remove({
-                                "username": username
-                            })
-
-                        else:
+                payload_all_disabled_users_details = {"action": "show_disabled_users", "token": token['data']['token']}
+                response_all_disabled_users_details = requests.post(url=URL, json=payload_all_disabled_users_details)
+                result_disabled = response_all_disabled_users_details.json()
+                disabled_names = []
+                for data_disable in result_disabled:
+                    disabled_names.append(data_disable['username'])
+                print(disabled_names)
+                sap = mongo.db.users.find({}, {"username": 1})
+                sap = [serialize_doc(user) for user in sap]
+                enabled_users = []
+                for doc in sap:
+                    enabled_users.append(doc['username'])
+                print(enabled_users)
+                disable_user = []
+                for element in disabled_names:
+                    if element in enabled_users:
+                        disable_user.append(element)
+                print(disable_user)
+                if disable_user is not None:
+                    rep = mongo.db.users.remove({
+                        "username": {"$in": disable_user}
+                    })
+                    print(rep)
+                else:            
+                    payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
+                    response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+                    result = response_all_user_details.json()
+                    data = result['data']
+                    for user in data:
+                            role = user['role_name']
+                            id = user['id']
+                            username = user['username']
+                            user_Id = user['user_Id']
+                            status = user['status']
+                            name = user['name']
+                            jobtitle = user['jobtitle']
+                            dob = user['dob']
+                            gender = user['gender']
+                            work_email = user['work_email']
+                            slack_id = user['slack_id']
+                            team = user['team']
                             user = mongo.db.users.count({
                                 "username": username})
                             if user > 0:
