@@ -154,13 +154,13 @@ def login():
                 result_disabled = response_all_disabled_users_details.json()
                 disabled_names = []
                 for data_disable in result_disabled:
-                    disabled_names.append(data_disable['username'])
+                    disabled_names.append(data_disable['id'])
                 print(disabled_names)
-                sap = mongo.db.users.find({}, {"username": 1})
+                sap = mongo.db.users.find({}, {"id": 1})
                 sap = [serialize_doc(user) for user in sap]
                 enabled_users = []
                 for doc in sap:
-                    enabled_users.append(doc['username'])
+                    enabled_users.append(doc['id'])
                 print(enabled_users)
                 disable_user = []
                 for element in disabled_names:
