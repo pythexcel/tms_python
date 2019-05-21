@@ -167,55 +167,39 @@ def login():
                     if element in enabled_users:
                         disable_user.append(element)
                 print(disable_user)
-                if disable_user is not None:
-                    rep = mongo.db.users.remove({
-                        "username": {"$in": disable_user}
-                    })
-                    print(rep)
-                else:            
-                    payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
-                    response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
-                    result = response_all_user_details.json()
-                    data = result['data']
-                    for user in data:
-                            role = user['role_name']
-                            id = user['id']
-                            username = user['username']
-                            user_Id = user['user_Id']
-                            status = user['status']
-                            name = user['name']
-                            jobtitle = user['jobtitle']
-                            dob = user['dob']
-                            gender = user['gender']
-                            work_email = user['work_email']
-                            slack_id = user['slack_id']
-                            team = user['team']
-                            user = mongo.db.users.count({
-                                "username": username})
-                            if user > 0:
-                                mongo.db.users.update({
-                                    "username": username
-                                }, {
-                                    "$set": {
-                                        "id": id,
-                                        "username": username,
-                                        "user_Id": user_Id,
-                                        "name": name,
-                                        "status": status,
-                                        "jobtitle": jobtitle,
-                                        "dob": dob,
-                                        "gender": gender,
-                                        "work_email": work_email,
-                                        "slack_id": slack_id,
-                                        "team": team,
-                                        "profile": user
-                                    }})
-                            else:
-                                mongo.db.users.insert_one({
-                                    "username": username,
+                rep = mongo.db.users.remove({
+                    "id": {"$in": disable_user}
+                })
+                print(rep)
+                            
+                payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
+                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+                result = response_all_user_details.json()
+                data = result['data']
+                for user in data:
+                        role = user['role_name']
+                        id = user['id']
+                        username = user['username']
+                        user_Id = user['user_Id']
+                        status = user['status']
+                        name = user['name']
+                        jobtitle = user['jobtitle']
+                        dob = user['dob']
+                        gender = user['gender']
+                        work_email = user['work_email']
+                        slack_id = user['slack_id']
+                        team = user['team']
+                        user = mongo.db.users.count({
+                            "username": username})
+                        if user > 0:
+                            mongo.db.users.update({
+                                "username": username
+                            }, {
+                                "$set": {
                                     "id": id,
-                                    "name": name,
+                                    "username": username,
                                     "user_Id": user_Id,
+                                    "name": name,
                                     "status": status,
                                     "jobtitle": jobtitle,
                                     "dob": dob,
@@ -223,11 +207,26 @@ def login():
                                     "work_email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
-                                    "role": role,
-                                    "cron_checkin": False,
-                                    "missed_chechkin_crone": False,
                                     "profile": user
-                                }).inserted_id
+                                }})
+                        else:
+                            mongo.db.users.insert_one({
+                                "username": username,
+                                "id": id,
+                                "name": name,
+                                "user_Id": user_Id,
+                                "status": status,
+                                "jobtitle": jobtitle,
+                                "dob": dob,
+                                "gender": gender,
+                                "work_email": work_email,
+                                "slack_id": slack_id,
+                                "team": team,
+                                "role": role,
+                                "cron_checkin": False,
+                                "missed_chechkin_crone": False,
+                                "profile": user
+                            }).inserted_id
             username1 = log_username
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
