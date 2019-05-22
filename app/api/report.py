@@ -35,7 +35,7 @@ def add_checkin():
     today = datetime.datetime.today()
     next_day = today + datetime.timedelta(days=1)
 
-    if not report or not highlight:
+    if not report:
           return jsonify({"msg": "Invalid Request"}), 400
 
     if task_completed == 1:
@@ -48,6 +48,7 @@ def add_checkin():
 
     if date is None:
         date_time = datetime.datetime.utcnow()
+        formatted_date = date_time.strftime("%d-%B-%Y")
         rep = mongo.db.reports.find_one({
             "user": str(current_user["_id"]),
             "type": "daily",
@@ -89,7 +90,7 @@ def add_checkin():
                 "priority": 0,
                 "Daily_chechkin_message": date_time
             }}}, upsert=True)
-        slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(date_time))
+        slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(formatted_date))
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -209,6 +210,8 @@ def get_week_reports():
 @jwt_required
 def add_weekly_checkin():
     current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    formated_date = today.strftime("%d-%B-%Y")
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
@@ -259,7 +262,7 @@ def add_weekly_checkin():
         "cron_review_activity": False,
         "difficulty": difficulty
     }).inserted_id
-    slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(datetime.datetime.now()))
+    slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(formated_date))
     return jsonify(str(ret)), 200
 
 @bp.route('/delete_weekly/<string:weekly_id>', methods=['DELETE'])
