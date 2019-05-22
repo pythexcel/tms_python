@@ -53,13 +53,16 @@ def add_checkin():
             "user": str(current_user["_id"]),
             "type": "daily",
             "created_at": {
-                "$gte": datetime.datetime(today.year, today.month, today.day),
-                "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
+                "$gte": datetime.datetime(today.year, today.month, today.day)
             }
         })
         if rep is not None:
             ret = mongo.db.reports.update({
-                "user": str(current_user["_id"])
+                "user": str(current_user["_id"]),
+                "type": "daily",
+                "created_at": {
+                    "$gte": datetime.datetime(today.year, today.month, today.day)
+                }
             }, {
                 "$set": {
                     "report": report,
