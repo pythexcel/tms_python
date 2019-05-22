@@ -540,3 +540,27 @@ def manager_junior():
     users = [serialize_doc(ret) for ret in users]
     return jsonify(users)
 
+@bp.route('/juniors_chechkin', methods=['GET'])
+@jwt_required
+@token.manager_required
+def junior_chechkin():
+    current_user = get_current_user()
+    users = mongo.db.users.find({
+        "managers": {
+            "$elemMatch": {"_id": str(current_user['_id'])}
+        }
+    }, {"profile": 0})
+    users = [serialize_doc(ret) for ret in users]
+
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    print(ID)
+    reports = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "daily"
+    })
+    reports = [serialize_doc(doc) for doc in reports]
+    return jsonify(reports)
+
+
