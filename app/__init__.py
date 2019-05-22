@@ -76,7 +76,7 @@ def create_app(test_config=None):
     reset_scheduler.start()
 
     recent_activity_scheduler = BackgroundScheduler()
-    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=00)
+    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=0)
     recent_activity_scheduler.start()
     
     review_activity_scheduler = BackgroundScheduler()
