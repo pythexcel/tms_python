@@ -48,7 +48,7 @@ def add_checkin():
 
     if date is None:
         date_time = datetime.datetime.utcnow()
-        formatted_date = date_time.strftime("%d-%A-%Y")
+        formatted_date = date_time.strftime("%d-%B-%Y")
         rep = mongo.db.reports.find_one({
             "user": str(current_user["_id"]),
             "type": "daily",
@@ -186,7 +186,7 @@ def get_week_reports():
 def add_weekly_checkin():
     current_user = get_current_user()
     today = datetime.datetime.utcnow()
-    formated_date = today.strftime("%d-%A-%Y")
+    formated_date = today.strftime("%d-%B-%Y")
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
