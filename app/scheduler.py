@@ -20,13 +20,14 @@ def checkin_score():
         print(Id)
 
         # update the condition to true for the particular user
-        docs = mongo.db.users.update_one({
+        docs = mongo.db.users.update({
+            "_id": ObjectId(str(Id)),
             "cron_checkin": False
         }, {
             "$set": {
                 "cron_checkin": True
             }}, upsert=False)
-
+        print(docs)
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -46,7 +47,7 @@ def checkin_score():
             attn = (data['full_date'])
             if len(data['total_time']) > 0:
                 date_list.append(attn)
-
+        print(date_list)
         # Taking the length of the date_list to find number of days user was present
         no_days_present = len(date_list)
         print('No of days present' + ' :' + str(no_days_present))
@@ -75,7 +76,7 @@ def checkin_score():
             }
         })
         reports = [serialize_doc(report) for report in reports]
-
+        print(reports)
         # storing just the check-in dates from reports in no_of_checking list
         no_of_checking = list()
         for data in reports:
