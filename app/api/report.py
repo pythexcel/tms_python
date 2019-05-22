@@ -234,7 +234,7 @@ def add_weekly_checkin():
     job_title = current_user['jobtitle']
     team = current_user['team']
 
-    if not k_highlight or not extra or not difficulty:
+    if not k_highlight:
         return jsonify({"msg": "Invalid Request"}), 400
     
     reviewed = False
@@ -249,6 +249,16 @@ def add_weekly_checkin():
             mData['reviewed'] = reviewed
             managers_data.append(mData)
 
+    if 'kpi_id' in users:
+        kpi_doc = mongo.db.kpi.find_one({
+            "_id": ObjectId(current_user['kpi_id'])
+        })
+        kpi_name = kpi_doc['kpi_json']
+        era_name = kpi_doc['era_json']
+    else:
+        kpi_name = ""
+        era_name = ""
+    
     ret = mongo.db.reports.insert_one({
         "k_highlight": k_highlight,
         "extra": extra,
@@ -263,6 +273,8 @@ def add_weekly_checkin():
         "team": team,
         "cron_checkin": True,
         "cron_review_activity": False,
+        "kpi_json": kpi_name,
+        "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
     slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(formated_date))
@@ -514,4 +526,41 @@ def recent_activity():
     })
     ret = [serialize_doc(ret) for ret in ret]
     return jsonify(ret)
+
+@bp.route('/managers_juniors', methods=['GET'])
+@jwt_required
+@token.manager_required
+def manager_junior():
+    current_user = get_current_user()
+    users = mongo.db.users.find({
+        "managers": {
+            "$elemMatch": {"_id": str(current_user['_id'])}
+        }
+    })
+    users = [serialize_doc(ret) for ret in users]
+    return jsonify(users)
+
+@bp.route('/juniors_chechkin', methods=['GET'])
+@jwt_required
+@token.manager_required
+def junior_chechkin():
+    current_user = get_current_user()
+    users = mongo.db.users.find({
+        "managers": {
+            "$elemMatch": {"_id": str(current_user['_id'])}
+        }
+    }, {"profile": 0})
+    users = [serialize_doc(ret) for ret in users]
+
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    print(ID)
+    reports = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "daily"
+    })
+    reports = [serialize_doc(doc) for doc in reports]
+    return jsonify(reports)
+
 
