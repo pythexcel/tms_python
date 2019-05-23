@@ -44,6 +44,10 @@ def add_checkin():
         task_completed = False
 
     current_user = get_current_user()
+    if 'profileImage' in current_user:
+        profileImage = current_user['profileImage']
+    else:
+        profileImage = ""
     username = current_user['username']
 
     if date is None:
@@ -71,6 +75,9 @@ def add_checkin():
                     "highlight": highlight,
                     "highlight_task_reason": highlight_task_reason,
                     "user": str(current_user["_id"]),
+                    "username": current_user['username'],
+                    "name": current_user['name'],
+                    "profileImage": profileImage,
                     "created_at": date_time,
                     "type": "daily"
                 }})
@@ -83,6 +90,9 @@ def add_checkin():
                 "highlight_task_reason": highlight_task_reason,
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
+                "username": current_user['username'],
+                "name": current_user['name'],
+                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
@@ -118,6 +128,9 @@ def add_checkin():
                     "highlight_task_reason": highlight_task_reason,
                     "user": str(current_user["_id"]),
                     "created_at": date_time,
+                    "username": current_user['username'],
+                    "name": current_user['name'],
+                    "profileImage": profileImage,
                     "type": "daily"
                 }},upsert=True)
         else:
@@ -129,6 +142,9 @@ def add_checkin():
                 "highlight_task_reason": highlight_task_reason,
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
+                "username": current_user['username'],
+                "name": current_user['name'],
+                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
