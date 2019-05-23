@@ -563,4 +563,85 @@ def junior_chechkin():
     reports = [serialize_doc(doc) for doc in reports]
     return jsonify(reports)
 
+@bp.route('/employee_feedback', methods=['POST'])
+@jwt_required
+def employee_feedback():
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    print(month)
+    current_user = get_current_user()
+    user = str(current_user['_id'])
+    print(user)
+    username = current_user['username']
+    if 'profileImage' in current_user:
+        profileImage = current_user['profileImage']
+    else:
+        profileImage = ""
+    if not request.json:
+        abort(500)
+    feedback = request.json.get("feedback", "")
+    concerns = request.json.get("concerns", "")
+    issues = request.json.get("issues", "")
+
+    if not feedback:
+        return jsonify({"msg": "Invalid Request"}), 400
+
+    rep = mongo.db.reports.find_one({
+        "user": user,
+        "type": "feedback"
+    })
+    if rep is not None:
+        return jsonify({"msg": "You have already submitted this month feedback"})
+    else:
+        report = mongo.db.reports.insert_one({
+            "feedback": feedback,
+            "concerns": concerns,
+            "issuess": issues,
+            "user": user,
+            "month": month,
+            "username": username,
+            "profileImage": profileImage,
+            "type": "feedback"
+        }).inserted_id
+        return jsonify(str(report))
+
+
+@bp.route('/admin_fb_reply', methods=['GET'])
+@bp.route('/admin_fb_reply/<string:feedback_id>', methods=['POST'])
+@jwt_required
+@token.admin_required
+def admin_reply(feedback_id=None):
+    current_user = get_current_user()
+    username = current_user['username']
+    if 'profileImage' in current_user:
+        profileImage = current_user['profileImage']
+    else:
+        profileImage = ""
+    if request.method == "GET":
+        rep = mongo.db.reports.find({
+            "type": "feedback"
+        })
+        rep = [serialize_doc(ret) for ret in rep]
+        return jsonify(rep), 200
+    else:
+        if not request.json:
+            abort(500)
+        reply = request.json.get("reply", None)
+
+        report = mongo.db.reports.update({
+            "_id": ObjectId(feedback_id),
+            "type": "feedback"
+        }, {
+            "$set": {
+                "Admin_response": {
+                "username": username,
+                "profileImage": profileImage,
+                "Reply": reply
+                }
+            }
+        })
+        print(report)
+        return jsonify(str(report)), 200
+
+
 
