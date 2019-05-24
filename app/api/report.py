@@ -173,6 +173,22 @@ def checkin_reports():
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
 
+
+#Api for juniors see manager review.
+@bp.route('/junior_review_response', methods=["GET"])
+@jwt_required
+def junior_review_response():
+    current_user = get_current_user()
+    docs = mongo.db.reports.find({
+        "user": str(current_user["_id"]),
+        "type": "weekly",   
+        "review": {'$exists': True},
+    })    
+    docs = [serialize_doc(doc) for doc in docs]
+    return jsonify(docs)
+
+
+
 @bp.route('/delete/<string:checkin_id>', methods=['DELETE'])
 @jwt_required
 def delete_checkkin(checkin_id):
