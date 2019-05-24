@@ -543,6 +543,21 @@ def recent_activity():
     ret = [serialize_doc(ret) for ret in ret]
     return jsonify(ret)
 
+def load_kpi(kpi_data):
+    print(kpi_data)
+    ret = mongo.db.kpi.find_one({
+        "_id": ObjectId(kpi_data)
+    })
+    return serialize_doc(ret)
+
+
+def add_kpi_data(kpi):
+    data = kpi["kpi_id"]
+    kpi_data = (load_kpi(data))
+    kpi['kpi_id'] = kpi_data
+    return kpi
+
+
 @bp.route('/managers_juniors', methods=['GET'])
 @jwt_required
 @token.manager_required
@@ -552,9 +567,27 @@ def manager_junior():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    })
-    users = [serialize_doc(ret) for ret in users]
+    }, {"profile": 0})
+    users = [add_kpi_data(serialize_doc(ret)) for ret in users]
     return jsonify(users)
+
+
+def load_user(user):
+    print(user)
+    ret = mongo.db.users.find_one({
+        "_id": ObjectId(user)
+    },{"profile": 0})
+    return serialize_doc(ret)
+
+
+def add_user_data(user):
+    user_data = user['user']
+    print(user_data)
+    user_data = (load_user(user_data))
+    print(user_data)
+    user['user'] = user_data
+    return user
+
 
 @bp.route('/juniors_chechkin', methods=['GET'])
 @jwt_required
@@ -567,7 +600,6 @@ def junior_chechkin():
         }
     }, {"profile": 0})
     users = [serialize_doc(ret) for ret in users]
-
     ID = []
     for data in users:
         ID.append(data['_id'])
@@ -576,7 +608,6 @@ def junior_chechkin():
         "user": {"$in": ID},
         "type": "daily"
     })
-    reports = [serialize_doc(doc) for doc in reports]
+    reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
-
 
