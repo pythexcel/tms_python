@@ -151,6 +151,47 @@ def add_checkin():
             }}}, upsert=True)
         return jsonify(str(ret))
 
+
+#Api for slack intigration
+@bp.route('/slack', methods=["GET"])
+def slack():
+    slack_token = 'xoxp-124720392913-124692552128-276446928982-fedcfdbf7bb3549b634edfafafd84238'
+    sc = SlackClient(slack_token)
+    data = sc.api_call(
+    "channels.list"
+    )
+    element = data['channels']
+    channels = []
+    for x in element:
+        channels.append({'id': x['id'], 'channel_name': x['name']})
+    for data in channels:
+        slack_channel = data['id']
+        docs = mongo.db.slack_channel.update({
+        "Channel_id":slack_channel
+        }, {
+        "$set": {
+            "Channel_id":slack_channel
+        }}, upsert=True)
+    return jsonify(str(docs))
+        
+#Api for assign slack channel to a user.    
+@bp.route("/slack/<string:user_id>/<string:channel_id>", methods=["GET"])
+@jwt_required
+@token.admin_required
+def assign_slack_channel(user_id,channel_id):
+    ret = mongo.db.users.update({
+            "_id": ObjectId(user_id)
+        },{
+        "$set": {
+            "Channel_id":channel_id
+        }}, upsert=True)
+    return jsonify(str(ret))
+
+    
+    
+    
+    
+    
 @bp.route('/reports', methods=["GET"])
 @jwt_required
 def checkin_reports():
