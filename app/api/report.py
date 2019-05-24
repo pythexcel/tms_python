@@ -44,10 +44,6 @@ def add_checkin():
         task_completed = False
 
     current_user = get_current_user()
-    if 'profileImage' in current_user:
-        profileImage = current_user['profileImage']
-    else:
-        profileImage = ""
     username = current_user['username']
 
     if date is None:
@@ -76,8 +72,6 @@ def add_checkin():
                     "highlight_task_reason": highlight_task_reason,
                     "user": str(current_user["_id"]),
                     "username": current_user['username'],
-                    "name": current_user['name'],
-                    "profileImage": profileImage,
                     "created_at": date_time,
                     "type": "daily"
                 }})
@@ -91,8 +85,6 @@ def add_checkin():
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
                 "username": current_user['username'],
-                "name": current_user['name'],
-                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
@@ -129,8 +121,6 @@ def add_checkin():
                     "user": str(current_user["_id"]),
                     "created_at": date_time,
                     "username": current_user['username'],
-                    "name": current_user['name'],
-                    "profileImage": profileImage,
                     "type": "daily"
                 }},upsert=True)
         else:
@@ -143,8 +133,6 @@ def add_checkin():
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
                 "username": current_user['username'],
-                "name": current_user['name'],
-                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
@@ -543,6 +531,24 @@ def recent_activity():
     ret = [serialize_doc(ret) for ret in ret]
     return jsonify(ret)
 
+def load_kpi(kpi_data):
+    ret = mongo.db.kpi.find_one({
+        "_id": ObjectId(kpi_data)
+    })
+    return serialize_doc(ret)
+
+
+def add_kpi_data(kpi):
+    if "kpi_id" in kpi:
+        data = kpi["kpi_id"]
+        kpi_data = (load_kpi(data))
+        kpi['kpi_id'] = kpi_data
+    else:
+        kpi['kpi_id'] = ""
+    return kpi
+
+
+
 @bp.route('/managers_juniors', methods=['GET'])
 @jwt_required
 @token.manager_required
@@ -552,9 +558,24 @@ def manager_junior():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    })
-    users = [serialize_doc(ret) for ret in users]
+    }, {"profile": 0})
+    users = [add_kpi_data(serialize_doc(ret)) for ret in users]
     return jsonify(users)
+
+
+def load_user(user):
+    ret = mongo.db.users.find_one({
+        "_id": ObjectId(user)
+    },{"profile": 0})
+    return serialize_doc(ret)
+
+
+def add_user_data(user):
+    user_data = user['user']
+    user_data = (load_user(user_data))
+    user['user'] = user_data
+    return user
+
 
 @bp.route('/juniors_chechkin', methods=['GET'])
 @jwt_required
@@ -567,16 +588,13 @@ def junior_chechkin():
         }
     }, {"profile": 0})
     users = [serialize_doc(ret) for ret in users]
-
     ID = []
     for data in users:
         ID.append(data['_id'])
-    print(ID)
     reports = mongo.db.reports.find({
         "user": {"$in": ID},
         "type": "daily"
     })
-    reports = [serialize_doc(doc) for doc in reports]
+    reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
-
 
