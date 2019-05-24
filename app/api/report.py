@@ -544,7 +544,6 @@ def recent_activity():
     return jsonify(ret)
 
 def load_kpi(kpi_data):
-    print(kpi_data)
     ret = mongo.db.kpi.find_one({
         "_id": ObjectId(kpi_data)
     })
@@ -573,7 +572,6 @@ def manager_junior():
 
 
 def load_user(user):
-    print(user)
     ret = mongo.db.users.find_one({
         "_id": ObjectId(user)
     },{"profile": 0})
@@ -582,9 +580,7 @@ def load_user(user):
 
 def add_user_data(user):
     user_data = user['user']
-    print(user_data)
     user_data = (load_user(user_data))
-    print(user_data)
     user['user'] = user_data
     return user
 
@@ -603,7 +599,6 @@ def junior_chechkin():
     ID = []
     for data in users:
         ID.append(data['_id'])
-    print(ID)
     reports = mongo.db.reports.find({
         "user": {"$in": ID},
         "type": "daily"
