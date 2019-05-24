@@ -21,7 +21,7 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 
 @bp.route('/list', methods=['GET'])
 @jwt_required
-@token.admin_required
+@token.manager_required
 def user_list():
     users = mongo.db.users.find({}, {"profile":0})
     users = [serialize_doc(user) for user in users]
