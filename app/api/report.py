@@ -44,10 +44,6 @@ def add_checkin():
         task_completed = False
 
     current_user = get_current_user()
-    if 'profileImage' in current_user:
-        profileImage = current_user['profileImage']
-    else:
-        profileImage = ""
     username = current_user['username']
 
     if date is None:
@@ -76,8 +72,6 @@ def add_checkin():
                     "highlight_task_reason": highlight_task_reason,
                     "user": str(current_user["_id"]),
                     "username": current_user['username'],
-                    "name": current_user['name'],
-                    "profileImage": profileImage,
                     "created_at": date_time,
                     "type": "daily"
                 }})
@@ -91,8 +85,6 @@ def add_checkin():
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
                 "username": current_user['username'],
-                "name": current_user['name'],
-                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
@@ -129,8 +121,6 @@ def add_checkin():
                     "user": str(current_user["_id"]),
                     "created_at": date_time,
                     "username": current_user['username'],
-                    "name": current_user['name'],
-                    "profileImage": profileImage,
                     "type": "daily"
                 }},upsert=True)
         else:
@@ -143,8 +133,6 @@ def add_checkin():
                 "user": str(current_user["_id"]),
                 "created_at": date_time,
                 "username": current_user['username'],
-                "name": current_user['name'],
-                "profileImage": profileImage,
                 "type": "daily"
             }).inserted_id
 
@@ -551,10 +539,14 @@ def load_kpi(kpi_data):
 
 
 def add_kpi_data(kpi):
-    data = kpi["kpi_id"]
-    kpi_data = (load_kpi(data))
-    kpi['kpi_id'] = kpi_data
+    if "kpi_id" in kpi:
+        data = kpi["kpi_id"]
+        kpi_data = (load_kpi(data))
+        kpi['kpi_id'] = kpi_data
+    else:
+        kpi['kpi_id'] = ""
     return kpi
+
 
 
 @bp.route('/managers_juniors', methods=['GET'])
