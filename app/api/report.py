@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-
+from app.config import slack_token
 from bson.objectid import ObjectId
 from app.util import slack_message
 import datetime
@@ -210,6 +210,42 @@ def get_week_reports():
     }).sort("created_at", 1)
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
+
+
+#Api for slack intigration
+@bp.route('/slack', methods=["GET"])
+def slack():
+
+    slack_id = SlackClient(slack_token)
+    data = slack_id.api_call(
+    "channels.list"
+    )
+    element = data['channels']
+    channels = []
+    for ret in element:
+        channels.append({'id': ret['id'], 'channel_name': ret['name']})
+    for data in channels:
+        slack_channel = data['id']
+        docs = mongo.db.slack_channel.update({
+        "Channel_id":slack_channel
+        }, {
+        "$set": {
+            "Channel_id":slack_channel
+        }}, upsert=True)
+    return jsonify(str(docs))
+        
+#Api for assign slack channel to a user.    
+@bp.route("/slack/<string:user_id>/<string:channel_id>", methods=["GET"])
+@jwt_required
+@token.admin_required
+def assign_slack_channel(user_id,channel_id):
+    ret = mongo.db.users.update({
+            "_id": ObjectId(user_id)
+        },{
+        "$set": {
+            "Channel_id":channel_id
+        }}, upsert=True)
+    return jsonify(str(ret))
 
 
 
