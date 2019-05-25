@@ -3,3 +3,4 @@ URL_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/sal_info/ap
 attn_url = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
 secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
 webhook_url = 'https://hooks.slack.com/services/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'
+slack_token = 'xoxp-124720392913-124692552128-648252405126-95a434e913a028dbcb6cce07c32cdfe8'
