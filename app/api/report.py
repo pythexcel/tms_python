@@ -4,7 +4,8 @@ from app.util import serialize_doc, get_manager_profile
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-
+from app.config import slack_token
+from slackclient import SlackClient
 from bson.objectid import ObjectId
 from app.util import slack_message
 import datetime
@@ -160,6 +161,26 @@ def checkin_reports():
     }).sort("created_at", 1)
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
+
+#Api for slack intigration
+@bp.route('/slack', methods=["GET"])
+def slack():
+
+    slack_id = SlackClient(slack_token)
+    data = slack_id.api_call(
+    "channels.list"
+    )
+    print(data)
+    element = data['channels']
+    channels = []
+  
+    for ret in element:
+        channels.append({'id': ret['id'], 'channel_name': ret['name']})
+    return jsonify(channels)
+        
+
+
+
 
 @bp.route('/delete/<string:checkin_id>', methods=['DELETE'])
 @jwt_required
