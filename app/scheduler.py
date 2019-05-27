@@ -27,7 +27,6 @@ def checkin_score():
             "$set": {
                 "cron_checkin": True
             }}, upsert=False)
-       
         print("updated cron value  as true")
         URL = attn_url
         # generating current month and year
@@ -104,9 +103,8 @@ def checkin_score():
             "$set": {
                 "Checkin_rating": checkin_scr,
             }
-    ret})
-        print("Updated user checkin_rating in database")
-    
+        })
+        print("Updated user checkin_rating in database")    
 
 def overall_reviewes():
     users = mongo.db.reports.find({"cron_checkin": True})
