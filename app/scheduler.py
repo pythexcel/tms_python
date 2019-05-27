@@ -140,9 +140,12 @@ def overall_reviewes():
         print(docs)
         all_sum = []
         for detail in docs:
-            for review in detail['review']:
-                print(review)
-                all_sum.append(review['rating'])
+            if 'review' in detail:
+                for review in detail['review']:
+                    print(review)
+                    all_sum.append(review['rating'])
+            else:
+                pass
         print(all_sum)
         print("got all sum list")
         weighted_avg = np.average(all_sum, weights=all_weight, )
