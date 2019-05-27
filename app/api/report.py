@@ -160,8 +160,14 @@ def add_checkin():
 @jwt_required
 def checkin_reports():
     current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
     docs = mongo.db.reports.find({
-        "user": str(current_user["_id"])
+        "user": str(current_user["_id"]),
+        "type": "daily",
+        "created_at": {
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+        }
     }).sort("created_at", 1)
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
