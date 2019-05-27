@@ -17,6 +17,8 @@ def checkin_score():
     if users is not None:
         ID_ = users['user_Id']
         print(ID_)
+        username = users['username']
+        print(username)
         Id = str(users['_id'])
         print(Id)
         print("successfully find user_id")
@@ -121,18 +123,19 @@ def overall_reviewes():
                 "cron_checkin": False
             }}, upsert=False)
         print("Update cron_checkin false")
-    
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
         print("got weekly reports by user id")
         user = mongo.db.users.find_one({"_id": ObjectId(id)})
         print("find user")
         weights = user['managers']
-        print("got manager weight"+weights)
+        print(weights)
+        print("got manager weight")
         all_weight = []
         for weg in weights:
             weight = weg['weight']
             all_weight.append(weight)
-        print("user managers weight list"+all_weight)
+        print(all_weight)
+        print("user managers weight list")
         docs = [serialize_doc(doc) for doc in docs]
         print(docs)
         all_sum = []
@@ -140,8 +143,8 @@ def overall_reviewes():
             for review in detail['review']:
                 print(review)
                 all_sum.append(review['rating'])
-
-        print("got all sum list"+all_sum)
+        print(all_sum)
+        print("got all sum list")
         weighted_avg = np.average(all_sum, weights=all_weight, )
     
         ret = mongo.db.users.update({
