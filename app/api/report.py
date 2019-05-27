@@ -349,8 +349,8 @@ def get_manager_weekly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_weekly_list(weekly_id=None):
-
     current_user = get_current_user()
+    manager_name = current_user['username']
     if request.method == "GET":
         juniors = get_manager_juniors(current_user['_id'])
 
@@ -373,10 +373,10 @@ def get_manager_weekly_list(weekly_id=None):
 
         if comment is None or weekly_id is None:
             return jsonify(msg="invalid request"), 500
-
         juniors = get_manager_juniors(current_user['_id'])
 
         dab = mongo.db.reports.find({
+            "_id": ObjectId(weekly_id),
             "type": "weekly",
             "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
             "user": {
@@ -390,13 +390,12 @@ def get_manager_weekly_list(weekly_id=None):
                 "_id": ObjectId(str(ID))
             })
             rap = [serialize_doc(doc) for doc in rap]
-            print(rap)
             for dub in rap:
                 junior_name = dub['username']
                 sap = mongo.db.reports.find({
                     "_id": ObjectId(weekly_id),
                     "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
-                           }
+                }
              })
                 sap = [serialize_doc(saps) for saps in sap]
                 if not sap:
@@ -407,6 +406,7 @@ def get_manager_weekly_list(weekly_id=None):
                             "review": {
                                 "difficulty": difficulty,
                                 "rating": rating,
+                                "created_at": datetime.datetime.utcnow(),
                                 "comment": comment,
                                 "manager_id": str(current_user["_id"])
                             }
