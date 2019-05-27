@@ -35,6 +35,7 @@ def add_checkin():
     date = request.json.get("date", "")
     highlight_task_reason = request.json.get("highlight_task_reason", None)
     today = datetime.datetime.today()
+    slackChannels = request.json.get("slackChannels", [])
     next_day = today + datetime.timedelta(days=1)
 
     if not report:
