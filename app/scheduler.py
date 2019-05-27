@@ -27,6 +27,7 @@ def checkin_score():
             "$set": {
                 "cron_checkin": True
             }}, upsert=False)
+        print(str(docs))
         print("updated cron value  as true")
         URL = attn_url
         # generating current month and year
@@ -103,7 +104,8 @@ def checkin_score():
             "$set": {
                 "Checkin_rating": checkin_scr,
             }
-        })
+    ret})
+        print(str(ret))
         print("Updated user checkin_rating in database")
     
 
@@ -121,6 +123,7 @@ def overall_reviewes():
             "$set": {
                 "cron_checkin": False
             }}, upsert=False)
+        print(str(docs))
         print("Update cron_checkin false")
     
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
@@ -152,6 +155,7 @@ def overall_reviewes():
                 "Overall_rating": weighted_avg
             }
         })
+        print(str(ret))
         print("Overall_rating updated  in user profile")
 
 
@@ -164,6 +168,7 @@ def update_croncheckin():
         "$set": {
             "cron_checkin": False
         }}, upsert=False, multi=True)
+    print(str(docs))
     print("Updated cron_checkin value false")
     sap = mongo.db.reports.update({
         "cron_checkin": False
@@ -171,6 +176,7 @@ def update_croncheckin():
         "$set": {
             "cron_checkin": True
         }}, upsert=False, multi=True)
+    print(str(sap))
     print("Updated report cron_checkin value true")
     ret = mongo.db.users.update({
         "missed_chechkin_crone": True
@@ -178,6 +184,7 @@ def update_croncheckin():
         "$set": {
             "missed_chechkin_crone": False
         }}, upsert=False, multi=True)
+    print(str(ret))
     print("updated missed_chechkin_crone as false")
 
 def recent_activity():
