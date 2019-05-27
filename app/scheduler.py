@@ -10,24 +10,24 @@ from app.util import slack_message
 
 
 def checkin_score():
-    print("checkin score running")
+    print("Running")
     # Finding random user who have the below condition
     users = mongo.db.users.find_one({"cron_checkin": False}, {'username': 1, 'user_Id': 1})
+    print("find users profiles in cron_checkin flase")
     if users is not None:
         ID_ = users['user_Id']
         print(ID_)
         Id = str(users['_id'])
         print(Id)
-
+        print("successfully find user_id")
         # update the condition to true for the particular user
-        docs = mongo.db.users.update({
-            "_id": ObjectId(str(Id)),
-            "cron_checkin": False
+        docs = mongo.db.users.update_one({
+            "_id": ObjectId(Id)
         }, {
             "$set": {
                 "cron_checkin": True
             }}, upsert=False)
-        print(docs)
+        print("updated cron value  as true")
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -40,7 +40,7 @@ def checkin_score():
         response = requests.post(url=URL, json=payload)
         data = response.json()
         attn_data = data['data']['attendance']
-
+        print("Got response from hr Api")
         # getting the dates where user was present and store it in date_list
         date_list = list()
         for data in attn_data:
@@ -48,35 +48,41 @@ def checkin_score():
             if len(data['total_time']) > 0:
                 date_list.append(attn)
         print(date_list)
+        print("Got date list in user was persent")
         # Taking the length of the date_list to find number of days user was present
         no_days_present = len(date_list)
         print('No of days present' + ' :' + str(no_days_present))
 
         # converting of ISO format of first date
         first = date_list[0]
+        print(first)
         fri_date = str(first)
         first_date = parser.parse(fri_date)
         first_date_iso = first_date.isoformat()
-
+        print("First_date")
         # converting of ISO format of second date
         last = date_list[-1]
+        print(last)
         lst_date = str(last)
         last_date = parser.parse(lst_date)
         last_date_iso = last_date.isoformat()
-
+        print("Last_date")
         F = datetime.datetime.strptime(first_date_iso, "%Y-%m-%dT%H:%M:%S")
+        print(F)
         L = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
+        print(L)
 
         # Finding the days on which check_in is done
         reports = mongo.db.reports.find({
             "user": Id,
+            "type": "daily",
             "created_at": {
                 "$gte": F,
                 "$lte": L
             }
         })
         reports = [serialize_doc(report) for report in reports]
-        print(reports)
+        print("got reports which are created in between start_date and last_date")
         # storing just the check-in dates from reports in no_of_checking list
         no_of_checking = list()
         for data in reports:
@@ -84,6 +90,7 @@ def checkin_score():
 
         # Taking the length of the list and store it in no_of_checking_days list
         list_checkin = no_of_checking
+        print(list_checkin)
         no_of_checking_days = len(list_checkin)
         print('No of days checkin done' + ' :' + str(no_of_checking_days))
 
@@ -97,31 +104,36 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-    else:
-        return 'Job done'
+        print("Updated user checkin_rating in database")
+    
 
-# Function for overall review of a user
 def overall_reviewes():
-    print("overall reviews running")
-    users = mongo.db.reports.find({"cron_checkin":True})
+    users = mongo.db.reports.find({"cron_checkin": True})
+    print("got reports in cron_checkin true")
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
-        id=detail['user']
+        id = detail['user']
         print(id)
+        print("got user id")
         docs = mongo.db.reports.update({
-        "user":str(id)
+            "user": str(id)
         }, {
-        "$set": {
-           "cron_checkin": False
-           }}, upsert=False)
+            "$set": {
+                "cron_checkin": False
+            }}, upsert=False)
+        print("Update cron_checkin false")
+    
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
+        print("got weekly reports by user id")
         user = mongo.db.users.find_one({"_id": ObjectId(id)})
+        print("find user")
         weights = user['managers']
+        print("got manager weight"+weights)
         all_weight = []
         for weg in weights:
             weight = weg['weight']
             all_weight.append(weight)
-        print(all_weight)
+        print("user managers weight list"+all_weight)
         docs = [serialize_doc(doc) for doc in docs]
         print(docs)
         all_sum = []
@@ -130,7 +142,7 @@ def overall_reviewes():
                 print(review)
                 all_sum.append(review['rating'])
 
-        print(all_sum)
+        print("got all sum list"+all_sum)
         weighted_avg = np.average(all_sum, weights=all_weight, )
     
         ret = mongo.db.users.update({
@@ -140,32 +152,33 @@ def overall_reviewes():
                 "Overall_rating": weighted_avg
             }
         })
+        print("Overall_rating updated  in user profile")
 
 
 
 # Function for reseting the cron values to FALSE
 def update_croncheckin():
-    print("update cron checkin running")
     docs = mongo.db.users.update({
         "cron_checkin": True
     }, {
         "$set": {
             "cron_checkin": False
         }}, upsert=False, multi=True)
-
-    ret = mongo.db.reports.update({
+    print("Updated cron_checkin value false")
+    sap = mongo.db.reports.update({
         "cron_checkin": False
     }, {
         "$set": {
             "cron_checkin": True
         }}, upsert=False, multi=True)
-
+    print("Updated report cron_checkin value true")
     ret = mongo.db.users.update({
         "missed_chechkin_crone": True
     }, {
         "$set": {
             "missed_chechkin_crone": False
         }}, upsert=False, multi=True)
+    print("updated missed_chechkin_crone as false")
 
 def recent_activity():
     print("recent activity running")
@@ -368,5 +381,4 @@ def weekly_remainder():
                     "Message": "Please create your weekly report" + ' ' + str(name)
                 }}}, upsert=True)
         slack_message(msg="Please create your weekly report " + ' ' + name)
-        
         
