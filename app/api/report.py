@@ -98,6 +98,9 @@ def add_checkin():
                 "Daily_chechkin_message": date_time
             }}}, upsert=True)
         slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(formatted_date))
+        slack_msg(msg=str("*"+username+"*" + "\n" + "_" + report + "_" + "\n" +
+                              '*Highlight* : ' + highlight + "\n" + '*Task not completed reason* : ' + task_not_completed_reason)
+                      , channel=slackChannels)
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
