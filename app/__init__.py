@@ -74,7 +74,7 @@ def create_app(test_config=None):
     reset_scheduler = BackgroundScheduler()
     reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=10, minute=30)
     reset_scheduler.start()
-
+    '''
     recent_activity_scheduler = BackgroundScheduler()
     recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=20)
     recent_activity_scheduler.start()
@@ -82,7 +82,7 @@ def create_app(test_config=None):
     review_activity_scheduler = BackgroundScheduler()
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon', hour=15, minute=0)
     review_activity_scheduler.start()
-    '''
+   
     weekly_remainder_scheduler = BackgroundScheduler()
     weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=18, minute=25)
     weekly_remainder_scheduler.start()
@@ -95,6 +95,6 @@ def create_app(test_config=None):
         checkin_score_scheduler.shutdown()
         reset_scheduler.shutdown()
         overall_scheduler.shutdown()
-        recent_activity_scheduler.shutdown()
-        review_activity_scheduler.shutdown()
+        #recent_activity_scheduler.shutdown()
+        #review_activity_scheduler.shutdown()
         #weekly_remainder_scheduler.shutdown()
