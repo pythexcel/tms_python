@@ -6,7 +6,9 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-from app.util import slack_message
+from app.util import slack_message,slack_msg
+from app.config import slack_token
+from slackclient import SlackClient
 import datetime
 
 
@@ -722,5 +724,36 @@ def junior_weekly_report():
     reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
 
+@bp.route('/slack', methods=["GET"])
+@jwt_required
+def slack():
+   current_user = get_current_user()
+   user_slack_id = current_user['slack_id']
+   user_id = current_user['_id']
+   print(user_slack_id)
+   print(user_id)
+   slack_id = SlackClient(slack_token)
+   data = slack_id.api_call(
+   "channels.list"
+   )
+   element = data['channels']
+   channels = []
+   user_channel_id = []
+   for ret in element:
+       channels.append({'id': ret['id'], 'channel_name': ret['name'],'members': ret['members']})
+   for elem in channels:
+       members=elem['members']
+       channel_names = elem['channel_name']
+       channel_ids = elem['id']
+       for details in members:
+           if user_slack_id == details:
+               if channel_names != 'general':
+                   if channel_names != 'random':
+                    user_channel_id.append({"value":channel_ids,"text":channel_names})
+           else:
+               pass
+
+   print(user_channel_id)
+   return jsonify(user_channel_id)
 
 
