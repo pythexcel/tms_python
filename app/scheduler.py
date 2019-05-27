@@ -124,20 +124,14 @@ def overall_reviewes():
             }}, upsert=False)
         print("Update cron_checkin false")
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
-        print("got weekly reports by user id")
         user = mongo.db.users.find_one({"_id": ObjectId(id)})
-        print("find user")
         weights = user['managers']
-        print(weights)
-        print("got manager weight")
         all_weight = []
         for weg in weights:
             weight = weg['weight']
             all_weight.append(weight)
-        print(all_weight)
-        print("user managers weight list")
         docs = [serialize_doc(doc) for doc in docs]
-        print(docs)
+    
         all_sum = []
         for detail in docs:
             if 'review' in detail:
@@ -146,10 +140,16 @@ def overall_reviewes():
                     all_sum.append(review['rating'])
             else:
                 pass
-        print(all_sum)
         print("got all sum list")
-        weighted_avg = np.average(all_sum, weights=all_weight, )
-    
+        Abc = len(all_sum)
+        xyz = len(all_weight)
+        
+        if Abc==xyz:
+            print("all_sum and all weights are ==")
+            weighted_avg = np.average(all_sum, weights=all_weight, )
+        else:
+            print("all_sum and all weights are ==")
+            weighted_avg = 0    
         ret = mongo.db.users.update({
             "_id": ObjectId(id)
         }, {
