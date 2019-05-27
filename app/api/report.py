@@ -532,6 +532,7 @@ def recent_activity():
     return jsonify(ret)
 
 def load_kpi(kpi_data):
+    print(kpi_data)
     ret = mongo.db.kpi.find_one({
         "_id": ObjectId(kpi_data)
     })
@@ -548,7 +549,6 @@ def add_kpi_data(kpi):
     return kpi
 
 
-
 @bp.route('/managers_juniors', methods=['GET'])
 @jwt_required
 @token.manager_required
@@ -558,7 +558,7 @@ def manager_junior():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    }, {"profile": 0}).sort("created_at", 1)
     users = [add_kpi_data(serialize_doc(ret)) for ret in users]
     return jsonify(users)
 
@@ -591,10 +591,136 @@ def junior_chechkin():
     ID = []
     for data in users:
         ID.append(data['_id'])
+    print(ID)
     reports = mongo.db.reports.find({
         "user": {"$in": ID},
         "type": "daily"
-    })
+    }).sort("created_at", 1)
     reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
+
+
+def load_manager(manager):
+
+    ret = mongo.db.users.find_one({
+        "_id": manager
+    },{"profile": 0})
+    return serialize_doc(ret)
+
+
+def add_manager_data(manager):
+    for elem in manager['review']:
+        elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    return manager
+
+
+#Api for juniours see manager review.
+@bp.route('/junior_review_response', methods=["GET"])
+@jwt_required
+def junior_review_response():
+   current_user = get_current_user()
+   docs = mongo.db.reports.find({
+       "user": str(current_user["_id"]),
+       "type": "weekly",
+       "review": {'$exists': True},
+   }).sort("created_at", 1)
+   docs = [add_manager_data(serialize_doc(doc)) for doc in docs]
+   return jsonify(docs)
+
+
+@bp.route('/employee_feedback', methods=['POST', 'GET'])
+@jwt_required
+def employee_feedback():
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    current_user = get_current_user()
+    user = str(current_user['_id'])
+    if request.method == "GET":
+        rep = mongo.db.reports.find({
+            "user": user,
+            "type": "feedback",
+        })
+        rep = [add_user_data(serialize_doc(doc)) for doc in rep]
+        return jsonify(rep), 200
+    else:
+        if not request.json:
+            abort(500)
+        feedback = request.json.get("feedback", "")
+        rep = mongo.db.reports.find_one({
+            "user": user,
+            "type": "feedback",
+            "month": month,
+        })
+        if rep is not None:
+            return jsonify({"msg": "You have already submitted feedback for this month"}), 409
+        else:
+            report = mongo.db.reports.insert_one({
+                "feedback": feedback,
+                "user": user,
+                "month": month,
+                "type": "feedback",
+            }).inserted_id
+            return jsonify(str(report)), 200
+
+
+@bp.route('/admin_fb_reply', methods=['GET'])
+@bp.route('/admin_fb_reply/<string:feedback_id>', methods=['POST'])
+@jwt_required
+@token.admin_required
+def admin_reply(feedback_id=None):
+    current_user = get_current_user()
+    username = current_user['username']
+    if 'profileImage' in current_user:
+        profileImage = current_user['profileImage']
+    else:
+        profileImage = ""
+    if request.method == "GET":
+        rep = mongo.db.reports.find({
+            "type": "feedback"
+        })
+        rep = [add_user_data(serialize_doc(ret)) for ret in rep]
+        return jsonify(rep), 200
+    else:
+        if not request.json:
+            abort(500)
+        reply = request.json.get("reply", None)
+        report = mongo.db.reports.update({
+            "_id": ObjectId(feedback_id),
+            "type": "feedback"
+        }, {
+            "$set": {
+                "admin_response": {
+                "Reply": reply,
+                "username": username,
+                "profileImage": profileImage
+                }
+            }
+        })
+        return jsonify(str(report)), 200
+
+
+@bp.route('/junior_weekly_report', methods=['GET'])
+@jwt_required
+@token.manager_required
+def junior_weekly_report():
+    current_user = get_current_user()
+    users = mongo.db.users.find({
+        "managers": {
+            "$elemMatch": {"_id": str(current_user['_id'])}
+        }
+    }, {"profile": 0})
+    users = [serialize_doc(ret) for ret in users]
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    print(ID)
+    reports = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}}
+    }).sort("created_at", 1)
+    reports = [add_user_data(serialize_doc(doc)) for doc in reports]
+    return jsonify(reports)
+
+
 
