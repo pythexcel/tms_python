@@ -6,9 +6,8 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-from app.util import slack_message,slack_msg
-from app.config import slack_token
-from slackclient import SlackClient
+from app.util import slack_message
+
 import datetime
 
 
