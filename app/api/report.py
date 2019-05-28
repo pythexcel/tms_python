@@ -34,9 +34,7 @@ def add_checkin():
     highlight = request.json.get("highlight", "")
     date = request.json.get("date", "")
     highlight_task_reason = request.json.get("highlight_task_reason", None)
-    today = datetime.datetime.today()
-    slackChannels = request.json.get("slackChannels", [])
-    next_day = today + datetime.timedelta(days=1)
+    today = datetime.datetime.utcnow()
 
     if not report:
           return jsonify({"msg": "Invalid Request"}), 400
@@ -74,8 +72,8 @@ def add_checkin():
                     "highlight": highlight,
                     "highlight_task_reason": highlight_task_reason,
                     "user": str(current_user["_id"]),
-                    "username": current_user['username'],
                     "created_at": date_time,
+                    "username": current_user['username'],
                     "type": "daily"
                 }})
         else:
@@ -98,56 +96,26 @@ def add_checkin():
                     "priority": 0,
                     "Daily_chechkin_message": date_time
                 }}}, upsert=True)
-            slack_message(msg=username+ " "+'have created daily chechk-in at'+' '+str(formatted_date))
-            slack_msg(msg=str("*"+username+"*" + "\n" + "_" + report + "_" + "\n" +
-                                  '*Highlight* : ' + highlight + "\n" + '*Task not completed reason* : ' + task_not_completed_reason)
-                          , channel=slackChannels)
+            slack_message(msg=username + " " + 'have created daily chechk-in at' + ' ' + str(formatted_date))
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
-        rep = mongo.db.reports.find_one({
+        sap = mongo.db.reports.insert_one({
+            "report": report,
+            "task_completed": task_completed,
+            "task_not_completed_reason": task_not_completed_reason,
+            "highlight": highlight,
+            "highlight_task_reason": highlight_task_reason,
             "user": str(current_user["_id"]),
-            "type": "daily",
-            "created_at": {
-                "$gte": datetime.datetime(today.year, today.month, today.day),
-                "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)
-            }
-        })
-        if rep is not None:
-            ret = mongo.db.reports.update({
-                "user": str(current_user["_id"]),
-                "created_at": date_time
-            }, {
-                "$set": {
-                    "report": report,
-                    "task_completed": task_completed,
-                    "task_not_completed_reason": task_not_completed_reason,
-                    "highlight": highlight,
-                    "highlight_task_reason": highlight_task_reason,
-                    "user": str(current_user["_id"]),
-                    "created_at": date_time,
-                    "username": current_user['username'],
-                    "type": "daily"
-                }},upsert=True)
-        else:
-            ret = mongo.db.reports.insert_one({
-                "report": report,
-                "task_completed": task_completed,
-                "task_not_completed_reason": task_not_completed_reason,
-                "highlight": highlight,
-                "highlight_task_reason": highlight_task_reason,
-                "user": str(current_user["_id"]),
-                "created_at": date_time,
-                "username": current_user['username'],
-                "type": "daily"
-            }).inserted_id
-
+            "created_at": date_time,
+            "username": current_user['username'],
+            "type": "daily"
+        }).inserted_id
         users = mongo.db.users.update({
             "_id": ObjectId(str(current_user['_id']))},
             {"$pull": {"missed_checkin_dates": {
                 "date": date,
             }}})
-
         docs = mongo.db.recent_activity.update({
             "user": str(current_user["_id"])},
             {"$push": {"Daily_checkin": {
@@ -155,7 +123,10 @@ def add_checkin():
                 "priority": 0,
                 "Daily_chechkin_message": date_time
             }}}, upsert=True)
-        return jsonify(str(ret))
+
+        return jsonify(str(sap))
+
+
 
 @bp.route('/reports', methods=["GET"])
 @jwt_required
@@ -734,36 +705,5 @@ def junior_weekly_report():
     reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
 
-@bp.route('/slack', methods=["GET"])
-@jwt_required
-def slack():
-   current_user = get_current_user()
-   user_slack_id = current_user['slack_id']
-   user_id = current_user['_id']
-   print(user_slack_id)
-   print(user_id)
-   slack_id = SlackClient(slack_token)
-   data = slack_id.api_call(
-   "channels.list"
-   )
-   element = data['channels']
-   channels = []
-   user_channel_id = []
-   for ret in element:
-       channels.append({'id': ret['id'], 'channel_name': ret['name'],'members': ret['members']})
-   for elem in channels:
-       members=elem['members']
-       channel_names = elem['channel_name']
-       channel_ids = elem['id']
-       for details in members:
-           if user_slack_id == details:
-               if channel_names != 'general':
-                   if channel_names != 'random':
-                    user_channel_id.append({"value":channel_ids,"text":channel_names})
-           else:
-               pass
-
-   print(user_channel_id)
-   return jsonify(user_channel_id)
 
 
