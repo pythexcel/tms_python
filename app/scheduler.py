@@ -48,12 +48,11 @@ def checkin_score():
         for data in attn_data:
             attn = (data['full_date'])
             check=len(data['total_time'])
-            print(check)
             if check != 0:
                 if len(data['total_time']) > 0:
                     date_list.append(attn)
             else:
-                pass
+                date_list=[]
         print(date_list)
         print("Got date list in user was persent")
         # Taking the length of the date_list to find number of days user was present
