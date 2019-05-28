@@ -46,7 +46,6 @@ def checkin_score():
         # getting the dates where user was present and store it in date_list
         date_list = list()
         for data in attn_data:
-            print(data)
             attn = (data['full_date'])
             print(data['total_time'])
             if len(data['total_time']) > 0:
