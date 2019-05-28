@@ -46,7 +46,9 @@ def checkin_score():
         # getting the dates where user was present and store it in date_list
         date_list = list()
         for data in attn_data:
+            print(data)
             attn = (data['full_date'])
+            print(data['total_time'])
             if len(data['total_time']) > 0:
                 date_list.append(attn)
         print(date_list)
@@ -106,7 +108,7 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-        print("Updated user checkin_rating in database")    
+        print("Updated user checkin_rating in database")
 
 def overall_reviewes():
     users = mongo.db.reports.find({"cron_checkin": True})
