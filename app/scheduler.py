@@ -23,6 +23,7 @@ def checkin_score():
         print(Id)
         print("successfully find user_id")
         # update the condition to true for the particular user
+        
         docs = mongo.db.users.update_one({
             "_id": ObjectId(Id)
         }, {
@@ -30,6 +31,7 @@ def checkin_score():
                 "cron_checkin": True
             }}, upsert=False)
         print("updated cron value  as true")
+    
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -50,34 +52,41 @@ def checkin_score():
             check=len(data['total_time'])
             if check != 0:
                 if len(data['total_time']) > 0:
+                    
                     date_list.append(attn)
             else:
-                date_list=[]
-        print(date_list)
-        print("Got date list in user was persent")
+                pass
+                
         # Taking the length of the date_list to find number of days user was present
         no_days_present = len(date_list)
         print('No of days present' + ' :' + str(no_days_present))
-
-        # converting of ISO format of first date
-        first = date_list[0]
-        print(first)
-        fri_date = str(first)
-        first_date = parser.parse(fri_date)
-        first_date_iso = first_date.isoformat()
-        print("First_date")
+        print(date_list)
+        if date_list is not None:
+            first = date_list[0]
+            fri_date = str(first)
+            first_date = parser.parse(fri_date)
+            first_date_iso = first_date.isoformat()
+            
+        else:
+            pass
+        
         # converting of ISO format of second date
-        last = date_list[-1]
-        print(last)
-        lst_date = str(last)
-        last_date = parser.parse(lst_date)
-        last_date_iso = last_date.isoformat()
-        print("Last_date")
-        F = datetime.datetime.strptime(first_date_iso, "%Y-%m-%dT%H:%M:%S")
-        print(F)
-        L = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
-        print(L)
-
+        if date_list is not None:
+            last = date_list[-1]
+            print(last)
+            lst_date = str(last)
+            last_date = parser.parse(lst_date)
+            last_date_iso = last_date.isoformat()
+        else:
+            pass
+        if first_date_iso and last_date_iso is not None:
+            F = datetime.datetime.strptime(first_date_iso, "%Y-%m-%dT%H:%M:%S")
+            L = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
+        else:
+            F=0
+            L=0    
+    
+        
         # Finding the days on which check_in is done
         reports = mongo.db.reports.find({
             "user": Id,
@@ -88,7 +97,7 @@ def checkin_score():
             }
         })
         reports = [serialize_doc(report) for report in reports]
-        print("got reports which are created in between start_date and last_date")
+        
         # storing just the check-in dates from reports in no_of_checking list
         no_of_checking = list()
         for data in reports:
@@ -96,7 +105,7 @@ def checkin_score():
 
         # Taking the length of the list and store it in no_of_checking_days list
         list_checkin = no_of_checking
-        print(list_checkin)
+        
         no_of_checking_days = len(list_checkin)
         print('No of days checkin done' + ' :' + str(no_of_checking_days))
 
@@ -110,7 +119,6 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-        print("Updated user checkin_rating in database")
 
 def overall_reviewes():
     users = mongo.db.reports.find({"cron_checkin": True})
