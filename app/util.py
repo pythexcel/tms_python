@@ -34,12 +34,3 @@ def slack_message(msg):
     webhook_url, json=slackmsg,
     headers={'Content-Type': 'application/json'})
 
-def slack_msg(channel,msg):
-   sc = SlackClient(slack_token)
-   for data in channel:
-       sc.api_call(
-           "chat.postMessage",
-           channel=data,
-           text=msg
-       )
-    
