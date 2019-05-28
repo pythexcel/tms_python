@@ -389,6 +389,14 @@ def get_manager_weekly_list(weekly_id=None):
                             }
                         }
                     })
+                    
+                    cron = mongo.db.reports.update({
+                        "_id": ObjectId(weekly_id)
+                        }, {    
+                        "$set": {
+                            "cron_checkin": True
+                        }})
+                    
                     docs = mongo.db.reports.update({
                         "_id": ObjectId(weekly_id),
                         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},

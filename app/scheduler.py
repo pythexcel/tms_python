@@ -182,23 +182,12 @@ def update_croncheckin():
             "cron_checkin": False
         }}, upsert=False, multi=True)
  
-    print("Updated cron_checkin value false")
-    sap = mongo.db.reports.update({
-        "cron_checkin": False
-    }, {
-        "$set": {
-            "cron_checkin": True
-        }}, upsert=False, multi=True)
-
-    print("Updated report cron_checkin value true")
     ret = mongo.db.users.update({
         "missed_chechkin_crone": True
     }, {
         "$set": {
             "missed_chechkin_crone": False
         }}, upsert=False, multi=True)
- 
-    print("updated missed_chechkin_crone as false")
 
 def recent_activity():
     print("recent activity running")
