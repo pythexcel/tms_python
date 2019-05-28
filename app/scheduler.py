@@ -49,11 +49,9 @@ def checkin_score():
         date_list = list()
         for data in attn_data:
             attn = (data['full_date'])
-            check=len(data['total_time'])
-            if check != 0:
-                if len(data['total_time']) > 0:
-                    
-                    date_list.append(attn)
+            time = data['total_time']
+            if time is not None:
+                date_list.append(attn)
             else:
                 pass
                 
@@ -119,7 +117,6 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-
 def overall_reviewes():
     users = mongo.db.reports.find({"cron_checkin": True})
     print("got reports in cron_checkin true")
