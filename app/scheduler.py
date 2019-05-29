@@ -231,7 +231,15 @@ def weekly_remainder():
             slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
         else:
             slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
-    
+        if day == 5:
+            ret = mongo.db.users.update({
+            "_id": ObjectId(ID_)
+                }, {
+            "$set": {
+                "Overall_rating": 0
+                }
+            })
+
 def recent_activity():
     print("recent activity running")
     users = mongo.db.reports.find({"type": "daily"})
