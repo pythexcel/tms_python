@@ -244,6 +244,10 @@ def add_weekly_checkin():
     else:
         kpi_name = ""
         era_name = ""
+        
+    managers_name = []
+    for elem in managers_data:
+        managers_name.append({"Id":elem['_id']})    
     
     ret = mongo.db.reports.insert_one({
         "k_highlight": k_highlight,
@@ -263,6 +267,18 @@ def add_weekly_checkin():
         "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
+
+    for element in managers_name:
+        manager = element['Id']
+        rec = mongo.db.recent_activity.update({
+            "user": manager},
+            {"$push": {
+                "Junior_weekly": {
+                    "created_at": datetime.datetime.now(),
+                    "priority": 1,
+                    "Message": str(username)+' '+"have created a weekly report please review it"
+                }}}, upsert=True)
+
     slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(formated_date))
     return jsonify(str(ret)), 200
 
@@ -298,12 +314,27 @@ def load_checkin(id):
     return serialize_doc(ret)
 
 
+def load_all_checkin(all_chekin):
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
+    ret = mongo.db.reports.find({
+        "user": all_chekin,
+        "type": "daily",
+        "created_at": {
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+    })
+    ret = [serialize_doc(doc) for doc in ret]
+    return ret
+
+
 def add_checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
     select_days = [load_checkin(day) for day in select_days]
+    all_chekin = weekly_report['user']
+    all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
+    weekly_report['all_chekin'] = all_chekin
     return weekly_report
-
 
 @bp.route("/manager_weekly_all", methods=["GET"])
 @jwt_required
@@ -711,6 +742,29 @@ def junior_weekly_report():
     }).sort("created_at", 1)
     reports = [add_user_data(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
+
+@bp.route('/delete_manager_response/<string:weekly_id>', methods=['DELETE'])
+@jwt_required
+@token.manager_required
+def delete_manager_response(weekly_id):
+    current_user = get_current_user()
+    docs = mongo.db.reports.update({
+        "_id": ObjectId(weekly_id)
+    },{
+        "$pull": {
+            "review": {
+                "manager_id": str(current_user["_id"])}
+        }
+    })
+    docs = mongo.db.reports.update({
+        "_id": ObjectId(weekly_id),
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
+    }, {
+        "$set": {
+            "is_reviewed.$.reviewed": False
+        }})
+    return jsonify(str(docs)), 200
+
 
 
 
