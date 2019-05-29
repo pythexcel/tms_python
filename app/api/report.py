@@ -216,10 +216,7 @@ def add_weekly_checkin():
     select_days = request.json.get("select_days", [])
     difficulty = request.json.get("difficulty", 0)
     username = current_user['username']
-    profileimage = current_user['profileImage']
-    job_title = current_user['jobtitle']
-    team = current_user['team']
-
+ 
     if not k_highlight:
         return jsonify({"msg": "Invalid Request"}), 400
     
@@ -258,9 +255,6 @@ def add_weekly_checkin():
         "created_at": datetime.datetime.utcnow(),
         "type": "weekly",
         "is_reviewed": managers_data,
-        "profileImage": profileimage,
-        "jobtitle": job_title,
-        "team": team,
         "cron_checkin": True,
         "cron_review_activity": False,
         "kpi_json": kpi_name,
