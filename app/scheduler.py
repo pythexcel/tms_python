@@ -212,7 +212,7 @@ def weekly_remainder():
     weekly_id = []
     for details in rep:
         weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id']})
-    print(weekly_id)
+
     for doc in weekly_id:
         ID_ = doc['ID_']
         name = doc['name']
@@ -225,7 +225,12 @@ def weekly_remainder():
                     "priority": 1,
                     "Message": "Please create your weekly report" + ' ' + str(name)
                 }}}, upsert=True)
-        slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
+        day = datetime.datetime.today().weekday()
+        week_day=[0,1,2]
+        if day in week_day:
+            slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
+        else:
+            slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
     
 def recent_activity():
     print("recent activity running")
