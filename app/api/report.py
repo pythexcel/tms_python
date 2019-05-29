@@ -204,7 +204,9 @@ def add_weekly_checkin():
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
-            "user": str(current_user["_id"])
+            "user": str(current_user["_id"]),
+            "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
         }).sort("created_at", 1)
         docs = [serialize_doc(doc) for doc in docs]
         return jsonify(docs), 200
@@ -340,7 +342,9 @@ def get_manager_weekly_list_all():
         "type": "weekly",
         "user": {
             "$in": juniors
-        }
+        },
+        "created_at": {
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
     }).sort("created_at", 1)
     docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
     return jsonify(docs), 200
@@ -456,8 +460,8 @@ def week_reviewed_reports():
         "type": "weekly",
         "review": {"$exists": True},
         "created_at": {
-            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
-            "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+            
         }
     }).sort("created_at", 1)
     docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
