@@ -80,7 +80,7 @@ def create_app(test_config=None):
     recent_activity_scheduler.start()
     '''
     weekly_remainder_scheduler = BackgroundScheduler()
-    weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=18, minute=25)
+    weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=17, minute=45)
     weekly_remainder_scheduler.start()
    
     
