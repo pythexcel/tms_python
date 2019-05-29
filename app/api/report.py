@@ -255,7 +255,7 @@ def add_weekly_checkin():
         "select_days": select_days,
         "user": str(current_user["_id"]),
         "username": username,
-        "created_at": datetime.datetime.now(),
+        "created_at": datetime.datetime.utcnow(),
         "type": "weekly",
         "is_reviewed": managers_data,
         "profileImage": profileimage,
@@ -439,7 +439,7 @@ def get_manager_weekly_list(weekly_id=None):
                         "user": str(ID)},
                         {"$push": {
                             "report_reviewed": {
-                                "created_at": datetime.datetime.now(),
+                                "created_at": datetime.datetime.utcnow(),
                                 "priority": 0,
                                 "Message": "Your weekly report has been reviewed by "" " + manager_name
                             }}}, upsert=True)
