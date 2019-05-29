@@ -206,15 +206,17 @@ def weekly_remainder():
 
     rep = mongo.db.users.find({
         "_id": {"$nin": user_id}
-    }, {"username": 1})
+    })
     rep = [serialize_doc(doc) for doc in rep]
 
     weekly_id = []
     for details in rep:
-        weekly_id.append({"ID_": details['_id'], "name": details['username']})
+        weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id']})
+    print(weekly_id)
     for doc in weekly_id:
         ID_ = doc['ID_']
         name = doc['name']
+        slack_id = doc['slack_id']
         ret = mongo.db.recent_activity.update({
             "user": ID_},
             {"$push": {
@@ -223,8 +225,7 @@ def weekly_remainder():
                     "priority": 1,
                     "Message": "Please create your weekly report" + ' ' + str(name)
                 }}}, upsert=True)
-        slack_message(msg="Please create your weekly report " + ' ' + name)
-
+        slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
     
 def recent_activity():
     print("recent activity running")
