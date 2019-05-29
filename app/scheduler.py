@@ -349,42 +349,4 @@ def review_activity():
         slack_message(msg=str(data) + " " + 'you have to review your Junior ' + str(name_list) + 'weekly report')
 
         
-def weekly_remainder():
-    today = datetime.datetime.today()
-    next_day = today + datetime.timedelta(1)
-    last_day = today - datetime.timedelta(1)
-    users = mongo.db.users.find({}, {"username": 1})
-    users = [serialize_doc(user) for user in users]
-    ID = []
-    for data in users:
-        ID.append(data['_id'])
-    reports = mongo.db.reports.find({
-        "type": "weekly",
-        "user": {"$in": ID}
-    })
-    reports = [serialize_doc(doc) for doc in reports]
-    user_id = []
-    for data_id in reports:
-        user_id.append(ObjectId(data_id['user']))
-
-    rep = mongo.db.users.find({
-        "_id": {"$nin": user_id}
-    }, {"username": 1})
-    rep = [serialize_doc(doc) for doc in rep]
-
-    weekly_id = []
-    for details in rep:
-        weekly_id.append({"ID_": details['_id'], "name": details['username']})
-    for doc in weekly_id:
-        ID_ = doc['ID_']
-        name = doc['name']
-        ret = mongo.db.recent_activity.update({
-            "user": ID_},
-            {"$push": {
-                "weekly": {
-                    "created_at": datetime.datetime.now(),
-                    "priority": 1,
-                    "Message": "Please create your weekly report" + ' ' + str(name)
-                }}}, upsert=True)
-        slack_message(msg="Please create your weekly report " + ' ' + name)
         
