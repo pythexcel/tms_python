@@ -308,6 +308,15 @@ def weekly_remainder():
             users = [serialize_doc(doc) for doc in users]
             for user in users:
                 weekly = user['_id']
+                
+                docs = mongo.db.reports.update({
+                        "_id": ObjectId(weekly),
+                        "is_reviewed": {'$elemMatch': {"_id": str(ID_), "reviewed": False}},
+                    }, {
+                        "$set": {
+                            "is_reviewed.$.reviewed": True
+                        }})
+                
                 ret = mongo.db.reports.update({
                             "_id": ObjectId(weekly)
                         }, {
