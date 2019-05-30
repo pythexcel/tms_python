@@ -330,7 +330,6 @@ def review_activity():
                slack_id = data['_id']
                users = mongo.db.users.find_one({"_id": ObjectId(str(slack_id))})
                slack = users['slack_id']
-               print(slack)
                ret = mongo.db.recent_activity.update({
                    "user": data['_id']},
                    {"$push": {
