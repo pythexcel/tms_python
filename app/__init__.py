@@ -82,6 +82,11 @@ def create_app(test_config=None):
     weekly_remainder_scheduler = BackgroundScheduler()
     weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=17, minute=45)
     weekly_remainder_scheduler.start()
+    
+    review_activity_scheduler = BackgroundScheduler()
+    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=19, minute=9)
+    review_activity_scheduler.start()
+    
    
     
     try:
@@ -93,5 +98,5 @@ def create_app(test_config=None):
         overall_scheduler.shutdown()
         weekly_remainder_scheduler.shutdown()
         #recent_activity_scheduler.shutdown()
-        #review_activity_scheduler.shutdown()
+        review_activity_scheduler.shutdown()
         
