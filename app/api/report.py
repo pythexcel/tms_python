@@ -398,6 +398,8 @@ def get_manager_weekly_list(weekly_id=None):
             rap = [serialize_doc(doc) for doc in rap]
             for dub in rap:
                 junior_name = dub['username']
+                slack = dub['slack_id']
+                print(slack)
                 sap = mongo.db.reports.find({
                     "_id": ObjectId(weekly_id),
                     "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
@@ -437,11 +439,11 @@ def get_manager_weekly_list(weekly_id=None):
                         "user": str(ID)},
                         {"$push": {
                             "report_reviewed": {
-                                "created_at": datetime.datetime.utcnow(),
+                                "created_at": datetime.datetime.now(),
                                 "priority": 0,
                                 "Message": "Your weekly report has been reviewed by "" " + manager_name
                             }}}, upsert=True)
-                    slack_message(msg=junior_name + " " + 'your report is reviewed by' + ' ' + manager_name)
+                    slack_message(msg="Hi"+' '+"<@"+slack+">!"+' ' + "your report is reviewed by" + ' ' + manager_name)
                     return jsonify(str(ret)), 200
                 else:
                     return jsonify(msg="Already reviewed this report"), 400
