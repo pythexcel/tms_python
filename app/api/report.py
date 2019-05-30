@@ -45,6 +45,7 @@ def add_checkin():
 
     current_user = get_current_user()
     username = current_user['username']
+    slack = current_user['slack_id']
 
     if date is None:
         date_time = datetime.datetime.utcnow()
@@ -95,7 +96,7 @@ def add_checkin():
                     "priority": 0,
                     "Daily_chechkin_message": date_time
                 }}}, upsert=True)
-            slack_message(msg=username + " " + 'have created daily chechk-in at' + ' ' + str(formatted_date))
+            slack_message(msg="<@"+slack+">!"+' ''have created daily chechk-in at'+' '+str(formatted_date))
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -218,6 +219,7 @@ def add_weekly_checkin():
     select_days = request.json.get("select_days", [])
     difficulty = request.json.get("difficulty", 0)
     username = current_user['username']
+    slack = current_user['slack_id']
  
     if not k_highlight:
         return jsonify({"msg": "Invalid Request"}), 400
@@ -275,7 +277,7 @@ def add_weekly_checkin():
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
 
-    slack_message(msg=username + " " + 'have created weekly report at' + ' ' + str(formated_date))
+    slack_message(msg="<@"+slack+">!"+' ''have created weekly report at' + ' ' + str(formated_date))
     return jsonify(str(ret)), 200
 
 @bp.route('/delete_weekly/<string:weekly_id>', methods=['DELETE'])
