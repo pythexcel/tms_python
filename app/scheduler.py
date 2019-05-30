@@ -264,24 +264,21 @@ def recent_activity():
         
         # if checkin not found update date in user profile
         users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1})
-                                        # "daily_chechkin_mandatory": {"$exists": False}},
-                                        # {'username': 1, 'user_Id': 1})
-        
-
+                                     
         if users is not None:
             username = users['username']
             slack_id = users['slack_id']
             print(slack_id)
             ID_ = users['user_Id']
             URL = attn_url
-            '''
+            
             dec = mongo.db.users.update({
                 "_id": ObjectId(str(ID))
             }, {
                 "$set": {
                     "missed_chechkin_crone": True
                 }})
-            '''
+            
             # generating current month and year
             month = str(today.month)
             year = str(today.year)
