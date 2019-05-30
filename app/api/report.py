@@ -336,6 +336,8 @@ def add_checkin_data(weekly_report):
 @jwt_required
 @token.manager_required
 def get_manager_weekly_list_all():
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
     current_user = get_current_user()
     juniors = get_manager_juniors(current_user['_id'])
     docs = mongo.db.reports.find({
