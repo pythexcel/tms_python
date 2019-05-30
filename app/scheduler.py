@@ -302,7 +302,7 @@ def weekly_remainder():
                 "type": "weekly",
                 "is_reviewed": managers_data,
                 "weekly_cron": True,
-                "difficulty": 3
+                "difficulty": 0
             }).inserted_id
             users = mongo.db.reports.find({"weekly_cron": True},{"_id": 1})
             users = [serialize_doc(doc) for doc in users]
@@ -322,7 +322,7 @@ def weekly_remainder():
                         }, {
                             "$push": {
                                 "review": {
-                                    "difficulty": 3,
+                                    "difficulty": 0,
                                     "rating": 0,
                                     "created_at": datetime.datetime.utcnow(),
                                     "comment": "you have not done your weekly report",
