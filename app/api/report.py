@@ -717,6 +717,15 @@ def admin_reply(feedback_id=None):
         })
         return jsonify(str(report)), 200
 
+def load_details(data):
+user_data = data['user']
+user_data = (load_user(user_data))
+data['user'] = user_data
+for elem in data['is_reviewed']:
+    elem['_id'] = load_manager(ObjectId(elem['_id']))
+
+return data
+
 
 @bp.route('/junior_weekly_report', methods=['GET'])
 @jwt_required
@@ -738,7 +747,7 @@ def junior_weekly_report():
         "type": "weekly",
         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}}
     }).sort("created_at", 1)
-    reports = [add_user_data(serialize_doc(doc)) for doc in reports]
+    reports = [load_details(serialize_doc(doc)) for doc in reports]
     return jsonify(reports)
 
 @bp.route('/delete_manager_response/<string:weekly_id>', methods=['DELETE'])
