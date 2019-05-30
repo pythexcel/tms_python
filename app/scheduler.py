@@ -233,19 +233,18 @@ def weekly_remainder():
         else:
             slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
     
+# Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
-    print("recent activity running")
-    users = mongo.db.reports.find({"type": "daily"})
+    print("running")
+    #users = mongo.db.reports.find({"type": "daily"})
+    users = mongo.db.users.find({}, {"username": 1})
     users = [serialize_doc(doc) for doc in users]
-    print(users)
     # find user id
+    today = datetime.datetime.now()
+    last_day = today - datetime.timedelta(1)
+
     for detail in users:
-        ID = detail['user']
-        print(ID)
-        today = datetime.datetime.now()
-        print(today)
-        last_day = today - datetime.timedelta(1)
-        print(last_day)
+        ID = detail['_id']
         # find reports checkin by user_id
         reports = mongo.db.reports.find({
             "user": str(ID),
@@ -255,24 +254,34 @@ def recent_activity():
                 "$lte": datetime.datetime(today.year, today.month, today.day)
             }
         })
+
         reports = [serialize_doc(report) for report in reports]
-        print('asdsadsa')
+        last_day_checkin=[]
+        for a in reports:
+            user=a['user']
+            last_day_checkin.append(user)
+
+        
         # if checkin not found update date in user profile
-        users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),
-                                         "missed_chechkin_crone":False,
-                                         "daily_chechkin_mandatory": {"$exists": False}},
-                                        {'username': 1, 'user_Id': 1})
+        users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1})
+                                        # "daily_chechkin_mandatory": {"$exists": False}},
+                                        # {'username': 1, 'user_Id': 1})
+        
+
         if users is not None:
             username = users['username']
+            slack_id = users['slack_id']
+            print(slack_id)
             ID_ = users['user_Id']
             URL = attn_url
+            '''
             dec = mongo.db.users.update({
                 "_id": ObjectId(str(ID))
             }, {
                 "$set": {
                     "missed_chechkin_crone": True
                 }})
-
+            '''
             # generating current month and year
             month = str(today.month)
             year = str(today.year)
@@ -280,18 +289,21 @@ def recent_activity():
                        "month": month, "year": year}
             response = requests.post(url=URL, json=payload)
             data = response.json()
+            
             attn_data = data['data']['attendance']
-
+        
 
             # getting the dates where user was present and store it in date_list
             date_list = list()
             date_time = today - datetime.timedelta(1)
             date = date_time.strftime("%Y-%m-%d")
-
-            for data in date_list:
-                attn = (data['full_date'])
-                if len(data['total_time']) > 0:
-                    date_list.append(attn)
+            
+            for d in attn_data:
+                full_date=d['full_date']
+                in_time = d['in_time']
+                if in_time != "":
+                    date_list.append(full_date)
+            
             if date not in date_list:
                 ret = mongo.db.users.update({
                     "_id": ObjectId(str(ID))},
@@ -299,7 +311,7 @@ def recent_activity():
                         "date": date,
                         "created_at": datetime.datetime.now()
                     }}})
-                print(ret)
+                               
                 docs = mongo.db.recent_activity.update({
                     "user": str(ID)},
                     {"$push": {"missed_checkin": {
@@ -308,8 +320,11 @@ def recent_activity():
                         "priority": 1
 
                     }}}, upsert=True)
-                slack_message(msg=username + " "+'have missed '+str(date)+'check-in')
-
+                slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")
+                print("msg sent")
+                
+                
+                
 def review_activity():
    today = datetime.datetime.utcnow()
    last_monday = today - datetime.timedelta(days=today.weekday())
