@@ -727,9 +727,21 @@ def load_details(data):
     user_data = data['user']
     user_data = (load_user(user_data))
     data['user'] = user_data
-    for elem in data['is_reviewed']:
-        elem['_id'] = load_manager(ObjectId(elem['_id']))
+    if data['review'] is None:
+        review_detail = None
+    else:
+        review_detail = data['review']
+    for elem in review_detail:
+            elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    return data
 
+
+def no_review(data):
+    user_data = data['user']
+    user_data = (load_user(user_data))
+    data['user'] = user_data
+    review_data = None
+    data['review'] = review_data
     return data
 
 
@@ -751,10 +763,19 @@ def junior_weekly_report():
     reports = mongo.db.reports.find({
         "user": {"$in": ID},
         "type": "weekly",
-        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}}
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}}
     }).sort("created_at", 1)
-    reports = [load_details(serialize_doc(doc)) for doc in reports]
-    return jsonify(reports)
+    reports = [no_review(serialize_doc(doc)) for doc in reports]
+    report = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}}
+    }).sort("created_at", 1)
+    report = [load_details(serialize_doc(doc)) for doc in report]
+    report_all = reports + report
+
+    return jsonify(report_all)
+
 
 @bp.route('/delete_manager_response/<string:weekly_id>', methods=['DELETE'])
 @jwt_required
