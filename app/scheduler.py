@@ -140,18 +140,27 @@ def overall_reviewes():
             weight = weg['weight']
             all_weight.append(weight)
         docs = [serialize_doc(doc) for doc in docs]
-    
+        p_difficulty=[]
         all_sum = []
         for detail in docs:
             if 'review' in detail:
                 for review in detail['review']:
                     print(review)
                     all_sum.append(review['rating'])
+                    p_difficulty.append(review['difficulty'])
             else:
                 pass
         print("got all sum list")
+        difficulty_len = len(p_difficulty)
+        p_sum = sum(p_difficulty)
+        if difficulty_len and p_sum != 0:
+            project_difficulty = (p_sum/difficulty_len)
+        else:
+            project_difficulty=0
+
         Abc = len(all_sum)
         xyz = len(all_weight)
+        
         
         if Abc==xyz:
             print("all_sum and all weights are ==")
@@ -163,7 +172,8 @@ def overall_reviewes():
             "_id": ObjectId(id)
         }, {
             "$set": {
-                "Overall_rating": weighted_avg
+                "Overall_rating": weighted_avg,
+                "project_difficulty":project_difficulty
             }
         })
         print("Overall_rating updated  in user profile")
