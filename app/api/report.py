@@ -202,6 +202,7 @@ def add_weekly_checkin():
     current_user = get_current_user()
     today = datetime.datetime.utcnow()
     formated_date = today.strftime("%d-%B-%Y")
+    last_monday = today - datetime.timedelta(days=today.weekday())
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
