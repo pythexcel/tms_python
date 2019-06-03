@@ -379,25 +379,26 @@ def recent_activity():
         for a in reports:
             user=a['user']
             last_day_checkin.append(user)
-
-        
         # if checkin not found update date in user profile
         users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1})
-                                     
+                                        # "daily_chechkin_mandatory": {"$exists": False}},
+                                        # {'username': 1, 'user_Id': 1})
+        
+
         if users is not None:
             username = users['username']
             slack_id = users['slack_id']
             print(slack_id)
             ID_ = users['user_Id']
             URL = attn_url
-            
+        
             dec = mongo.db.users.update({
                 "_id": ObjectId(str(ID))
             }, {
                 "$set": {
                     "missed_chechkin_crone": True
                 }})
-            
+        
             # generating current month and year
             month = str(today.month)
             year = str(today.year)
@@ -413,13 +414,15 @@ def recent_activity():
             date_list = list()
             date_time = today - datetime.timedelta(1)
             date = date_time.strftime("%Y-%m-%d")
-            
-            for d in attn_data:
-                full_date=d['full_date']
-                in_time = d['in_time']
-                if in_time != "":
-                    date_list.append(full_date)
-            
+          
+            for data in attn_data:
+                attn = (data['full_date'])
+                time = data['total_time']
+            if time is not None:
+                date_list.append(attn)
+            else:
+                pass
+
             if date not in date_list:
                 ret = mongo.db.users.update({
                     "_id": ObjectId(str(ID))},
@@ -437,7 +440,6 @@ def recent_activity():
 
                     }}}, upsert=True)
                 slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")
-                print("msg sent")
                 
                 
                 
