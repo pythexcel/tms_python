@@ -117,6 +117,35 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
+        
+        
+def disable_user():  
+   payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
+   response_all_disabled_users_details = requests.post(url=attn_url, json=payload_all_disabled_users_details)
+   result_disabled = response_all_disabled_users_details.json()
+   disabled_names = []
+   for data_disable in result_disabled:
+       disabled_names.append(data_disable['id'])
+   
+   sap = mongo.db.users.find({}, {"id": 1})
+   sap = [serialize_doc(user) for user in sap]
+   enabled_users = []
+   for doc in sap:
+       enabled_users.append(doc['id'])
+
+   disable_user = []
+   for element in disabled_names:
+       if element in enabled_users:
+           disable_user.append(element)
+   
+   if disable_user is not None:
+       rep = mongo.db.users.remove({
+           "id": {"$in": disable_user}
+       })
+        
+
+        
+        
 def overall_reviewes():
     users = mongo.db.reports.find({"cron_checkin": True})
     print("got reports in cron_checkin true")
