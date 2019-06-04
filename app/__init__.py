@@ -62,7 +62,7 @@ def create_app(test_config=None):
 
     # Scheduler which will run at interval of 60 seconds for user checkin score
     checkin_score_scheduler = BackgroundScheduler()
-    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=100)
+    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=150)
     checkin_score_scheduler.start()
 
     # Scheduler which will run at interval of 60 seconds for overall user rating
@@ -72,7 +72,7 @@ def create_app(test_config=None):
 
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=16, minute=10)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=17, minute=05)
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
