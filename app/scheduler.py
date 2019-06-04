@@ -438,35 +438,42 @@ def recent_activity():
                 
                 
                 
-def review_activity():
-   today = datetime.datetime.utcnow()
-   last_monday = today - datetime.timedelta(days=today.weekday())
-
-   # First take date time where weekly report is to be dealt with
-   reports = mongo.db.reports.find({"cron_review_activity": False,
+def review_activity(): 
+    print("running")
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
+    # First take date time where weekly report is to be dealt with
+    reports = mongo.db.reports.find({"cron_review_activity": False,
                                     "type": "weekly",
                                     "created_at": {
                 "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
             }})
-   reports = [serialize_doc(doc) for doc in reports]
-
-   # find user id
-   for detail in reports:
-       for data in detail['is_reviewed']:
-           if data['reviewed'] is False:
-               username = detail['username']
-               slack_id = data['_id']
-               users = mongo.db.users.find_one({"_id": ObjectId(str(slack_id))})
-               slack = users['slack_id']
-               ret = mongo.db.recent_activity.update({
-                   "user": data['_id']},
-                   {"$push": {
-                       "weekly_reviewed": {
-                           "created_at": datetime.datetime.utcnow(),
-                           "priority": 1,
-                           "Message": "You have to review your Junior "" " + str(username) + "weekly report"
-                       }}}, upsert=True)
-               slack_message(msg= "Hi"+' ' +"<@"+slack+">!"+' ' +"you have to review your Junior weekly report" +' '+ str(username))
+   
+    reports = [serialize_doc(doc) for doc in reports]
+    managers_name = []
+    for detail in reports:
+        for data in detail['is_reviewed']:
+            if data['reviewed'] is False:
+                username = detail['username']    
+                slack_id = data['_id']
+                print(slack_id)
+                use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                use = [serialize_doc(doc) for doc in use]
+                for data in use:
+                    slack = data['slack_id']
+                    mang_id = data['_id']
+                    if slack not in managers_name:
+                        managers_name.append(slack)
+                        ret = mongo.db.recent_activity.update({
+                            "user": mang_id},
+                            {"$push": {
+                            "weekly_reviewed": {
+                            "created_at": datetime.datetime.utcnow(),
+                            "priority": 1,
+                            "Message": "You have to review your Juniors weekly report"
+                            }}}, upsert=True)                
+    for ids in managers_name:    
+        slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +"you have weekly report's pending to be reviewed") 
 
         
         
