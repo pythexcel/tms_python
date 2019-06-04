@@ -961,6 +961,37 @@ def get_manager_monthly_list(monthly_id):
                 return jsonify(msg="Already reviewed this report"), 400
 
     
+@bp.route('skip_review/',methods=['PUT'])
+@jwt_required
+@token.manager_required
+def skip_review():
+    current_user = get_current_user()
+    juniors = get_manager_juniors(current_user['_id'])
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
+    docs = mongo.db.reports.find({
+        "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "weight": {"$gte": 8}}},
+        "user": {
+            "$in": juniors},
+        "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+    }).sort("created_at", 1)
+    docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
+    if docs is not None:
+        rep = mongo.db.reports.update({
+            "type": "weekly",
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "weight": {"$gte": 8}}},
+            "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+        },{
+            "$pull": {
+                "is_reviewed": {
+                    "_id": str(current_user["_id"])
+                }
+
+        }})
+
 
 
 
