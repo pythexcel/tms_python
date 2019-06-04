@@ -783,23 +783,184 @@ def junior_weekly_report():
 @token.manager_required
 def delete_manager_response(weekly_id):
     current_user = get_current_user()
-    docs = mongo.db.reports.update({
-        "_id": ObjectId(weekly_id)
-    },{
-        "$pull": {
-            "review": {
-                "manager_id": str(current_user["_id"])}
-        }
-    })
-    docs = mongo.db.reports.update({
+    today = datetime.datetime.utcnow()
+    last_day = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    next_day = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+    report = mongo.db.reports.find_one({
         "_id": ObjectId(weekly_id),
-        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
-    }, {
-        "$set": {
-            "is_reviewed.$.reviewed": False
+        "review": {'$elemMatch': {"manager_id": str(current_user["_id"]), "created_at": {
+                    "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                    "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)}}
         }})
-    return jsonify(str(docs)), 200
+    print(report)
+    if report is not None:
+        ret = mongo.db.reports.update({
+            "_id": ObjectId(weekly_id)}
+            , {
+            "$pull": {
+                "review": {
+                    "manager_id": str(current_user["_id"]),
+                    }
+            }})
+        docs = mongo.db.reports.update({
+            "_id": ObjectId(weekly_id),
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
+        }, {
+            "$set": {
+                "is_reviewed.$.reviewed": False
+            }})
+        return jsonify(str(docs)), 200
+    else:
+        return jsonify({"msg": "You can no longer delete your response"}), 400
+    
+    
+#Api for delete monthly report
+@bp.route('/delete_monthly/<string:monthly_id>', methods=['DELETE'])
+@jwt_required
+def delete_monthly(monthly_id):
+   current_user = get_current_user()
+   docs = mongo.db.reports.remove({
+       "_id": ObjectId(monthly_id),
+       "type": "monthly",
+       "user": str(current_user['_id'])
+   })
+   return jsonify(str(docs)), 200
 
+
+#Api for monthly checkin
+@bp.route('/monthly', methods=["POST", "GET"])
+@jwt_required
+def add_monthly_checkin():
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    current_user = get_current_user()
+    if request.method == "GET":
+        report = mongo.db.reports.find({
+            "user": str(current_user["_id"]),
+            "type": "monthly"
+        })
+        report = [add_user_data(serialize_doc(doc))for doc in report]
+        return jsonify(report)
+    else:
+        if not request.json:
+            abort(500)
+        report = request.json.get("report", [])
+        reviewed = False
+        users = mongo.db.users.find({
+            "_id": ObjectId(current_user["_id"])
+        })
+        users = [serialize_doc(doc) for doc in users]
+        managers_data = []
+        for data in users:
+            for mData in data['managers']:
+                mData['reviewed'] = reviewed
+                managers_data.append(mData)
+        rep = mongo.db.reports.find_one({
+            "user": str(current_user["_id"]),
+            "type": "monthly",
+            "month": month,
+        })
+        if rep is not None:
+            return jsonify({"msg": "You have already submitted your monthly report"}), 409
+        else:
+            ret = mongo.db.reports.insert_one({
+                "user": str(current_user["_id"]),
+                "created_at": datetime.datetime.utcnow(),
+                "type": "monthly",
+                "is_reviewed": managers_data,
+                "report": report,
+                "month": month
+            }).inserted_id
+            return jsonify(str(ret)), 200
+
+
+@bp.route("/manager_monthly_all", methods=["GET"])
+@jwt_required
+@token.manager_required
+def get_manager_monthly_list_all():
+   current_user = get_current_user()
+   juniors = get_manager_juniors(current_user['_id'])
+   print(juniors)
+   docs = mongo.db.reports.find({
+       "type": "monthly",
+       "user": {
+           "$in": juniors
+       }
+   }).sort("created_at", 1)
+   docs = [serialize_doc(doc) for doc in docs]
+   return jsonify(docs), 200
+
+
+@bp.route("/manager_monthly/<string:monthly_id>", methods=["POST"])
+@jwt_required
+@token.manager_required
+def get_manager_monthly_list(monthly_id):
+    current_user = get_current_user()
+    manager_name = current_user['username']
+    if not request.json:
+        abort(500)
+    comment = request.json.get("comment", None)
+
+    if comment is None or monthly_id is None:
+        return jsonify(msg="invalid request"), 500
+    juniors = get_manager_juniors(current_user['_id'])
+
+    dab = mongo.db.reports.find({
+        "_id": ObjectId(monthly_id),
+        "type": "monthly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+        "user": {
+            "$in": juniors
+        }
+    }).sort("created_at", 1)
+    dab = [serialize_doc(doc) for doc in dab]
+    for data in dab:
+        ID = data['user']
+        rap = mongo.db.users.find({
+            "_id": ObjectId(str(ID))
+        })
+        rap = [serialize_doc(doc) for doc in rap]
+        for dub in rap:
+            junior_name = dub['username']
+            sap = mongo.db.reports.find({
+                "_id": ObjectId(monthly_id),
+                "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
+                           }
+            })
+            sap = [serialize_doc(saps) for saps in sap]
+            if not sap:
+                ret = mongo.db.reports.update({
+                    "_id": ObjectId(monthly_id)
+                }, {
+                    "$push": {
+                        "review": {
+                            "created_at": datetime.datetime.utcnow(),
+                            "comment": comment,
+                            "manager_id": str(current_user["_id"])
+                        }
+                    }
+                })
+                docs = mongo.db.reports.update({
+                    "_id": ObjectId(monthly_id),
+                    "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+                }, {
+                    "$set": {
+                        "is_reviewed.$.reviewed": True
+                    }})
+                dec = mongo.db.recent_activity.update({
+                    "user": str(ID)},
+                    {"$push": {
+                        "report_reviewed": {
+                            "created_at": datetime.datetime.now(),
+                            "priority": 0,
+                            "Message": "Your monthly report has been reviewed by "" " + manager_name
+                        }}}, upsert=True)
+                slack_message(msg=junior_name + " " + 'your monthly report is reviewed by' + ' ' + manager_name)
+                return jsonify(str(ret)), 200
+            else:
+                return jsonify(msg="Already reviewed this report"), 400
+
+    
 
 
 
