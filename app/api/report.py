@@ -961,7 +961,7 @@ def get_manager_monthly_list(monthly_id):
                 return jsonify(msg="Already reviewed this report"), 400
 
     
-@bp.route('skip_review/',methods=['PUT'])
+@bp.route('/skip_review',methods=['PUT'])
 @jwt_required
 @token.manager_required
 def skip_review():
@@ -969,28 +969,41 @@ def skip_review():
     juniors = get_manager_juniors(current_user['_id'])
     today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=today.weekday())
-    docs = mongo.db.reports.find({
-        "type": "weekly",
-        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "weight": {"$gte": 8}}},
-        "user": {
-            "$in": juniors},
-        "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
-    }).sort("created_at", 1)
-    docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
-    if docs is not None:
-        rep = mongo.db.reports.update({
+    date_of_joining = current_user['dateofjoining']
+    datetime_object = datetime.datetime.strptime(date_of_joining, "%Y-%m-%d").date()
+    join_date = datetime_object
+    date = today.strftime("%Y-%m-%d")
+    current_date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    delta = current_date - join_date
+    year = delta.days / 365
+    print(year)
+    if year > 5:
+        docs = mongo.db.reports.find({
             "type": "weekly",
-            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "weight": {"$gte": 8}}},
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+            "user": {
+                "$in": juniors},
             "created_at": {
                 "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
-        },{
-            "$pull": {
-                "is_reviewed": {
-                    "_id": str(current_user["_id"])
-                }
+        }).sort("created_at", 1)
+        docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
+        if docs is not None:
+            rep = mongo.db.reports.update({
+                "type": "weekly",
+                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+                "created_at": {
+                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+            }, {
+                "$pull": {
+                    "is_reviewed": {
+                        "_id": str(current_user["_id"])
+                    }
+                }})
+            return jsonify(str(rep))
+    else:
+        return jsonify ({'msg': "You are not available for this functionality"})
 
-        }})
+
 
 
 
