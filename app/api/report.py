@@ -887,7 +887,7 @@ def get_manager_monthly_list_all():
            "$in": juniors
        }
    }).sort("created_at", 1)
-   docs = [serialize_doc(doc) for doc in docs]
+   docs = [load_details(serialize_doc(doc)) for doc in docs]
    return jsonify(docs), 200
 
 
