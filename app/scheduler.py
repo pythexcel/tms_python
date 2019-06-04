@@ -284,7 +284,7 @@ def weekly_remainder():
             elif day in last:
                     slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
             else:    
-                if day == 0:
+                if day == 5:
                     reviewed = False
                     users = mongo.db.users.find({
                         "_id": ObjectId(ID_)         
