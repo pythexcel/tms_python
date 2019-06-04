@@ -160,7 +160,12 @@ def overall_reviewes():
                 "cron_checkin": False
             }}, upsert=False)
         print("Update cron_checkin false")
-        docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
+        
+        docs = mongo.db.reports.find({"user": str(id), "type": "weekly",
+                        "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+            }})
+
         user = mongo.db.users.find_one({"_id": ObjectId(id)})
         weights = user['managers']
         all_weight = []
