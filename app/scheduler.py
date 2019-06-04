@@ -358,18 +358,14 @@ def weekly_remainder():
                         
 # Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
-    print("running")
-    #users = mongo.db.reports.find({"type": "daily"})
     users = mongo.db.users.find({}, {"username": 1})
     users = [serialize_doc(doc) for doc in users]
-    # find user id
     today = datetime.datetime.now()
     last_day = today - datetime.timedelta(1)
 
     for detail in users:
         ID = detail['_id']
-        # find reports checkin by user_id
-        reports = mongo.db.reports.find({
+        reports = mongo.db.reports.find_one({
             "user": str(ID),
             "type": "daily",
             "created_at": {
@@ -377,25 +373,25 @@ def recent_activity():
                 "$lte": datetime.datetime(today.year, today.month, today.day)
             }
         })
+        if reports is not None:
+            last_day_checkin=[]
+            user=reports['user']
+            last_day_checkin.append(ObjectId(user))
 
-        reports = [serialize_doc(report) for report in reports]
-        last_day_checkin=[]
-        for a in reports:
-            user=a['user']
-            last_day_checkin.append(user)
-        # if checkin not found update date in user profile
-        users = mongo.db.users.find_one({"_id": ObjectId(str(ID)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1})
-                                        # "daily_chechkin_mandatory": {"$exists": False}},
-                                        # {'username': 1, 'user_Id': 1})
-        
-
+    rep = mongo.db.users.find({
+            "_id": {"$nin": last_day_checkin}
+        })
+    rep = [serialize_doc(doc) for doc in rep]
+    for usr in rep:
+        id_=usr['_id']
+        users = mongo.db.users.find_one({"_id": ObjectId(str(id_)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1})
+       
         if users is not None:
             username = users['username']
             slack_id = users['slack_id']
-            print(slack_id)
             ID_ = users['user_Id']
             URL = attn_url
-        
+
             dec = mongo.db.users.update({
                 "_id": ObjectId(str(ID))
             }, {
@@ -407,26 +403,21 @@ def recent_activity():
             month = str(today.month)
             year = str(today.year)
             payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
-                       "month": month, "year": year}
+                        "month": month, "year": year}
             response = requests.post(url=URL, json=payload)
             data = response.json()
-            
             attn_data = data['data']['attendance']
-        
 
             # getting the dates where user was present and store it in date_list
             date_list = list()
             date_time = today - datetime.timedelta(1)
             date = date_time.strftime("%Y-%m-%d")
-          
+
             for data in attn_data:
                 attn = (data['full_date'])
-                time = data['total_time']
-            if time is not None:
-                date_list.append(attn)
-            else:
-                pass
-
+                if len(data['total_time']) > 0:
+                    date_list.append(attn)
+            
             if date not in date_list:
                 ret = mongo.db.users.update({
                     "_id": ObjectId(str(ID))},
@@ -434,7 +425,7 @@ def recent_activity():
                         "date": date,
                         "created_at": datetime.datetime.now()
                     }}})
-                               
+                                
                 docs = mongo.db.recent_activity.update({
                     "user": str(ID)},
                     {"$push": {"missed_checkin": {
