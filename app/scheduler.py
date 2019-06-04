@@ -217,15 +217,16 @@ def update_croncheckin():
     }, {
         "$set": {
             "cron_checkin": False
-        }}, upsert=False, multi=True)
- 
+        }},multi=True)
+
     ret = mongo.db.users.update({
         "missed_chechkin_crone": True
     }, {
         "$set": {
             "missed_chechkin_crone": False
-        }}, upsert=False, multi=True)
+        }},multi=True)
 
+    
 def weekly_remainder():
     print("running")
     today = datetime.datetime.today()
