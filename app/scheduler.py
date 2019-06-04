@@ -31,7 +31,7 @@ def checkin_score():
                 "cron_checkin": True
             }}, upsert=False)
         print("updated cron value  as true")
-    
+        
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -49,34 +49,29 @@ def checkin_score():
         date_list = list()
         for data in attn_data:
             attn = (data['full_date'])
-            time = data['total_time']
-            if time is not None:
+            if len(data['total_time']) > 0:
                 date_list.append(attn)
-            else:
-                pass
-                
+        print(date_list)
         # Taking the length of the date_list to find number of days user was present
         no_days_present = len(date_list)
         print('No of days present' + ' :' + str(no_days_present))
-        print(date_list)
-        if date_list is not None:
+        if no_days_present != 0:
             first = date_list[0]
             fri_date = str(first)
             first_date = parser.parse(fri_date)
-            first_date_iso = first_date.isoformat()
-            
+            first_date_iso = first_date.isoformat()  
         else:
-            pass
+            first_date_iso = 0
         
         # converting of ISO format of second date
-        if date_list is not None:
+        if no_days_present != 0:
             last = date_list[-1]
             print(last)
             lst_date = str(last)
             last_date = parser.parse(lst_date)
             last_date_iso = last_date.isoformat()
         else:
-            pass
+            last_date_iso=0
         if first_date_iso and last_date_iso is not None:
             F = datetime.datetime.strptime(first_date_iso, "%Y-%m-%dT%H:%M:%S")
             L = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
@@ -107,9 +102,13 @@ def checkin_score():
         no_of_checking_days = len(list_checkin)
         print('No of days checkin done' + ' :' + str(no_of_checking_days))
 
+        if no_days_present != 0:
         # Calculating the overall_score for checkin of a user
-        checkin_scr = ((no_of_checking_days* 100) / no_days_present)
-        print('overall_score' + ' :' + str(checkin_scr))
+            checkin_scr = ((no_of_checking_days* 100) / no_days_present)
+            print('overall_score' + ' :' + str(checkin_scr))
+        else:
+            checkin_scr = 0
+
         ret = mongo.db.users.update({
             "_id": ObjectId(Id)
         }, {
