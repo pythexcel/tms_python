@@ -388,62 +388,55 @@ def recent_activity():
             "_id": {"$nin": last_day_checkin}
         })
     rep = [serialize_doc(doc) for doc in rep]
-    for usr in rep:
-        id_=usr['_id']
-        users = mongo.db.users.find_one({"_id": ObjectId(str(id_)),"missed_chechkin_crone":False},{'username': 1, 'user_Id': 1,'slack_id':1,'role':1})
-       
-        if users is not None:
-            username = users['username']
-            slack_id = users['slack_id']
-            role = users['role']
-            ID_ = users['user_Id']
-            URL = attn_url
-            if role != 'Admin':
-                dec = mongo.db.users.update({
-                    "_id": ObjectId(str(ID))
-                }, {
-                    "$set": {
-                        "missed_chechkin_crone": True
-                    }})
-            
-                # generating current month and year
-                month = str(today.month)
-                year = str(today.year)
-                payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
-                            "month": month, "year": year}
-                response = requests.post(url=URL, json=payload)
-                data = response.json()
-                attn_data = data['data']['attendance']
+    
+    for users in rep:
+        id_=users['_id']
+        username = users['username']
+        print(username)
+        slack_id = users['slack_id']
+        role = users['role']
+        ID_ = users['user_Id']
+        URL = attn_url
+        if role != 'Admin':
+            # generating current month and year
+            month = str(today.month)
+            year = str(today.year)
+            payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+                        "month": month, "year": year}
+            response = requests.post(url=URL, json=payload)
+            data = response.json()
+            attn_data = data['data']['attendance']
 
-                # getting the dates where user was present and store it in date_list
-                date_list = list()
-                date_time = today - datetime.timedelta(1)
-                date = date_time.strftime("%Y-%m-%d")
+            # getting the dates where user was present and store it in date_list
+            date_list = list()
+            date_time = today - datetime.timedelta(1)
+            date = date_time.strftime("%Y-%m-%d")
 
-                for data in attn_data:
-                    attn = (data['full_date'])
-                    if len(data['total_time']) > 0:
-                        date_list.append(attn)
-                
-                if date not in date_list:
-                    ret = mongo.db.users.update({
-                        "_id": ObjectId(str(ID))},
-                        {"$push": {"missed_checkin_dates": {
-                            "date": date,
-                            "created_at": datetime.datetime.now()
-                        }}})
-                                    
-                    docs = mongo.db.recent_activity.update({
-                        "user": str(ID)},
-                        {"$push": {"missed_checkin": {
-                            "checkin_message": date_time,
-                            "created_at": datetime.datetime.now(),
-                            "priority": 1
+            for data in attn_data:
+                attn = data['full_date']
+                intime = data['in_time']       
+                if intime:
+                    date_list.append(attn)
+            print(date_list)
+            if date in date_list:
+                ret = mongo.db.users.update({
+                    "_id": ObjectId(str(ID))},
+                    {"$push": {"missed_checkin_dates": {
+                        "date": date,
+                        "created_at": datetime.datetime.now()
+                    }}})
+                                
+                docs = mongo.db.recent_activity.update({
+                    "user": str(ID)},
+                    {"$push": {"missed_checkin": {
+                        "checkin_message": date_time,
+                        "created_at": datetime.datetime.now(),
+                        "priority": 1
 
-                        }}}, upsert=True)
-                    slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")
-            else:
-                pass
+                    }}}, upsert=True)
+                slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")   
+        else:
+            pass
                 
                 
                 
