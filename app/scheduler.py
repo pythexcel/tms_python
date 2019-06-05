@@ -31,7 +31,8 @@ def checkin_score():
                 "cron_checkin": True
             }}, upsert=False)
         print("updated cron value  as true")
-        
+    
+
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -48,8 +49,9 @@ def checkin_score():
         # getting the dates where user was present and store it in date_list
         date_list = list()
         for data in attn_data:
-            attn = (data['full_date'])
-            if len(data['total_time']) > 0:
+            attn = data['full_date']
+            intime = data['in_time']          
+            if intime:
                 date_list.append(attn)
         print(date_list)
         # Taking the length of the date_list to find number of days user was present
