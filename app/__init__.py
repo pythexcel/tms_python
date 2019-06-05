@@ -75,7 +75,7 @@ def create_app(test_config=None):
 
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=14, minute=10)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=18, minute=45)
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
