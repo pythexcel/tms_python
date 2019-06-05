@@ -979,8 +979,7 @@ def skip_review(weekly_id):
         for elem in data['is_reviewed']:
             manager_id.append(ObjectId(elem['_id']))
     managers = mongo.db.users.find({
-        "_id": {"$in": manager_id},
-        "role": {"$ne": "Admin"}
+        "_id": {"$in": manager_id}
     })
     managers = [serialize_doc(doc) for doc in managers]
     join_date = []
