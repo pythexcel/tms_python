@@ -404,7 +404,11 @@ def get_manager_weekly_list(weekly_id=None):
             for dub in rap:
                 junior_name = dub['username']
                 slack = dub['slack_id']
-                print(slack)
+                manager = dub['managers']
+                for a in manager:
+                    if a['_id']==str(current_user["_id"]):
+                        manager_weights=a['weight']
+            
                 sap = mongo.db.reports.find({
                     "_id": ObjectId(weekly_id),
                     "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
@@ -421,18 +425,13 @@ def get_manager_weekly_list(weekly_id=None):
                                 "rating": rating,
                                 "created_at": datetime.datetime.utcnow(),
                                 "comment": comment,
-                                "manager_id": str(current_user["_id"])
+                                "manager_id": str(current_user["_id"]),
+                                "manager_weight":manager_weights
                             }
                         }
                     })
                     
-                    cron = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                        }, {    
-                        "$set": {
-                            "cron_checkin": True
-                        }})
-                    
+                              
                     docs = mongo.db.reports.update({
                         "_id": ObjectId(weekly_id),
                         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
