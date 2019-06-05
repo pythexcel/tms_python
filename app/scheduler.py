@@ -144,7 +144,7 @@ def disable_user():
         
 
         
-        
+'''        
 def overall_reviewes():
     print("running")
     today = datetime.datetime.utcnow()
@@ -209,7 +209,7 @@ def overall_reviewes():
                 "project_difficulty":project_difficulty
             }
         })
-
+'''
         
 
 
