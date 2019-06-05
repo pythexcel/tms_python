@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score, overall_reviewes,review_activity, update_croncheckin,weekly_remainder,disable_user,recent_activity
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,disable_user,recent_activity
 
 
 def create_app(test_config=None):
@@ -64,15 +64,15 @@ def create_app(test_config=None):
     checkin_score_scheduler = BackgroundScheduler()
     checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=80)
     checkin_score_scheduler.start()
-
+    '''
     # Scheduler which will run at interval of 60 seconds for overall user rating
     overall_scheduler = BackgroundScheduler()
     overall_scheduler.add_job(overall_reviewes, trigger='interval', seconds=50)
     overall_scheduler.start()
-
+    '''
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=16, minute=55)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=17, minute=20)
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
@@ -100,7 +100,7 @@ def create_app(test_config=None):
     except:
         checkin_score_scheduler.shutdown()
         reset_scheduler.shutdown()
-        overall_scheduler.shutdown()
+        #overall_scheduler.shutdown()
         weekly_remainder_scheduler.shutdown()
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
