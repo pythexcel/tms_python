@@ -12,7 +12,7 @@ from app.util import slack_message
 def checkin_score():
     print("Running")
     # Finding random user who have the below condition
-    users = mongo.db.users.find_one({"cron_checkin": False}, {'username': 1, 'user_Id': 1})
+    users = mongo.db.users.find_one({"cron_checkin": True}, {'username': 1, 'user_Id': 1})
     print("find users profiles in cron_checkin flase")
     if users is not None:
         ID_ = users['user_Id']
@@ -28,10 +28,11 @@ def checkin_score():
             "_id": ObjectId(Id)
         }, {
             "$set": {
-                "cron_checkin": True
+                "cron_checkin": False
             }}, upsert=False)
         print("updated cron value  as true")
-        
+    
+
         URL = attn_url
         # generating current month and year
         today = datetime.datetime.now()
@@ -48,8 +49,9 @@ def checkin_score():
         # getting the dates where user was present and store it in date_list
         date_list = list()
         for data in attn_data:
-            attn = (data['full_date'])
-            if len(data['total_time']) > 0:
+            attn = data['full_date']
+            intime = data['in_time']          
+            if intime:
                 date_list.append(attn)
         print(date_list)
         # Taking the length of the date_list to find number of days user was present
@@ -116,6 +118,7 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
+
         
         
 def disable_user():  
