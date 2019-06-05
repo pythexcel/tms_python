@@ -961,50 +961,39 @@ def get_manager_monthly_list(monthly_id):
                 return jsonify(msg="Already reviewed this report"), 400
 
     
-@bp.route('/skip_review',methods=['PUT'])
+@bp.route('/skip_review/<string:weekly_id>', methods=['POST'])
 @jwt_required
 @token.manager_required
-def skip_review():
+def skip_review(weekly_id):
     current_user = get_current_user()
-    juniors = get_manager_juniors(current_user['_id'])
-    today = datetime.datetime.utcnow()
-    last_monday = today - datetime.timedelta(days=today.weekday())
-    date_of_joining = current_user['dateofjoining']
-    datetime_object = datetime.datetime.strptime(date_of_joining, "%Y-%m-%d").date()
-    join_date = datetime_object
-    date = today.strftime("%Y-%m-%d")
-    current_date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-    delta = current_date - join_date
-    year = delta.days / 365
-    print(year)
-    if year > 5:
-        docs = mongo.db.reports.find({
-            "type": "weekly",
+    doj = current_user['dateofjoining']
+    print(doj)
+    reports = mongo.db.reports.find({
+        "_id": ObjectId(weekly_id),
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
+        }
+    })
+    reports = [serialize_doc(doc) for doc in reports]
+    manager_id = []
+    for data in reports:
+        for elem in data['is_reviewed']:
+            manager_id.append(ObjectId(elem['_id']))
+    managers = mongo.db.users.find({
+        "_id": {"$in": manager_id},
+        "role": {"$ne": "Admin"}
+    })
+    managers = [serialize_doc(doc) for doc in managers]
+    join_date = []
+    for dates in managers:
+        join_date.append(dates['dateofjoining'])
+    oldest = min(join_date)
+    if doj == oldest:
+        rep = mongo.db.reports.update({
+            "_id": ObjectId(weekly_id),
             "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-            "user": {
-                "$in": juniors},
-            "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
-        }).sort("created_at", 1)
-        docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
-        if docs is not None:
-            rep = mongo.db.reports.update({
-                "type": "weekly",
-                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-                "created_at": {
-                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
-            }, {
-                "$pull": {
-                    "is_reviewed": {
-                        "_id": str(current_user["_id"])
-                    }
-                }})
-            return jsonify(str(rep))
-    else:
-        return jsonify ({'msg': "You are not available for this functionality"})
-
-
-
-
-
+                    }, {
+                        "$pull": {
+                            "is_reviewed": {"_id": str(current_user["_id"])}
+                        }}, upsert=False)
+        return jsonify(str(rep))
 
