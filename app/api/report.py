@@ -986,14 +986,21 @@ def skip_review(weekly_id):
     join_date = []
     for dates in managers:
         join_date.append(dates['dateofjoining'])
-    oldest = min(join_date)
-    if doj == oldest:
-        rep = mongo.db.reports.update({
-            "_id": ObjectId(weekly_id),
-            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-                    }, {
-                        "$pull": {
-                            "is_reviewed": {"_id": str(current_user["_id"])}
-                        }}, upsert=False)
-        return jsonify(str(rep))
+    if len(join_date) > 1:
+        oldest = min(join_date)
+        if doj == oldest:
+            rep = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id),
+                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+            }, {
+                "$pull": {
+                    "is_reviewed": {"_id": str(current_user["_id"])}
+                }}, upsert=False)
+            return jsonify(str(rep))
+        else:
+            return jsonify({"msg": "You cannot skip this report review"}), 400
+    else:
+        return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
+
+
 
