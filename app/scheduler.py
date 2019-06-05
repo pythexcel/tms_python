@@ -222,6 +222,14 @@ def update_croncheckin():
             "cron_checkin": False
         }},multi=True)
 
+    sap = mongo.db.reports.update({
+        "cron_checkin": False
+    }, {
+        "$set": {
+            "cron_checkin": True
+        }},multi=True)
+    
+    
     ret = mongo.db.users.update({
         "missed_chechkin_crone": True
     }, {
