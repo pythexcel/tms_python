@@ -146,26 +146,25 @@ def disable_user():
         
         
 def overall_reviewes():
+    print("running")
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
     users = mongo.db.reports.find({"cron_checkin": True})
-    print("got reports in cron_checkin true")
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['user']
-        print(id)
-        print("got user id")
+        
         docs = mongo.db.reports.update({
             "user": str(id)
         }, {
             "$set": {
                 "cron_checkin": False
             }}, upsert=False)
-        print("Update cron_checkin false")
-        
+    
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly",
                         "created_at": {
                 "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
             }})
-
         user = mongo.db.users.find_one({"_id": ObjectId(id)})
         weights = user['managers']
         all_weight = []
@@ -178,11 +177,13 @@ def overall_reviewes():
         for detail in docs:
             if 'review' in detail:
                 for review in detail['review']:
-                    print(review)
                     all_sum.append(review['rating'])
                     p_difficulty.append(review['difficulty'])
             else:
                 pass
+        print(p_difficulty)
+        print(all_sum)
+        print(all_weight)
         print("got all sum list")
         difficulty_len = len(p_difficulty)
         p_sum = sum(p_difficulty)
@@ -194,13 +195,12 @@ def overall_reviewes():
         Abc = len(all_sum)
         xyz = len(all_weight)
         
-        
         if Abc==xyz:
-            print("all_sum and all weights are ==")
-            weighted_avg = np.average(all_sum, weights=all_weight, )
+            weighted_avg = np.average(all_sum, weights=all_weight,)
         else:
-            print("all_sum and all weights are ==")
+            print("all_sum and all weights are !=")
             weighted_avg = 0    
+        
         ret = mongo.db.users.update({
             "_id": ObjectId(id)
         }, {
@@ -209,7 +209,6 @@ def overall_reviewes():
                 "project_difficulty":project_difficulty
             }
         })
-        print("Overall_rating updated  in user profile")
 
         
 
