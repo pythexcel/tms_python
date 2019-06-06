@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,disable_user,recent_activity
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,disable_user,recent_activity,update_manager_weight
 
 
 def create_app(test_config=None):
@@ -83,6 +83,12 @@ def create_app(test_config=None):
     weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=16, minute=45)
     weekly_remainder_scheduler.start()
     
+    
+    manager_scheduler = BackgroundScheduler()
+    manager_scheduler.add_job(update_manager_weight, trigger='cron', day_of_week='mon-sat', hour=12, minute=54)
+    manager_scheduler.start()
+    
+    
     disable_user_scheduler = BackgroundScheduler()
     disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=12, minute=54)
     disable_user_scheduler.start()
@@ -105,4 +111,4 @@ def create_app(test_config=None):
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
         disable_user_scheduler.shutdown()
-        
+        manager_scheduler.shutdown()
