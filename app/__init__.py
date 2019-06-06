@@ -90,7 +90,7 @@ def create_app(test_config=None):
     
     
     disable_user_scheduler = BackgroundScheduler()
-    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=12, minute=54)
+    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=15, minute=45)
     disable_user_scheduler.start()
 
     
