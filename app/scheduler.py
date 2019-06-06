@@ -50,7 +50,7 @@ def checkin_score():
         date_list = list()
         for data in attn_data:
             attn = data['full_date']
-            intime = data['in_time']          
+            intime = data['out_time']          
             if intime:
                 date_list.append(attn)
         print(date_list)
