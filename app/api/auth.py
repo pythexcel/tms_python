@@ -77,6 +77,7 @@ def login():
             username = log_username
             print(username)
             name = user_data['name']
+            print(name)
             jobtitle = user_data["jobtitle"]
             user_Id = user_data["user_Id"]
             dob = user_data["dob"]
@@ -84,6 +85,8 @@ def login():
             work_email = user_data["work_email"]
             slack_id = user_data["slack_id"]
             team = user_data["team"]
+            dateofjoining= user_data['dateofjoining']
+            date_time = dateutil.parser.parse(dateofjoining)
          
             user = mongo.db.users.find_one({
                 "username": re.compile(username, re.IGNORECASE)})
@@ -117,6 +120,7 @@ def login():
                         "work_email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
+                        "dateofjoining": date_time,
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "profile": result
@@ -140,6 +144,7 @@ def login():
                         "work_email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
+                        "dateofjoining": date_time,
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "role": role,
@@ -161,6 +166,7 @@ def login():
                         role = user['role_name']
                         id = user['id']
                         username = user['username']
+                        print(username)
                         user_Id = user['user_Id']
                         status = user['status']
                         name = user['name']
@@ -170,42 +176,17 @@ def login():
                         work_email = user['work_email']
                         slack_id = user['slack_id']
                         team = user['team']
-                        dateofjoining = user['dateofjoining']
-                        date_time = dateutil.parser.parse(dateofjoining)
-
-                        if status == "Disabled":
-                            mongo.db.users.remove({
+                        user = mongo.db.users.count({
+                            "username": username})
+                        if user > 0:
+                            mongo.db.users.update({
                                 "username": username
-                            })
-
-                        else:
-                            user = mongo.db.users.count({
-                                "username": username})
-                            if user > 0:
-                                mongo.db.users.update({
-                                    "username": username
-                                }, {
-                                    "$set": {
-                                        "id": id,
-                                        "username": username,
-                                        "user_Id": user_Id,
-                                        "name": name,
-                                        "status": status,
-                                        "jobtitle": jobtitle,
-                                        "dob": dob,
-                                        "gender": gender,
-                                        "work_email": work_email,
-                                        "slack_id": slack_id,
-                                        "team": team,
-                                        "dateofjoining": date_time,
-                                        "profile": user
-                                    }})
-                            else:
-                                mongo.db.users.insert_one({
-                                    "username": username,
+                            }, {
+                                "$set": {
                                     "id": id,
-                                    "name": name,
+                                    "username": username,
                                     "user_Id": user_Id,
+                                    "name": name,
                                     "status": status,
                                     "jobtitle": jobtitle,
                                     "dob": dob,
@@ -213,12 +194,26 @@ def login():
                                     "work_email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
-                                    "role": role,
-                                    "cron_checkin": False,
-                                    "missed_chechkin_crone": False,
-                                    "dateofjoining": date_time,
                                     "profile": user
-                                }).inserted_id
+                                }})
+                        else:
+                            mongo.db.users.insert_one({
+                                "username": username,
+                                "id": id,
+                                "name": name,
+                                "user_Id": user_Id,
+                                "status": status,
+                                "jobtitle": jobtitle,
+                                "dob": dob,
+                                "gender": gender,
+                                "work_email": work_email,
+                                "slack_id": slack_id,
+                                "team": team,
+                                "role": role,
+                                "cron_checkin": False,
+                                "missed_chechkin_crone": False,
+                                "profile": user
+                            }).inserted_id
             username1 = log_username
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
