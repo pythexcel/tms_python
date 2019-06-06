@@ -364,11 +364,12 @@ def weekly_remainder():
                         
 # Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
+    print("running")
     users = mongo.db.users.find({}, {"username": 1})
     users = [serialize_doc(doc) for doc in users]
     today = datetime.datetime.now()
     last_day = today - datetime.timedelta(1)
-
+    last_day_checkin=[]
     for detail in users:
         ID = detail['_id']
         reports = mongo.db.reports.find_one({
@@ -380,10 +381,9 @@ def recent_activity():
             }
         })
         if reports is not None:
-            last_day_checkin=[]
             user=reports['user']
             last_day_checkin.append(ObjectId(user))
-
+    print(last_day_checkin)
     rep = mongo.db.users.find({
             "_id": {"$nin": last_day_checkin}
         })
