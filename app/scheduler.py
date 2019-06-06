@@ -235,17 +235,23 @@ def update_croncheckin():
 def weekly_remainder():
     print("running")
     today = datetime.datetime.today()
+    last_monday = today - datetime.timedelta(days=today.weekday())
     next_day = today + datetime.timedelta(1)
     last_day = today - datetime.timedelta(1)
     users = mongo.db.users.find({}, {"username": 1})
     users = [serialize_doc(user) for user in users]
     ID = []
+
     for data in users:
         ID.append(data['_id'])
     reports = mongo.db.reports.find({
         "type": "weekly",
-        "user": {"$in": ID}
+        "user": {"$in":ID},
+        "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+            }
     })
+
     reports = [serialize_doc(doc) for doc in reports]
     user_id = []
     for data_id in reports:
@@ -253,8 +259,8 @@ def weekly_remainder():
     rep = mongo.db.users.find({
         "_id": {"$nin": user_id}
     })
-    rep = [serialize_doc(doc) for doc in rep]
 
+    rep = [serialize_doc(doc) for doc in rep]
     weekly_id = []
     if 'profileImage' and 'team' and 'job_title' in rep:
         for details in rep:
@@ -262,7 +268,7 @@ def weekly_remainder():
     else:
         for details in rep:
             weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id'],"role":details['role'],"profileImage":"","team":"","job_title":""})
-
+    
     for doc in weekly_id:
         ID_ = doc['ID_']
         name = doc['name']
@@ -279,10 +285,10 @@ def weekly_remainder():
                     "priority": 1,
                     "Message": "Please create your weekly report" + ' ' + str(name)
                 }}}, upsert=True)
-        print("IOT")
+
         if role != 'Admin':
             day = datetime.datetime.today().weekday()
-            
+        
             week_day=[0,1,2]
             last =[3,4]
             if day in week_day:
@@ -291,6 +297,7 @@ def weekly_remainder():
                     slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
             else:    
                 if day == 5:
+                    print("adding report")
                     reviewed = False
                     users = mongo.db.users.find({
                         "_id": ObjectId(ID_)         
