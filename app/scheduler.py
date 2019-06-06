@@ -151,8 +151,9 @@ def update_manager_weight():
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['_id']
-        docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})        
+        docs = mongo.db.reports.find({"user": str(id), "type": "weekly","review":{'$elemMatch':{"manager_weight":{"$exists":False}}}})        
         docs = [serialize_doc(doc) for doc in docs]
+        print(len(docs))
         if docs is not None:
             for data in docs:
                 managers_data = []
@@ -169,7 +170,8 @@ def update_manager_weight():
                                             "$set": {
                                                 "review.$.manager_weight": m_weight}
                                             }
-                                            ) 
+                                            )    
+
         
         
         
