@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     verify_jwt_in_request
 )
 from functools import wraps
-
+import re
 from flask import g, current_app, jsonify
 
 from bson.objectid import ObjectId
@@ -30,8 +30,7 @@ def get_token(jwt, app):
    def user_loader_callback(identity):
        print("user_loader_callback")
        user = mongo.db.users.find_one({
-           "username": identity
-       })
+           "username": re.compile(identity, re.IGNORECASE)})
        if user is None or "username" not in user:
            return None
        return user

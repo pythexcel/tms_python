@@ -6,6 +6,7 @@ import jwt
 from flask_jwt_extended import (
     jwt_required, create_access_token, get_current_user
 )
+import re
 from bson.objectid import ObjectId
 import requests
 import datetime
@@ -84,9 +85,8 @@ def login():
             slack_id = user_data["slack_id"]
             team = user_data["team"]
          
-
             user = mongo.db.users.find_one({
-                "username": username})
+                "username": re.compile(username, re.IGNORECASE)})
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
                 print(prImage)
@@ -117,6 +117,7 @@ def login():
                         "work_email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
+                        "last_login": datetime.datetime.now(),
                         "team": team,
                         "profile": result
                     }})
@@ -139,6 +140,7 @@ def login():
                         "work_email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
+                        "last_login": datetime.datetime.now(),
                         "team": team,
                         "role": role,
                         "cron_checkin": False,
