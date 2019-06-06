@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,update_manager_weight
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity
 
 
 def create_app(test_config=None):
@@ -72,7 +72,7 @@ def create_app(test_config=None):
     '''
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=15, minute=30)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=16, minute=50)
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
@@ -82,12 +82,6 @@ def create_app(test_config=None):
     weekly_remainder_scheduler = BackgroundScheduler()
     weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=16, minute=45)
     weekly_remainder_scheduler.start()
-    
-    
-    manager_scheduler = BackgroundScheduler()
-    manager_scheduler.add_job(update_manager_weight, trigger='cron', day_of_week='mon-sat', hour=15, minute=15)
-    manager_scheduler.start()
-    
     
     review_activity_scheduler = BackgroundScheduler()
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=11, minute=30)
@@ -105,4 +99,4 @@ def create_app(test_config=None):
         weekly_remainder_scheduler.shutdown()
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
-        manager_scheduler.shutdown()
+       
