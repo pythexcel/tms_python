@@ -724,17 +724,31 @@ def admin_reply(feedback_id=None):
         })
         return jsonify(str(report)), 200
 
+def load_all_weekly(all_weekly):
+    ret = mongo.db.reports.find({
+        "user": all_weekly,
+        "type": "weekly"
+    })
+    ret = [serialize_doc(doc) for doc in ret]
+    return ret
+
+
 def load_details(data):
     user_data = data['user']
+    all_weekly = data['user']
+    all_weekly = (load_all_weekly(all_weekly))
     user_data = (load_user(user_data))
     data['user'] = user_data
-    if data['review'] is None:
-        review_detail = None
-    else:
+    if 'review' in data:
         review_detail = data['review']
-    for elem in review_detail:
+    else:
+        review_detail = None
+    if review_detail is not None:
+        for elem in review_detail:
             elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    data['all_weekly'] = all_weekly
     return data
+
 
 
 def no_review(data):
@@ -812,8 +826,8 @@ def delete_manager_response(weekly_id):
         return jsonify(str(docs)), 200
     else:
         return jsonify({"msg": "You can no longer delete your response"}), 400
-    
-    
+
+
 #Api for delete monthly report
 @bp.route('/delete_monthly/<string:monthly_id>', methods=['DELETE'])
 @jwt_required
@@ -1002,4 +1016,38 @@ def skip_review(weekly_id):
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
 
+@bp.route('/delete_manager_monthly_response/<string:manager_id>', methods=['DELETE'])
+@jwt_required
+@token.manager_required
+def delete_manager_monthly_response(manager_id):
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_day = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    next_day = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+    report = mongo.db.reports.find_one({
+        "_id": ObjectId(manager_id),
+        "review": {'$elemMatch': {"manager_id": str(current_user["_id"]), "created_at": {
+                    "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                    "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)}}
+        }})
+    print(report)
+    if report is not None:
+        ret = mongo.db.reports.update({
+            "_id": ObjectId(manager_id)}
+            , {
+            "$pull": {
+                "review": {
+                    "manager_id": str(current_user["_id"]),
+                    }
+            }})
+        docs = mongo.db.reports.update({
+            "_id": ObjectId(manager_id),
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
+        }, {
+            "$set": {
+                "is_reviewed.$.reviewed": False
+            }})
+        return jsonify(str(docs)), 200
+    else:
+        return jsonify({"msg": "You can no longer delete your response"}), 400
 
