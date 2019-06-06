@@ -12,6 +12,7 @@ import datetime
 from app.config import URL,URL_details
 from app import mongo
 from app.util import get_manager_profile
+import dateutil.parser
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -167,6 +168,8 @@ def login():
                         work_email = user['work_email']
                         slack_id = user['slack_id']
                         team = user['team']
+                        dateofjoining = user['dateofjoining']
+                        date_time = dateutil.parser.parse(dateofjoining)
 
                         if status == "Disabled":
                             mongo.db.users.remove({
@@ -192,6 +195,7 @@ def login():
                                         "work_email": work_email,
                                         "slack_id": slack_id,
                                         "team": team,
+                                        "dateofjoining": date_time,
                                         "profile": user
                                     }})
                             else:
@@ -210,6 +214,7 @@ def login():
                                     "role": role,
                                     "cron_checkin": False,
                                     "missed_chechkin_crone": False,
+                                    "dateofjoining": date_time,
                                     "profile": user
                                 }).inserted_id
             username1 = log_username
