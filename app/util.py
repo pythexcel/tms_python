@@ -12,7 +12,8 @@ def serialize_doc(doc):
 def get_manager_profile(manager):
 
     ret = mongo.db.users.find_one({
-        "_id": ObjectId(manager["_id"])
+        "_id": ObjectId(manager["_id"]),
+        "status": "Enabled"
     })
     # del ret["_id"]
     if "managers" in ret:
