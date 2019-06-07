@@ -217,6 +217,7 @@ def login():
                             }).inserted_id
             username1 = log_username
             print(username1)
+            print('User token generated for user')
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
             return jsonify(access_token=access_token), 200
