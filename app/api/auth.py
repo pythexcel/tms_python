@@ -90,6 +90,7 @@ def login():
          
             user = mongo.db.users.find_one({
                 "username": re.compile(username, re.IGNORECASE)})
+            print(user)
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
                 print(prImage)
@@ -215,6 +216,7 @@ def login():
                                 "profile": user
                             }).inserted_id
             username1 = log_username
+            print(username1)
             expires = datetime.timedelta(days=1)
             access_token = create_access_token(identity=username1, expires_delta=expires)
             return jsonify(access_token=access_token), 200
