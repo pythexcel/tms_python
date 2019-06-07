@@ -70,6 +70,7 @@ def login():
             response_user_details = requests.post(url=URL_details, json=payload_user_details)
             result = response_user_details.json()
             user_data = result['data']['user_profile_detail']
+            print("HR API RESPONSE")
             print(user_data)
             status = user_data["status"]
             role_response = jwt.decode(token['data']['token'], None, False)
@@ -89,7 +90,8 @@ def login():
             date_time = dateutil.parser.parse(dateofjoining)
          
             user = mongo.db.users.find_one({
-                "username": re.compile(username, re.IGNORECASE)})
+                "username": username})
+            print("MONGO DATABASE RESPONSE")
             print(user)
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
