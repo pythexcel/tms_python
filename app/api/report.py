@@ -7,6 +7,8 @@ from flask import (
 
 from bson.objectid import ObjectId
 from app.util import slack_message
+import requests
+from app.config import attn_url,secret_key
 
 import datetime
 
@@ -1032,5 +1034,42 @@ def skip_review(weekly_id):
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
+    
+bp.route("/disable_user", methods=["GET"])
+def disable_user():
+    print('Disable schduler running....')
+    payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
+    response_all_disabled_users_details = requests.post(url=attn_url, json=payload_all_disabled_users_details)
+    result_disabled = response_all_disabled_users_details.json()
+    print('fetching the list of disable users')
+    disabled_names = []
+    for data_disable in result_disabled:
+        disabled_names.append(data_disable['id'])
+    print(disabled_names)
+    sap = mongo.db.users.find({}, {"id": 1})
+    sap = [serialize_doc(user) for user in sap]
+    enabled_users = []
+    for doc in sap:
+        enabled_users.append(doc['id'])
+    print('fetching all the enabled users')
+    print(enabled_users)
+    disable_user = []
+    for element in disabled_names:
+        if element in enabled_users:
+            disable_user.append(element)
+    print('users who have to be disabled')
+    print(disable_user)
+    if disable_user is not None:
+        rep = mongo.db.users.update({
+            "id": {"$in": disable_user}
+        }, {
+            "$set": {
+                "status": "Disable"
+            }
+        },multi=True)
+        print(rep)
+        return jsonify(rep)
+        
+    print('users disabled')
 
 
