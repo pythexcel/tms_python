@@ -144,9 +144,13 @@ def disable_user():
     print('users who have to be disabled')
     print(disable_user)
     if disable_user is not None:
-        rep = mongo.db.users.remove({
+        rep = mongo.db.users.update({
             "id": {"$in": disable_user}
-        })
+        }, {
+            "$set": {
+                "status": "Disable"
+            }
+        },multi=True)
         print(rep)
     print('users disabled')
                 
