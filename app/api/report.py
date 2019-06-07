@@ -1035,7 +1035,7 @@ def skip_review(weekly_id):
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
     
-bp.route("/disable_user", methods=["GET"])
+@bp.route('/disable_user', methods=['GET'])
 def disable_user():
     print('Disable schduler running....')
     payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
@@ -1068,8 +1068,6 @@ def disable_user():
             }
         },multi=True)
         print(rep)
-        return jsonify(rep)
-        
-    print('users disabled')
+        return jsonify (str(rep))
 
 
