@@ -31,6 +31,9 @@ def get_token(jwt, app):
        print("user_loader_callback")
        user = mongo.db.users.find_one({
            "username": re.compile(identity, re.IGNORECASE)})
+       print('load the user by its identity')
+       print('load identity by user')
+       print(user)  
        if user is None or "username" not in user:
            return None
        return user
