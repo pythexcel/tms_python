@@ -88,7 +88,7 @@ def create_app(test_config=None):
     review_activity_scheduler.start()
     
     disable_user_scheduler = BackgroundScheduler()
-    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=17, minute=55)
+    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=18, minute=10)
     disable_user_scheduler.start()
     
    
