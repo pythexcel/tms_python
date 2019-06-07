@@ -249,7 +249,7 @@ def weekly_remainder():
     last_monday = today - datetime.timedelta(days=today.weekday())
     next_day = today + datetime.timedelta(1)
     last_day = today - datetime.timedelta(1)
-    users = mongo.db.users.find({}, {"username": 1})
+    users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
     users = [serialize_doc(user) for user in users]
     ID = []
 
@@ -268,7 +268,8 @@ def weekly_remainder():
     for data_id in reports:
         user_id.append(ObjectId(data_id['user']))
     rep = mongo.db.users.find({
-        "_id": {"$nin": user_id}
+        "_id": {"$nin": user_id},
+        "status": "Enabled"
     })
 
     rep = [serialize_doc(doc) for doc in rep]
@@ -311,7 +312,8 @@ def weekly_remainder():
                     print("adding report")
                     reviewed = False
                     users = mongo.db.users.find({
-                        "_id": ObjectId(ID_)         
+                        "_id": ObjectId(ID_),
+                        "status": "Enabled"
                     })
                     users = [serialize_doc(doc) for doc in users]
                     managers_data = []
