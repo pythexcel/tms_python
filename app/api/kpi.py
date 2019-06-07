@@ -76,7 +76,8 @@ def kpi(id=None):
 def assign_kpi_to_user(user_id, kpi_id):
     if kpi_id == str(-1):
         ret = mongo.db.users.update({
-            "_id": ObjectId(user_id)
+            "_id": ObjectId(user_id),
+            "status": "Enabled"
         }, {
             "$unset": {
                 "kpi_id": ""
@@ -98,7 +99,8 @@ def assign_kpi_to_user(user_id, kpi_id):
 @token.admin_required
 def memeber_kpi(kpi_id):
     users = mongo.db.users.find({
-        "kpi_id": kpi_id
+        "kpi_id": kpi_id,
+        "status": "Enabled"
     }, {"password": 0, "profile": 0})
     users = [serialize_doc(user) for user in users]
     return jsonify(users)
@@ -110,7 +112,8 @@ def memeber_kpi(kpi_id):
 def assign_manager(user_id, manager_id, weight):
     if weight > 0:
         manage = mongo.db.users.find_one({
-            "_id": ObjectId(manager_id)
+            "_id": ObjectId(manager_id),
+            "status": "Enabled"
         })
         username =manage['username']
         job_title = manage['jobtitle']
