@@ -24,20 +24,23 @@ def get_token(jwt, app):
    @jwt.user_identity_loader
    def user_identity_lookup(user):
        print("user_identity_lookup")
+       print(user)
        return str(user)
 
    @jwt.user_loader_callback_loader
    def user_loader_callback(identity):
+       print('dtoa')
+       name = re.compile(identity, re.IGNORECASE)
+       print(name)
+       print('pubg')
        print("user_loader_callback")
        user = mongo.db.users.find_one({
            "username": re.compile(identity, re.IGNORECASE)})
        print('load the user by its identity')
        print('load identity by user')
-       print(user)  
        if user is None or "username" not in user:
            return None
        return user
-
 
 def admin_required(fn):
     @wraps(fn)
