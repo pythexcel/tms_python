@@ -396,7 +396,7 @@ def get_manager_weekly_list(weekly_id=None):
             }
         }).sort("created_at", 1)
         dab = [add_checkin_data(serialize_doc(doc)) for doc in dab]
-        for data in dab:
+                for data in dab:
             ID = data['user']
             rap = mongo.db.users.find({
                 "_id": ObjectId(str(ID))
@@ -406,54 +406,59 @@ def get_manager_weekly_list(weekly_id=None):
                 junior_name = dub['username']
                 slack = dub['slack_id']
                 print(slack)
-                sap = mongo.db.reports.find({
-                    "_id": ObjectId(weekly_id),
-                    "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
-                }
-             })
-                sap = [serialize_doc(saps) for saps in sap]
-                if not sap:
-                    ret = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                    }, {
-                        "$push": {
-                            "review": {
-                                "difficulty": difficulty,
-                                "rating": rating,
-                                "created_at": datetime.datetime.utcnow(),
-                                "comment": comment,
-                                "manager_id": str(current_user["_id"])
-                            }
+                manager = dub['managers']
+                for a in manager:
+                    if a['_id']==str(current_user["_id"]):
+                        manager_weights=a['weight']
+                        sap = mongo.db.reports.find({
+                            "_id": ObjectId(weekly_id),
+                            "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
                         }
-                    })
-                    
-                    cron = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                        }, {    
-                        "$set": {
-                            "cron_checkin": True
-                        }})
-                    
-                    docs = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id),
-                        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
-                    }, {
-                        "$set": {
-                            "is_reviewed.$.reviewed": True
-                        }})
-                    dec = mongo.db.recent_activity.update({
-                        "user": str(ID)},
-                        {"$push": {
-                            "report_reviewed": {
-                                "created_at": datetime.datetime.now(),
-                                "priority": 0,
-                                "Message": "Your weekly report has been reviewed by "" " + manager_name
-                            }}}, upsert=True)
-                    slack_message(msg="Hi"+' '+"<@"+slack+">!"+' ' + "your report is reviewed by" + ' ' + manager_name)
-                    return jsonify(str(ret)), 200
-                else:
-                    return jsonify(msg="Already reviewed this report"), 400
+                     })
+                        sap = [serialize_doc(saps) for saps in sap]
+                        if not sap:
+                            ret = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                            }, {
+                                "$push": {
+                                    "review": {
+                                        "difficulty": difficulty,
+                                        "rating": rating,
+                                        "created_at": datetime.datetime.utcnow(),
+                                        "comment": comment,
+                                        "manager_id": str(current_user["_id"]),
+                                        "manager_weight":manager_weights
+                                    }
+                                }
+                            })
 
+                            cron = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                                }, {
+                                "$set": {
+                                    "cron_checkin": True
+                                }})
+
+
+                            docs = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id),
+                                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+                            }, {
+                                "$set": {
+                                    "is_reviewed.$.reviewed": True
+                                }})
+                            dec = mongo.db.recent_activity.update({
+                                "user": str(ID)},
+                                {"$push": {
+                                    "report_reviewed": {
+                                        "created_at": datetime.datetime.now(),
+                                        "priority": 0,
+                                        "Message": "Your weekly report has been reviewed by "" " + manager_name
+                                    }}}, upsert=True)
+                            slack_message(msg="Hi"+' '+"<@"+slack+">!"+' ' + "your report is reviewed by" + ' ' + manager_name)
+                            return jsonify(str(ret)), 200
+                        else:
+                            return jsonify(msg="Already reviewed this report"), 400
         
 @bp.route('/week_reviewed_reports', methods=["GET"])
 @jwt_required
