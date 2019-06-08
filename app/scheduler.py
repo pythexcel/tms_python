@@ -510,18 +510,27 @@ def manager_update():
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['_id']
+        print(id)
         docs = mongo.db.reports.find(
             {"user": str(id), "type": "weekly", "review": {'$elemMatch': {"manager_weight": {"$exists": False}}}})
         docs = [serialize_doc(doc) for doc in docs]
+        print("fetched the reports which needed to be updated")
+        print(docs)
         print(len(docs))
         if docs is not None:
             for data in docs:
                 managers_data = []
                 for mData in data['is_reviewed']:
                     managers_data.append({"id": mData['_id'], "weight": mData['weight']})
+                print(managers_data)
+                print("here comes the manager data")
                 for idss in managers_data:
                     manager_id = idss['id']
+                    print("Manager whos weight is to be added")
+                    print(manager_id)
                     m_weight = idss['weight']
+                    print(m_weight)
+                    print("weight which needs to be updated")
                     ret = mongo.db.reports.update({
                         "user": str(id),
                         "type": "weekly",
