@@ -396,7 +396,7 @@ def get_manager_weekly_list(weekly_id=None):
             }
         }).sort("created_at", 1)
         dab = [add_checkin_data(serialize_doc(doc)) for doc in dab]
-                for data in dab:
+        for data in dab:
             ID = data['user']
             rap = mongo.db.users.find({
                 "_id": ObjectId(str(ID))
