@@ -78,7 +78,7 @@ def create_app(test_config=None):
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
-    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=30)
+    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=12, minute=45)
     recent_activity_scheduler.start()
     
     weekly_remainder_scheduler = BackgroundScheduler()
@@ -90,7 +90,7 @@ def create_app(test_config=None):
     review_activity_scheduler.start()
     
     manager_update_scheduler = BackgroundScheduler()
-    manager_update_scheduler.add_job(manager_update, trigger='cron', day_of_week='mon-sat', hour=12, minute=20)
+    manager_update_scheduler.add_job(manager_update, trigger='cron', day_of_week='mon-sat', hour=12, minute=35)
     manager_update_scheduler.start()
     
     
