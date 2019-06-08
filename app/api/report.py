@@ -1037,7 +1037,8 @@ def disable_user():
             "id": {"$in": disable_user}
         }, {
             "$set": {
-                "status": "Disable"
+                "status": "Disable",
+                "managers": None              
             }
         },multi=True)
         print(rep)
