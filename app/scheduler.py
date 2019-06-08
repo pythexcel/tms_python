@@ -519,6 +519,7 @@ def manager_update():
         print(len(docs))
         if docs is not None:
             for data in docs:
+                _id = data["_id"]
                 managers_data = []
                 for mData in data['is_reviewed']:
                     managers_data.append({"id": mData['_id'], "weight": mData['weight']})
@@ -532,13 +533,13 @@ def manager_update():
                     print(m_weight)
                     print("weight which needs to be updated")
                     ret = mongo.db.reports.update({
-                        "user": str(id),
-                        "type": "weekly",
+                       "_id": ObjectId(str(_id)),
                         "review": {'$elemMatch': {"manager_id": str(manager_id)}
                                    }}, {
                         "$set": {
                             "review.$.manager_weight": m_weight}
                     }
                     )
+                    print(ret)
                     print("updated")
         
