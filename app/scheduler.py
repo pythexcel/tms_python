@@ -168,66 +168,54 @@ def overall_reviewes():
     print("running")
     today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=today.weekday())
-    users = mongo.db.reports.find({"cron_checkin": True})
+    users = mongo.db.reports.find({"type": "weekly"})
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['user']
-        
-        docs = mongo.db.reports.update({
-            "user": str(id)
-        }, {
-            "$set": {
-                "cron_checkin": False
-            }}, upsert=False)
-    
-        docs = mongo.db.reports.find({"user": str(id), "type": "weekly",
-                        "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
-            }})
-        user = mongo.db.users.find_one({"_id": ObjectId(id)})
-        weights = user['managers']
-        all_weight = []
-        for weg in weights:
-            weight = weg['weight']
-            all_weight.append(weight)
+
+        docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
         docs = [serialize_doc(doc) for doc in docs]
-        p_difficulty=[]
+
+        p_difficulty = []
         all_sum = []
+        all_weight = []
         for detail in docs:
             if 'review' in detail:
                 for review in detail['review']:
                     all_sum.append(review['rating'])
                     p_difficulty.append(review['difficulty'])
+                    all_weight.append(review['manager_weight'])
             else:
                 pass
-        print(p_difficulty)
+
         print(all_sum)
         print(all_weight)
         print("got all sum list")
         difficulty_len = len(p_difficulty)
         p_sum = sum(p_difficulty)
         if difficulty_len and p_sum != 0:
-            project_difficulty = (p_sum/difficulty_len)
+            project_difficulty = (p_sum / difficulty_len)
         else:
-            project_difficulty=0
+            project_difficulty = 0
 
         Abc = len(all_sum)
         xyz = len(all_weight)
-        
-        if Abc==xyz:
-            weighted_avg = np.average(all_sum, weights=all_weight,)
+
+        if Abc == xyz:
+            weighted_avg = np.average(all_sum, weights=all_weight, )
         else:
             print("all_sum and all weights are !=")
-            weighted_avg = 0    
-        
+            weighted_avg = 0
+        print(weighted_avg)
         ret = mongo.db.users.update({
             "_id": ObjectId(id)
         }, {
             "$set": {
                 "Overall_rating": weighted_avg,
-                "project_difficulty":project_difficulty
+                "project_difficulty": project_difficulty
             }
         })
+
 
         
 
