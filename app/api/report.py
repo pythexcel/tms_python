@@ -588,7 +588,8 @@ def manager_junior():
     current_user = get_current_user()
     users = mongo.db.users.find({
         "managers": {
-            "$elemMatch": {"_id": str(current_user['_id'])}
+            "$elemMatch": {"_id": str(current_user['_id'])},
+            "status": "Disable"
         }
     }, {"profile": 0}).sort("created_at", 1)
     users = [add_kpi_data(serialize_doc(ret)) for ret in users]
@@ -1037,8 +1038,8 @@ def disable_user():
             "id": {"$in": disable_user}
         }, {
             "$set": {
-                "status": "Disable",
-                "managers": None              
+                "status": "Disable"
+                           
             }
         },multi=True)
         print(rep)
