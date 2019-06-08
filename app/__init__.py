@@ -66,9 +66,11 @@ def create_app(test_config=None):
     checkin_score_scheduler.start()
     
     # Scheduler which will run at interval of 60 seconds for overall user rating
+    '''
     overall_scheduler = BackgroundScheduler()
     overall_scheduler.add_job(overall_reviewes, trigger='interval', seconds=50)
     overall_scheduler.start()
+    '''
     
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
@@ -98,7 +100,7 @@ def create_app(test_config=None):
     except:
         checkin_score_scheduler.shutdown()
         reset_scheduler.shutdown()
-        overall_scheduler.shutdown()
+        #overall_scheduler.shutdown()
         weekly_remainder_scheduler.shutdown()
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
