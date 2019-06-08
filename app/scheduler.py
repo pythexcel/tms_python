@@ -503,5 +503,33 @@ def review_activity():
     for ids in managers_name:    
         slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +"you have weekly report's pending to be reviewed") 
 
-        
+ 
+def manager_update():
+    print("running")
+    users = mongo.db.users.find()
+    users = [serialize_doc(doc) for doc in users]
+    for detail in users:
+        id = detail['_id']
+        docs = mongo.db.reports.find(
+            {"user": str(id), "type": "weekly", "review": {'$elemMatch': {"manager_weight": {"$exists": False}}}})
+        docs = [serialize_doc(doc) for doc in docs]
+        print(len(docs))
+        if docs is not None:
+            for data in docs:
+                managers_data = []
+                for mData in data['is_reviewed']:
+                    managers_data.append({"id": mData['_id'], "weight": mData['weight']})
+                for idss in managers_data:
+                    manager_id = idss['id']
+                    m_weight = idss['weight']
+                    ret = mongo.db.reports.update({
+                        "user": str(id),
+                        "type": "weekly",
+                        "review": {'$elemMatch': {"manager_id": str(manager_id)}
+                                   }}, {
+                        "$set": {
+                            "review.$.manager_weight": m_weight}
+                    }
+                    )
+                    print("updated")
         
