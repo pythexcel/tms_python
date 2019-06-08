@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,manager_update
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes
 
 
 def create_app(test_config=None):
@@ -88,12 +88,7 @@ def create_app(test_config=None):
     review_activity_scheduler = BackgroundScheduler()
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=11, minute=30)
     review_activity_scheduler.start()
-    
-    manager_update_scheduler = BackgroundScheduler()
-    manager_update_scheduler.add_job(manager_update, trigger='interval', seconds=10)
-    manager_update_scheduler.start()
-    
-    
+     
     try:
         print("create app..")
         return app
@@ -104,6 +99,6 @@ def create_app(test_config=None):
         weekly_remainder_scheduler.shutdown()
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
-        manager_update_scheduler.shutdown()
+        
         
        
