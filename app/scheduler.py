@@ -446,14 +446,14 @@ def recent_activity():
             print(date_list)
             if date in date_list:
                 ret = mongo.db.users.update({
-                    "_id": ObjectId(str(ID_))},
+                    "_id": ObjectId(str(id_))},
                     {"$push": {"missed_checkin_dates": {
                         "date": date,
                         "created_at": datetime.datetime.now()
                     }}})
                                 
                 docs = mongo.db.recent_activity.update({
-                    "user": str(ID_)},
+                    "user": str(id_)},
                     {"$push": {"missed_checkin": {
                         "checkin_message": date_time,
                         "created_at": datetime.datetime.now(),
