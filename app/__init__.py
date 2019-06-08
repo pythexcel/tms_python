@@ -90,7 +90,7 @@ def create_app(test_config=None):
     review_activity_scheduler.start()
     
     manager_update_scheduler = BackgroundScheduler()
-    manager_update_scheduler.add_job(manager_update, trigger='interval', seconds=30)
+    manager_update_scheduler.add_job(manager_update, trigger='interval', seconds=2)
     manager_update_scheduler.start()
     
     
