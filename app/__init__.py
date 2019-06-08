@@ -68,9 +68,8 @@ def create_app(test_config=None):
     # Scheduler which will run at interval of 60 seconds for overall user rating
     
     overall_scheduler = BackgroundScheduler()
-    overall_scheduler.add_job(overall_reviewes, trigger='cron', day_of_week='mon-sat', hour=14, minute=30)
+    overall_scheduler.add_job(overall_reviewes, trigger='cron', day_of_week='mon-sat', hour=15, minute=25)
     overall_scheduler.start()
-    
     
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
