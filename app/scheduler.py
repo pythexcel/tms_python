@@ -312,10 +312,11 @@ def weekly_remainder():
                     users = [serialize_doc(doc) for doc in users]
                     managers_data = []
                     for data in users:
-                        for mData in data['managers']:
-                            manager_id = mData['_id']
-                            mData['reviewed'] = reviewed
-                            managers_data.append(mData)    
+                        if 'managers' in data:
+                            for mData in data['managers']:
+                                manager_id = mData['_id']
+                                mData['reviewed'] = reviewed
+                                managers_data.append(mData)    
                     ret = mongo.db.reports.insert_one({
                         "k_highlight": "You have not done your weekly report",
                         "extra": "You have not done your weekly report",
@@ -339,8 +340,8 @@ def weekly_remainder():
 
                     
                     for user in users:
-                        for a in user['is_reviewed']:
-                            manager_id = a['_id']
+                        for deta in user['is_reviewed']:
+                            manager_id = deta['_id']
                             weekly = user['_id']
                         
                             ret = mongo.db.reports.update({
