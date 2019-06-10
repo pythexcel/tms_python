@@ -153,7 +153,7 @@ def disable_user():
             }
         }, multi=True)
         print(rep)
-        return jsonify(str(rep))
+       
        
 def overall_reviewes():
     print("running")
