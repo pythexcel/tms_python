@@ -187,7 +187,7 @@ def overall_reviewes():
         if difficulty_len and p_sum != 0:
             project_difficulty = (p_sum / difficulty_len)
         else:
-            project_difficulty = 0
+            pass
 
         Abc = len(all_sum)
         xyz = len(all_weight)
