@@ -123,14 +123,8 @@ def checkin_score():
 def disable_user():
     print('Disable schduler running....')
     payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
-    print("Sending my requests to HR")
-    print(payload_all_disabled_users_details)
     response_all_disabled_users_details = requests.post(url=attn_url, json=payload_all_disabled_users_details)
-    print("Sending my request to fetch disable user")
-    print(response_all_disabled_users_details)
     result_disabled = response_all_disabled_users_details.json()
-    print("GETTING ALL THE DISABLE USERS")
-    print(result_disabled)
     print('fetching the list of disable users')
     disabled_names = []
     for data_disable in result_disabled:
@@ -155,14 +149,11 @@ def disable_user():
         }, {
             "$set": {
                 "status": "Disable"
+
             }
-        },multi=True)
+        }, multi=True)
         print(rep)
-    print('users disabled')
-                
-        
-        
-        
+        return jsonify(str(rep))
        
 def overall_reviewes():
     print("running")

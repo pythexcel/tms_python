@@ -791,13 +791,13 @@ def junior_weekly_report():
 def delete_manager_response(weekly_id):
     current_user = get_current_user()
     today = datetime.datetime.utcnow()
-    last_day = datetime.datetime.utcnow() - datetime.timedelta(days=1)
-    next_day = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+    last_day = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+    next_day = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     report = mongo.db.reports.find_one({
         "_id": ObjectId(weekly_id),
         "review": {'$elemMatch': {"manager_id": str(current_user["_id"]), "created_at": {
-                    "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
-                    "$lte": datetime.datetime(next_day.year, next_day.month, next_day.day)}}
+                    "$gte": last_day,
+                    "$lte": next_day}}
         }})
     print(report)
     if report is not None:
@@ -818,7 +818,7 @@ def delete_manager_response(weekly_id):
             }})
         return jsonify(str(docs)), 200
     else:
-        return jsonify({"msg": "You can no longer delete your response"}), 400
+        return jsonify({"msg": "You can no longer delete your submitted report"}), 400
     
     
 #Api for delete monthly report
@@ -844,7 +844,8 @@ def add_monthly_checkin():
     if request.method == "GET":
         report = mongo.db.reports.find({
             "user": str(current_user["_id"]),
-            "type": "monthly"
+            "type": "monthly",
+            "month": month
         })
         report = [add_user_data(serialize_doc(doc))for doc in report]
         return jsonify(report)
@@ -1008,41 +1009,82 @@ def skip_review(weekly_id):
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
-    
-@bp.route('/disable_user', methods=['GET'])
-def disable_user():
-    print('Disable schduler running....')
-    payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
-    response_all_disabled_users_details = requests.post(url=attn_url, json=payload_all_disabled_users_details)
-    result_disabled = response_all_disabled_users_details.json()
-    print('fetching the list of disable users')
-    disabled_names = []
-    for data_disable in result_disabled:
-        disabled_names.append(data_disable['id'])
-    print(disabled_names)
-    sap = mongo.db.users.find({}, {"id": 1})
-    sap = [serialize_doc(user) for user in sap]
-    enabled_users = []
-    for doc in sap:
-        enabled_users.append(doc['id'])
-    print('fetching all the enabled users')
-    print(enabled_users)
-    disable_user = []
-    for element in disabled_names:
-        if element in enabled_users:
-            disable_user.append(element)
-    print('users who have to be disabled')
-    print(disable_user)
-    if disable_user is not None:
-        rep = mongo.db.users.update({
-            "id": {"$in": disable_user}
+@bp.route('/delete_manager_monthly_response/<string:manager_id>', methods=['DELETE'])
+@jwt_required
+@token.manager_required
+def delete_manager_monthly_response(manager_id):
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_day = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+    next_day = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    report = mongo.db.reports.find_one({
+        "_id": ObjectId(manager_id),
+        "review": {'$elemMatch': {"manager_id": str(current_user["_id"]), "created_at": {
+                    "$gte": last_day,
+                    "$lte": next_day}}
+        }})
+    print(report)
+    if report is not None:
+        ret = mongo.db.reports.update({
+            "_id": ObjectId(manager_id)}
+            , {
+            "$pull": {
+                "review": {
+                    "manager_id": str(current_user["_id"]),
+                    }
+            }})
+        docs = mongo.db.reports.update({
+            "_id": ObjectId(manager_id),
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
         }, {
             "$set": {
-                "status": "Disable"
-                           
-            }
-        },multi=True)
-        print(rep)
-        return jsonify (str(rep))
+                "is_reviewed.$.reviewed": False
+            }})
+        return jsonify(str(docs)), 200
+    else:
+        return jsonify({"msg": "You can no longer delete your submitted report"}), 400
+def details_manager(data):
+    user_data = data['user']
+    user_data = (load_user(user_data))
+    data['user'] = user_data
+    if 'review' in data:
+        review_detail = data['review']
+    else:
+        review_detail = None
+    if review_detail is not None:
+        for elem in review_detail:
+            elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    return data
 
 
+
+@bp.route('/junior_monthly_report', methods=['GET'])
+@jwt_required
+@token.manager_required
+def junior_monthly_report():
+    current_user = get_current_user()
+    users = mongo.db.users.find({
+        "managers": {
+            "$elemMatch": {"_id": str(current_user['_id'])}
+        }
+    }, {"profile": 0})
+    users = [serialize_doc(ret) for ret in users]
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    print(ID)
+    reports = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "monthly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}}
+    }).sort("created_at", 1)
+    reports = [no_review(serialize_doc(doc)) for doc in reports]
+    report = mongo.db.reports.find({
+        "user": {"$in": ID},
+        "type": "monthly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}}
+    }).sort("created_at", 1)
+    report = [details_manager(serialize_doc(doc)) for doc in report]
+    report_all = reports + report
+
+    return jsonify(report_all)
