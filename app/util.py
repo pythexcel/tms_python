@@ -1,7 +1,8 @@
 from app import mongo
 from bson.objectid import ObjectId
 import requests
-from app.config import webhook_url
+from app.config import webhook_url, slack_token
+from slackclient import SlackClient
 
 
 def serialize_doc(doc):
@@ -35,3 +36,12 @@ def slack_message(msg):
     webhook_url, json=slackmsg,
     headers={'Content-Type': 'application/json'})
 
+def slack_msg(channel, msg):
+    print(channel)
+    sc = SlackClient(slack_token)
+    for data in channel:
+        sc.api_call(
+            "chat.postMessage",
+            channel=data,
+            text=msg
+        )
