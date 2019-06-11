@@ -3,7 +3,7 @@ from app import mongo
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-
+import uuid
 from bson.objectid import ObjectId
 from app.util import serialize_doc
 
@@ -167,9 +167,9 @@ def random_kpi():
 
     for details in docs:
         for elem in details['era_json']:
-            elem['ID'] = randint(100, 900)
+            elem['ID'] = uuid.uuid4()
         for data in details['kpi_json']:
-            data['ID'] = randint(100, 900)
+            data['ID'] = uuid.uuid4()
             for elem in docs:
                 ID = ObjectId(elem['_id'])
                 era_json = elem['era_json']
