@@ -6,7 +6,9 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-from app.util import slack_message
+from app.util import slack_message, slack_msg
+from app.config import slack_token
+from slackclient import SlackClient
 import requests
 from app.config import attn_url,secret_key
 
@@ -21,6 +23,22 @@ from flask_jwt_extended import (
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
+@bp.route('/slack', methods=["GET"])
+@jwt_required
+def slack():
+    current_user = get_current_user()
+    slack = current_user['slack_id']
+    slack_id = SlackClient(slack_token)
+    data = slack_id.api_call(
+        "groups.list"
+    )
+    element = data['groups']
+    channels = []
+    for ret in element:
+        if slack in ret['members']:
+            channels.append({'id': ret['id'], 'channel_name': ret['name']})
+        return jsonify(channels)
+    
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
 def add_checkin():
@@ -35,6 +53,7 @@ def add_checkin():
     date = request.json.get("date", "")
     highlight_task_reason = request.json.get("highlight_task_reason", None)
     today = datetime.datetime.utcnow()
+    slackChannels = request.json.get("slackChannels", [])
 
     if not report:
           return jsonify({"msg": "Invalid Request"}), 400
@@ -98,6 +117,8 @@ def add_checkin():
                     "Daily_chechkin_message": date_time
                 }}}, upsert=True)
             slack_message(msg="<@"+slack+">!"+' ''have created daily chechk-in at'+' '+str(formatted_date))
+            slack_msg(channel=slackChannels,
+                      msg="Username: " + "*" + username + "*" + "\n" + "report: " + "_" + report + "_" + "\n" + highlight)
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
