@@ -37,7 +37,7 @@ def slack():
     for ret in element:
         if slack in ret['members']:
             channels.append({'id': ret['id'], 'channel_name': ret['name']})
-        return jsonify(channels)
+    return jsonify(channels)
     
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
