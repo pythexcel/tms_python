@@ -118,7 +118,7 @@ def add_checkin():
                 }}}, upsert=True)
             slack_message(msg="<@"+slack+">!"+' ''have created daily chechk-in at'+' '+str(formatted_date))
             slack_msg(channel=slackChannels,
-                      msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + report + "_" + "\n"
+                      msg="<@"+slack+">!" + "\n" + "Report: " + "_" + report + "_" + "\n"
                           + "Highlight: " + highlight)
         return jsonify(str(ret))
     else:
