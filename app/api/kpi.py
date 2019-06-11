@@ -159,30 +159,5 @@ def assign_manager(user_id, manager_id, weight):
         })
     return jsonify(str(ret)), 200
 
-@bp.route('/random_kpi', methods=['GET'])
-def random_kpi():
-    docs = mongo.db.kpi.find({})
-    docs = [serialize_doc(doc) for doc in docs]
-    print(docs)
 
-    for details in docs:
-        for elem in details['era_json']:
-            elem['ID'] = uuid.uuid4()
-        for data in details['kpi_json']:
-            data['ID'] = uuid.uuid4()
-            for elem in docs:
-                ID = ObjectId(elem['_id'])
-                era_json = elem['era_json']
-                kpi_json = elem['kpi_json']
-                kpi_name = elem['kpi_name']
-
-                ret = mongo.db.kpi.update({
-                    "_id": ID},
-                    {"$set":
-                        {
-                            "era_json": era_json,
-                            "kpi_json": kpi_json,
-                            "kpi_name": kpi_name
-                        }})
-                return jsonify(ret)
 
