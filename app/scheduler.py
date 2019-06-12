@@ -352,7 +352,6 @@ def weekly_remainder():
                             "extra": "No comment",
                             "select_days": [],
                             "user": str(ID_),
-                            "username": name,
                             "created_at": datetime.datetime.utcnow(),
                             "type": "weekly",
                             "is_reviewed": managers_data,
