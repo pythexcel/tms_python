@@ -614,7 +614,7 @@ def manager_junior():
     users = mongo.db.users.find({
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])},
-            "status": "Disable"
+            "status": "Enabled"
         }
     }, {"profile": 0}).sort("created_at", 1)
     users = [add_kpi_data(serialize_doc(ret)) for ret in users]
