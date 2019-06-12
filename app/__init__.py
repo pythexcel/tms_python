@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,random_kpi
 
 
 def create_app(test_config=None):
@@ -91,6 +91,10 @@ def create_app(test_config=None):
     disable_user_scheduler = BackgroundScheduler()
     disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=20, minute=30)
     disable_user_scheduler.start()
+    
+    random_kpi_scheduler = BackgroundScheduler()
+    random_kpi_scheduler.add_job(random_kpi, trigger='cron', day_of_week='mon-sat', hour=18, minute=38)
+    random_kpi_scheduler.start()
      
     try:
         print("create app..")
@@ -103,5 +107,6 @@ def create_app(test_config=None):
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
         disable_user_scheduler.shutdown()
+        random_kpi_scheduler.shutdown()
         
        
