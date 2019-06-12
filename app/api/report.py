@@ -96,6 +96,9 @@ def add_checkin():
                     "username": current_user['username'],
                     "type": "daily"
                 }})
+            slack_msg(channel=slackChannels,
+                      msg="<@"+slack+">!" + "\n" + "Report: " + "_" + report + "_" + "\n"
+                          + "Highlight: " + highlight)
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
