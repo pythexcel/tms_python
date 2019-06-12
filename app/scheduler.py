@@ -36,7 +36,51 @@ def random_kpi():
                         }})
                 print('updated')
 
-            
+                
+@bp.route('/monthly_score', methods=["GET"])
+@jwt_required
+def monthly_score():
+    reports = mongo.db.reports.find({"type": "monthly"})
+    reports = [serialize_doc(doc) for doc in reports]
+    for detail in reports:
+        _id = detail['user']
+        print(_id)
+        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+        docs = [serialize_doc(doc) for doc in docs]
+        print(docs)
+        all_sum = []
+        for detail in docs:
+            if 'review' in detail:
+                for review in detail['review']:
+                    for data in review['comment']['kpi']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+                    for data in review['comment']['era']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+
+        print(all_sum)
+        y = {}
+        for data in all_sum:
+            if data['id'] in y:
+
+                y[data['id']][0] = (y[data['id']][0] + data['rating'])
+                y[data['id']][1] = y[data['id']][1] + 1
+                # (y[data['title']] + data['rating'])
+
+            else:
+                y[data['id']] = [data['rating'], 1]
+
+        for elem in y:
+            y[elem] = y[elem][0] / y[elem][1]
+
+        ret = mongo.db.users.update({
+            "_id": ObjectId(str(_id))
+        }, {
+            "$set": {
+                "Monthly_rating": y
+            }
+        })
+        print(ret)
+                           
 def checkin_score():
     print("Running")
     # Finding random user who have the below condition
