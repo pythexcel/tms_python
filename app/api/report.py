@@ -522,62 +522,70 @@ def review_360():
 @bp.route("/360_reviews", methods=["GET", "POST"])
 @bp.route("/360_reviews/<string:review_id>", methods=["PUT"])
 @jwt_required
-def reviews_360(review_id=None):
+def reviews_360():
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
     current_user = get_current_user()
-
     if request.method == "GET":
+
+        review = []
         docs = mongo.db.reviews_360.find({
-            "user": current_user["_id"]
+            "user": str(current_user["_id"]),
+            "anon": False
         })
         docs = [serialize_doc(doc) for doc in docs]
-        print(docs)
-        return jsonify(docs)
+        for s_doc in docs:
+            review.append(s_doc)
 
+        doc = mongo.db.reviews_360.find({
+            "user": str(current_user["_id"]),
+            "anon": True
+        }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1})
+        doc = [serialize_doc(doc) for doc in doc]
+        for single_d in doc:
+            review.append(single_d)
+        return jsonify(review)
     if not request.json:
         abort(500)
-
     manager = request.json.get("manager", None)
+    manager_id = request.json.get("managerID")
+    manager_image = request.json.get("managerProfileImage")
     rating = request.json.get("rating", None)
     comment = request.json.get("comment", "")
     anon = request.json.get("anon", True)
-
+    user = str(current_user["_id"])
+    username = current_user["username"]
+    profileImage = current_user["profileImage"]
     if manager is None or rating is None:
         abort(500)
-
     if anon == 0:
         anon = False
     else:
         anon = True
+    rep = mongo.db.reviews_360.find_one({
+        "user": str(user),
+        "month": month,
+        "manager_id": manager_id
+    })
 
-    if rating is None:
-        abort(500)
-
-    if not anon:
-        user = current_user["_id"]
+    if rep is not None:
+        return jsonify(
+            {"msg": "You have already posted review against this manager for this month, try again next month"}), 409
     else:
-        user = ""
-    if review_id is None:
         ret = mongo.db.reviews_360.insert_one({
+            "manager": manager,
+            "manager_id": manager_id,
+            "manager_img": manager_image,
             "rating": rating,
             "comment": comment,
             "anon": anon,
-            "user": user
+            "user": user,
+            "month": month,
+            "username": username,
+            "profileImage": profileImage
         }).inserted_id
-        ret = str(ret)
-    else:
-        ret = mongo.db.reviews_360.update({
-            "_id": ObjectId(review_id)
-        }, {
-            "$set": {
-                "rating": rating,
-                "comment": comment,
-                "anon": anon,
-                "user": user
-            }
-        })
-
-    return jsonify(ret)
-
+        return jsonify(str(ret))
+    
 @bp.route('/recent_activities', methods=['GET'])
 @jwt_required
 def recent_activity():
@@ -1113,3 +1121,58 @@ def junior_monthly_report():
     report_all = reports + report
 
     return jsonify(report_all)
+
+@bp.route('/get_managers', methods=['GET'])
+@jwt_required
+def get_managers():
+    current_user = get_current_user()
+    managers = current_user["managers"]
+    print(managers)
+    return jsonify(managers)
+
+@bp.route("/360_get_juniors_reviews", methods=["GET"])
+@jwt_required
+@token.manager_required
+def get_juniors_reviews():
+    current_user = get_current_user()
+    id = str(current_user['_id'])
+    reviewss = []
+    reviews = mongo.db.reviews_360.find({
+        "manager_id": id,
+        "anon": False
+    })
+    reviews = [serialize_doc(doc) for doc in reviews]
+    for doc in reviews:
+        reviewss.append(doc)
+
+    docss = mongo.db.reviews_360.find({
+        "manager_id": id,
+        "anon": True
+    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1})
+    docss = [serialize_doc(doc) for doc in docss]
+    for dc in docss:
+        reviewss.append(dc)
+    return jsonify(reviewss)
+
+
+@bp.route("/admin_get_reviews", methods=["GET"])
+@jwt_required
+@token.admin_required
+def get_reviews():
+    reviewss = []
+    review = mongo.db.reviews_360.find({
+        "anon": False
+    })
+    review = [serialize_doc(doc) for doc in review]
+    for doc in review:
+        reviewss.append(doc)
+
+    docss = mongo.db.reviews_360.find({
+        "anon": True
+    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1})
+    docss = [serialize_doc(doc) for doc in docss]
+    for dc in docss:
+        reviewss.append(dc)
+    print(reviewss)
+    return jsonify(reviewss)
+
