@@ -282,7 +282,7 @@ def add_weekly_checkin():
         "extra": extra,
         "select_days": select_days,
         "user": str(current_user["_id"]),
-        "username": username,
+        #"username": username,
         "created_at": datetime.datetime.utcnow(),
         "type": "weekly",
         "is_reviewed": managers_data,
