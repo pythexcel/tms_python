@@ -38,7 +38,8 @@ def slack():
         if slack in ret['members']:
             channels.append({'value': ret['id'], 'text': ret['name']})
     return jsonify(channels)
-    
+
+
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
 def add_checkin():
@@ -1127,8 +1128,11 @@ def junior_monthly_report():
 def get_managers():
     current_user = get_current_user()
     managers = current_user["managers"]
-    print(managers)
-    return jsonify(managers)
+    if not managers:
+        return jsonify(
+            {"msg": "currently you don't have any manager assigned"}), 409
+    else:
+        return jsonify(managers)
 
 @bp.route("/360_get_juniors_reviews", methods=["GET"])
 @jwt_required
