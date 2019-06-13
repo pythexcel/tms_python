@@ -877,7 +877,7 @@ def add_monthly_checkin():
     month = today.strftime("%B")
     current_user = get_current_user()
     slack = current_user['slack_id']
-    doj = current_user['dateofjoining']
+    doj = str(current_user['dateofjoining'])
     date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
     datee = date.day
     if request.method == "GET":
@@ -930,7 +930,7 @@ def add_monthly_checkin():
                 slack_message(msg="<@"+slack+">!"+' ''have created monthly report')
                 return jsonify(str(ret)), 200
         else:
-            return jsonify({"msg": "Your date of joining was on" + str(datee) + "you can  submit monthly report from 7 "
+            return jsonify({"msg": "Your date of joining was on " + str(datee) + " you can  submit monthly report from 7 "
                                                                                 "days before your joining date "}), 404
 
 
