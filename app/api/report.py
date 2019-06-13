@@ -889,6 +889,7 @@ def add_monthly_checkin():
         report = [add_user_data(serialize_doc(doc)) for doc in report]
         return jsonify(report)
     else:
+        # chechk if user joining date is greater than 7 subtract it by 7 
         if datee > 7:
             join_date = datee - 7
         else:
@@ -897,6 +898,7 @@ def add_monthly_checkin():
         print(join_date)
         today_date = int(today.strftime("%d"))
         print(today_date)
+        #check if today date grater than join date allow to make monthly report or else not
         if today_date > join_date:
             if not request.json:
                 abort(500)
