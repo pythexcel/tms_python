@@ -37,8 +37,6 @@ def random_kpi():
                 print('updated')
 
                 
-@bp.route('/monthly_score', methods=["GET"])
-@jwt_required
 def monthly_score():
     reports = mongo.db.reports.find({"type": "monthly"})
     reports = [serialize_doc(doc) for doc in reports]
@@ -79,7 +77,7 @@ def monthly_score():
                 "Monthly_rating": y
             }
         })
-        print(ret)
+       
                            
 def checkin_score():
     print("Running")
@@ -594,4 +592,52 @@ def manager_update():
                     )
                     print(ret)
                     print("updated")
-        
+
+                    
+def monthly_remainder():
+    print("running")
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
+    users = [serialize_doc(user) for user in users]
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    reports = mongo.db.reports.find({
+        "type": "monthly",
+        "user": {"$in": ID},
+        "month": month
+    })
+    reports = [serialize_doc(doc) for doc in reports]
+    user_id = []
+    for data_id in reports:
+        user_id.append(ObjectId(data_id['user']))
+    rep = mongo.db.users.find({
+        "_id": {"$nin": user_id},
+        "status": "Enabled"
+    })
+    rep = [serialize_doc(doc) for doc in rep]
+    weekly_id = []
+    if 'profileImage' and 'team' and 'job_title' in rep:
+        for details in rep:
+            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+                              "profileImage": details['profileImage'], "team": details['team'],
+                              "job_title": details['job_title'], "role": details['role'],"dateofjoining": details['dateofjoining']})
+    else:
+        for details in rep:
+            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+                              "role": details['role'], "profileImage": "", "team": "", "job_title": ""})
+    for doc in weekly_id:
+        role = doc['role']
+        slack_id = doc['slack_id']
+        doj = doc['dateofjoining']
+        date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
+        datee = date.day
+        join_date = datee - 3
+        today_date = int(today.strftime("%d"))
+        print(join_date)
+        if today_date > join_date:
+            if role != 'Admin':
+                slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
+
+
