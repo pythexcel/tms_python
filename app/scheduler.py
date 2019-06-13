@@ -10,14 +10,18 @@ from app.util import slack_message
 import uuid
 
 def monthly_score():
+    print('running...')
+    # find all the reports of monthly
     reports = mongo.db.reports.find({"type": "monthly"})
     reports = [serialize_doc(doc) for doc in reports]
     for detail in reports:
         _id = detail['user']
         print(_id)
+        #find monthly report of one particular user
         docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
         docs = [serialize_doc(doc) for doc in docs]
         print(docs)
+        # append in all_sum arrays all the ID of kpi/era and their rating
         all_sum = []
         for detail in docs:
             if 'review' in detail:
@@ -29,6 +33,7 @@ def monthly_score():
 
         print(all_sum)
         y = {}
+        # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
         for data in all_sum:
             if data['id'] in y:
 
@@ -38,10 +43,10 @@ def monthly_score():
 
             else:
                 y[data['id']] = [data['rating'], 1]
-
+        # find all the avg of kpi/era ratings
         for elem in y:
             y[elem] = y[elem][0] / y[elem][1]
-
+       # update the kpi/era rating in particular user profile
         ret = mongo.db.users.update({
             "_id": ObjectId(str(_id))
         }, {
@@ -55,11 +60,14 @@ def monthly_remainder():
     print("running")
     today = datetime.datetime.utcnow()
     month = today.strftime("%B")
+    #find all the users 
     users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
     users = [serialize_doc(user) for user in users]
     ID = []
+    #append all users _id
     for data in users:
         ID.append(data['_id'])
+    # find the monthly reports of all the user     
     reports = mongo.db.reports.find({
         "type": "monthly",
         "user": {"$in": ID},
@@ -69,22 +77,24 @@ def monthly_remainder():
     user_id = []
     for data_id in reports:
         user_id.append(ObjectId(data_id['user']))
+    # find the users who have not done monthly report    
     rep = mongo.db.users.find({
         "_id": {"$nin": user_id},
         "status": "Enabled"
     })
     rep = [serialize_doc(doc) for doc in rep]
-    weekly_id = []
+    monthly_id = []
+    # FInd detail of user who have not done monthly report
     if 'profileImage' and 'team' and 'job_title' in rep:
         for details in rep:
-            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+            monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
                               "profileImage": details['profileImage'], "team": details['team'],
                               "job_title": details['job_title'], "role": details['role'],"dateofjoining": details['dateofjoining']})
     else:
         for details in rep:
-            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+            monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
                               "role": details['role'], "profileImage": "", "team": "", "job_title": ""})
-    for doc in weekly_id:
+    for doc in monthly_id:
         role = doc['role']
         slack_id = doc['slack_id']
         doj = doc['dateofjoining']
@@ -93,6 +103,7 @@ def monthly_remainder():
         join_date = datee - 3
         today_date = int(today.strftime("%d"))
         print(join_date)
+        # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
         if today_date > join_date:
             if role != 'Admin':
                 slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
