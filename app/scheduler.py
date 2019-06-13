@@ -200,9 +200,12 @@ def overall_reviewes():
         for detail in docs:
             if 'review' in detail:
                 for review in detail['review']:
-                    all_sum.append(review['rating'])
-                    p_difficulty.append(review['difficulty'])
-                    all_weight.append(review['manager_weight'])
+                    if 'manager_weight' in review:
+                        all_sum.append(review['rating'])
+                        p_difficulty.append(review['difficulty'])
+                        all_weight.append(review['manager_weight'])
+                    else:
+                        pass
             else:
                 pass
 
