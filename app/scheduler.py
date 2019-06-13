@@ -9,6 +9,95 @@ import numpy as np
 from app.util import slack_message
 import uuid
 
+def monthly_score():
+    reports = mongo.db.reports.find({"type": "monthly"})
+    reports = [serialize_doc(doc) for doc in reports]
+    for detail in reports:
+        _id = detail['user']
+        print(_id)
+        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+        docs = [serialize_doc(doc) for doc in docs]
+        print(docs)
+        all_sum = []
+        for detail in docs:
+            if 'review' in detail:
+                for review in detail['review']:
+                    for data in review['comment']['kpi']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+                    for data in review['comment']['era']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+
+        print(all_sum)
+        y = {}
+        for data in all_sum:
+            if data['id'] in y:
+
+                y[data['id']][0] = (y[data['id']][0] + data['rating'])
+                y[data['id']][1] = y[data['id']][1] + 1
+                # (y[data['title']] + data['rating'])
+
+            else:
+                y[data['id']] = [data['rating'], 1]
+
+        for elem in y:
+            y[elem] = y[elem][0] / y[elem][1]
+
+        ret = mongo.db.users.update({
+            "_id": ObjectId(str(_id))
+        }, {
+            "$set": {
+                "Monthly_rating": y
+            }
+        })
+        print(ret)
+
+def monthly_remainder():
+    print("running")
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
+    users = [serialize_doc(user) for user in users]
+    ID = []
+    for data in users:
+        ID.append(data['_id'])
+    reports = mongo.db.reports.find({
+        "type": "monthly",
+        "user": {"$in": ID},
+        "month": month
+    })
+    reports = [serialize_doc(doc) for doc in reports]
+    user_id = []
+    for data_id in reports:
+        user_id.append(ObjectId(data_id['user']))
+    rep = mongo.db.users.find({
+        "_id": {"$nin": user_id},
+        "status": "Enabled"
+    })
+    rep = [serialize_doc(doc) for doc in rep]
+    weekly_id = []
+    if 'profileImage' and 'team' and 'job_title' in rep:
+        for details in rep:
+            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+                              "profileImage": details['profileImage'], "team": details['team'],
+                              "job_title": details['job_title'], "role": details['role'],"dateofjoining": details['dateofjoining']})
+    else:
+        for details in rep:
+            weekly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
+                              "role": details['role'], "profileImage": "", "team": "", "job_title": ""})
+    for doc in weekly_id:
+        role = doc['role']
+        slack_id = doc['slack_id']
+        doj = doc['dateofjoining']
+        date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
+        datee = date.day
+        join_date = datee - 3
+        today_date = int(today.strftime("%d"))
+        print(join_date)
+        if today_date > join_date:
+            if role != 'Admin':
+                slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
+
+                
 def random_kpi():
     docs = mongo.db.kpi.find({})
     docs = [serialize_doc(doc) for doc in docs]
