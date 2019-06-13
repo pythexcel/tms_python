@@ -1148,7 +1148,7 @@ def get_juniors_reviews():
     docss = mongo.db.reviews_360.find({
         "manager_id": id,
         "anon": True
-    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1})
+    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1})
     docss = [serialize_doc(doc) for doc in docss]
     for dc in docss:
         reviewss.append(dc)
@@ -1169,7 +1169,7 @@ def get_reviews():
 
     docss = mongo.db.reviews_360.find({
         "anon": True
-    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1})
+    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1})
     docss = [serialize_doc(doc) for doc in docss]
     for dc in docss:
         reviewss.append(dc)
