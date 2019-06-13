@@ -213,9 +213,18 @@ def overall_reviewes():
         print(all_weight)
         print("got all sum list")
         difficulty_len = len(p_difficulty)
+        print((difficulty_len))
         p_sum = sum(p_difficulty)
+        print((p_sum))
         if difficulty_len and p_sum != 0:
             project_difficulty = (p_sum / difficulty_len)
+            ret = mongo.db.users.update({
+                "_id": ObjectId(id)
+            }, {
+                "$set": {
+                    "project_difficulty": project_difficulty
+                }
+            })
         else:
             pass
 
@@ -223,6 +232,7 @@ def overall_reviewes():
         xyz = len(all_weight)
 
         if Abc == xyz:
+            print("ifffffff")
             weighted_avg = np.average(all_sum, weights=all_weight, )
         else:
             print("all_sum and all weights are !=")
@@ -232,8 +242,8 @@ def overall_reviewes():
             "_id": ObjectId(id)
         }, {
             "$set": {
-                "Overall_rating": weighted_avg,
-                "project_difficulty": project_difficulty
+                "Overall_rating": weighted_avg
+
             }
         })
 
