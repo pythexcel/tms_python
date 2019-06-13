@@ -234,18 +234,17 @@ def overall_reviewes():
         if Abc == xyz:
             print("ifffffff")
             weighted_avg = np.average(all_sum, weights=all_weight, )
+            ret = mongo.db.users.update({
+                "_id": ObjectId(id)
+            }, {
+                "$set": {
+                    "Overall_rating": weighted_avg
+
+                }
+            })
         else:
             print("all_sum and all weights are !=")
-            weighted_avg = 0
-        print(weighted_avg)
-        ret = mongo.db.users.update({
-            "_id": ObjectId(id)
-        }, {
-            "$set": {
-                "Overall_rating": weighted_avg
-
-            }
-        })
+            pass
 
 
         
