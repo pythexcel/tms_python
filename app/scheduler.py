@@ -371,6 +371,7 @@ def weekly_remainder():
                         for user in users:
                             for deta in user['is_reviewed']:
                                 manager_id = deta['_id']
+                                manager_weights = deta['weight']
                                 weekly = user['_id']
 
                                 ret = mongo.db.reports.update({
@@ -382,7 +383,8 @@ def weekly_remainder():
                                                     "rating": 0,
                                                     "created_at": datetime.datetime.utcnow(),
                                                     "comment": "you have not done your weekly report",
-                                                    "manager_id":manager_id
+                                                    "manager_id":manager_id,
+                                                    "manager_weight":manager_weights
                                                 }
                                             }
                                         })
