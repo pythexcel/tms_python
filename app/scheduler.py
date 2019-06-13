@@ -96,7 +96,9 @@ def monthly_remainder():
         if today_date > join_date:
             if role != 'Admin':
                 slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
-
+                print('sended')
+        else:
+            print('wait')
                 
 def random_kpi():
     docs = mongo.db.kpi.find({})
