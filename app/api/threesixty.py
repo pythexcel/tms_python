@@ -47,7 +47,7 @@ def reviews_360():
         doc = mongo.db.reviews_360.find({
             "user": str(current_user["_id"]),
             "anon": True
-        },{"rating":1,"comment":1,"manager":1,"manager_id":1,"manager_img":1,"month":1})
+        },{"rating":1,"comment":1,"manager":1,"manager_id":1,"manager_img":1,"month":1,"seen":1})
         doc = [serialize_doc(doc) for doc in doc]
         for single_d in doc:
             review.append(single_d)
@@ -86,6 +86,7 @@ def reviews_360():
             "rating": rating,
             "comment": comment,
             "anon": anon,
+            "seen":False,
             "user": user,
             "month":month,
             "username": username,
@@ -111,7 +112,7 @@ def get_reviews():
     #Find for admin also can not see anonymous user details. 
     docss = mongo.db.reviews_360.find({
         "anon": True
-    },{"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1})
+    },{"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1,"seen":1})
     docss=[serialize_doc(doc) for doc in docss]
     for dc in docss:
         reviewss.append(dc)
@@ -137,7 +138,7 @@ def get_juniors_reviews():
     docss = mongo.db.reviews_360.find({
         "manager_id": id,
         "anon": True
-    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1})
+    }, {"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1,"seen":1})
     docss = [serialize_doc(doc) for doc in docss]
     for dc in docss:
         reviewss.append(dc)
