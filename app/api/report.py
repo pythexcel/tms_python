@@ -343,15 +343,16 @@ def load_checkin(id):
 def load_all_checkin(all_chekin):
     today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
+    last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
     ret = mongo.db.reports.find({
         "user": all_chekin,
         "type": "daily",
         "created_at": {
-            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
-    })
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
+            "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)}
+    }).sort("created_at", 1)
     ret = [serialize_doc(doc) for doc in ret]
     return ret
-
 
 def add_checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
