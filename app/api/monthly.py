@@ -24,7 +24,7 @@ from app.config import slack_token
 
 bp = Blueprint('monthly', __name__, url_prefix='/')
 
-
+# function for getting all the juniors of managers
 def get_manager_juniors(id):
     users = mongo.db.users.find({
         "managers": {
@@ -36,14 +36,14 @@ def get_manager_juniors(id):
         user_ids.append(str(user['_id']))
     return user_ids
 
-
+# function for loading checkins
 def load_checkin(id):
     ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
     })
     return serialize_doc(ret)
 
-
+# function for loading checkins
 def load_all_checkin(all_chekin):
     today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
@@ -56,7 +56,7 @@ def load_all_checkin(all_chekin):
     ret = [serialize_doc(doc) for doc in ret]
     return ret
 
-
+# function for adding checkins
 def add_checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
     select_days = [load_checkin(day) for day in select_days]
@@ -68,7 +68,7 @@ def add_checkin_data(weekly_report):
     weekly_report['all_chekin'] = all_chekin
     return weekly_report
 
-
+# function for loading kpi
 def load_kpi(kpi_data):
     print(kpi_data)
     ret = mongo.db.kpi.find_one({
@@ -76,7 +76,7 @@ def load_kpi(kpi_data):
     })
     return serialize_doc(ret)
 
-
+#function to add kpi data
 def add_kpi_data(kpi):
     if "kpi_id" in kpi:
         data = kpi["kpi_id"]
@@ -86,7 +86,7 @@ def add_kpi_data(kpi):
         kpi['kpi_id'] = ""
     return kpi
 
-
+# function to load all weekly data
 def load_all_weekly(all_weekly):
     ret = mongo.db.reports.find({
         "user": all_weekly,
@@ -102,27 +102,27 @@ def load_user(user):
     }, {"profile": 0})
     return serialize_doc(ret)
 
-
+# function to add user data
 def add_user_data(user):
     user_data = user['user']
     user_data = (load_user(user_data))
     user['user'] = user_data
     return user
 
-
+# function for loading manager data
 def load_manager(manager):
     ret = mongo.db.users.find_one({
         "_id": manager
     }, {"profile": 0})
     return serialize_doc(ret)
 
-
+# function for adding manager data
 def add_manager_data(manager):
     for elem in manager['review']:
         elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
     return manager
 
-
+# function to load details of user
 def load_details(data):
     user_data = data['user']
     all_weekly = data['user']
@@ -139,7 +139,7 @@ def load_details(data):
     data['all_weekly'] = all_weekly
     return data
 
-
+# function where no review will be shown to manager
 def no_review(data):
     user_data = data['user']
     user_data = (load_user(user_data))
@@ -171,6 +171,7 @@ def add_monthly_checkin():
     current_user = get_current_user()
     doj = str(current_user['dateofjoining'])
     slack = current_user['slack_id']
+    # convert join data in string strip time date and fetch just the date variable from whole date
     date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
     datee = date.day
     if request.method == "GET":
@@ -202,10 +203,13 @@ def add_monthly_checkin():
             })
             users = [serialize_doc(doc) for doc in users]
             managers_data = []
+            # get all data of managers from current user
             for data in users:
                 for mData in data['managers']:
                     mData['reviewed'] = reviewed
                     managers_data.append(mData)
+                    
+            # check if report already exist don't allow user to make a new one for current month        
             rep = mongo.db.reports.find_one({
                 "user": str(current_user["_id"]),
                 "type": "monthly",
@@ -276,6 +280,7 @@ def get_manager_monthly_list(monthly_id):
             "_id": ObjectId(str(ID))
         })
         rap = [serialize_doc(doc) for doc in rap]
+        # check if manager have given its comment or not if given don't allow to make new one else allow him
         for dub in rap:
             junior_name = dub['username']
             sap = mongo.db.reports.find({
@@ -285,6 +290,7 @@ def get_manager_monthly_list(monthly_id):
             })
             sap = [serialize_doc(saps) for saps in sap]
             if not sap:
+                # push the manager review in report 
                 ret = mongo.db.reports.update({
                     "_id": ObjectId(monthly_id)
                 }, {
@@ -296,6 +302,7 @@ def get_manager_monthly_list(monthly_id):
                         }
                     }
                 })
+                # in same report update the reviewed status of the manager as true if review given
                 docs = mongo.db.reports.update({
                     "_id": ObjectId(monthly_id),
                     "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
@@ -317,6 +324,7 @@ def delete_manager_monthly_response(manager_id):
     today = datetime.datetime.utcnow()
     last_day = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
     next_day = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    # find report created between last 1 hour if found allow manager to delete its response or else not
     report = mongo.db.reports.find_one({
         "_id": ObjectId(manager_id),
         "review": {'$elemMatch': {"manager_id": str(current_user["_id"]), "created_at": {
@@ -325,6 +333,7 @@ def delete_manager_monthly_response(manager_id):
                    }})
     print(report)
     if report is not None:
+        # pull the manager data from the rpeort which repsone he/she wants to delete 
         ret = mongo.db.reports.update({
             "_id": ObjectId(manager_id)}
             , {
@@ -333,6 +342,7 @@ def delete_manager_monthly_response(manager_id):
                         "manager_id": str(current_user["_id"]),
                     }
                 }})
+        # update his status of reviewd to false if he/she deletes his/her response
         docs = mongo.db.reports.update({
             "_id": ObjectId(manager_id),
             "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": True}},
@@ -344,7 +354,7 @@ def delete_manager_monthly_response(manager_id):
     else:
         return jsonify({"msg": "You can no longer delete your submitted report"}), 400
 
-
+# function for getting manager data with review details regarding it
 def details_manager(data):
     user_data = data['user']
     user_data = (load_user(user_data))
@@ -398,6 +408,7 @@ def monthly_skip_review(monthly_id):
     current_user = get_current_user()
     doj = current_user['dateofjoining']
     print(doj)
+    # find report of the id provided 
     reports = mongo.db.reports.find({
         "_id": ObjectId(monthly_id),
         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
@@ -412,11 +423,15 @@ def monthly_skip_review(monthly_id):
         "_id": {"$in": manager_id}
     })
     managers = [serialize_doc(doc) for doc in managers]
+    # get all the join dates of manager of that report
     join_date = []
     for dates in managers:
         join_date.append(dates['dateofjoining'])
+    # check that if there is only one manager do not allow him to skip review     
     if len(join_date) > 1:
+        #find the oldest date of all the join date 
         oldest = min(join_date)
+        # if the date is equla to current user join date let him skip review else not
         if doj == oldest:
             rep = mongo.db.reports.update({
                 "_id": ObjectId(monthly_id),
