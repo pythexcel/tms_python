@@ -11,6 +11,7 @@ from flask_jwt_extended import (jwt_required, get_current_user
 
 bp = Blueprint('threesixty', __name__, url_prefix='/')
 
+#Api for get juniors managers.
 @bp.route('/get_managers', methods=['GET'])
 @jwt_required
 def get_managers():
@@ -23,6 +24,7 @@ def get_managers():
         return jsonify(managers)
 
 
+#Api for juniors can post comment against his managers.
 
 @bp.route("/360_reviews", methods=["GET", "POST"])
 @jwt_required
@@ -30,8 +32,10 @@ def reviews_360():
     today = datetime.datetime.utcnow()
     month = today.strftime("%B")
     current_user = get_current_user()
+    #If method is get then juniors can see his all anon or nonanon reviews
     if request.method == "GET":
         review = []
+    #find all nonanonymous reviews with user details. 
         docs = mongo.db.reviews_360.find({
             "user": str(current_user["_id"]),
             "anon": False
@@ -39,7 +43,7 @@ def reviews_360():
         docs = [serialize_doc(doc) for doc in docs]
         for s_doc in docs:
             review.append(s_doc)
-
+    #find all anonymous reviews without user details.
         doc = mongo.db.reviews_360.find({
             "user": str(current_user["_id"]),
             "anon": True
@@ -50,6 +54,7 @@ def reviews_360():
         return jsonify(review)
     if not request.json:
         abort(500)
+    #get response from frontend    
     manager = request.json.get("manager", None)
     manager_id = request.json.get("managerID")
     manager_image = request.json.get("managerProfileImage")
@@ -65,6 +70,7 @@ def reviews_360():
         anon =False
     else:
         anon = True
+    #This is a check for user can do only one review in one month    
     rep = mongo.db.reviews_360.find_one({
         "user": str(user),
         "month": month,
@@ -89,7 +95,7 @@ def reviews_360():
 
 
 
-#Api For Admin can see all reviews
+#Api For Admin can see all anonymous and unanonymous reviews
 @bp.route("/admin_get_reviews", methods=["GET"])
 @jwt_required
 @token.admin_required
@@ -101,7 +107,8 @@ def get_reviews():
     review = [serialize_doc(doc) for doc in review]
     for doc in review:
         reviewss.append(doc)
-
+    
+    #Find for admin also can not see anonymous user details. 
     docss = mongo.db.reviews_360.find({
         "anon": True
     },{"rating": 1, "comment": 1, "manager": 1, "manager_id": 1, "manager_img": 1, "month": 1,"anon":1})
@@ -111,7 +118,7 @@ def get_reviews():
     return jsonify(reviewss)
 
 
-#Manager can see his junior reviews
+#Managers can see his junior reviews.
 @bp.route("/360_get_juniors_reviews", methods=["GET"])
 @jwt_required
 @token.manager_required
@@ -126,7 +133,7 @@ def get_juniors_reviews():
     reviews = [serialize_doc(doc) for doc in reviews]
     for doc in reviews:
         reviewss.append(doc)
-
+    #Find manager can not see anonymous users details.
     docss = mongo.db.reviews_360.find({
         "manager_id": id,
         "anon": True
