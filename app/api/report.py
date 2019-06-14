@@ -852,8 +852,9 @@ def add_monthly_checkin():
                 slack_message(msg="<@"+slack+">!"+' ''have created monthly report')
                 return jsonify(str(ret)), 200
         else:
-            return jsonify({"msg": "Your date of joining was on " + str(datee) + " you can  submit monthly report from 7 "
-                                                                                "days before your joining date "}), 404
+            return jsonify({"msg": "Your date of joining is " + str(datee) +
+                                   " you can submit your monthly report after " + str(join_date) +
+                                   "th of this month"}), 405
 
 
 @bp.route("/manager_monthly_all", methods=["GET"])
