@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder
 
 
 def create_app(test_config=None):
@@ -53,12 +53,14 @@ def create_app(test_config=None):
     from app.api import user
     from app.api import report
     from app.api import settings
+    from app.api import monthly
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(kpi.bp)
     app.register_blueprint(user.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
+    app.register_blueprint(monthly.bp)
 
     # Scheduler which will run at interval of 60 seconds for user checkin score
     checkin_score_scheduler = BackgroundScheduler()
@@ -91,7 +93,15 @@ def create_app(test_config=None):
     disable_user_scheduler = BackgroundScheduler()
     disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=20, minute=30)
     disable_user_scheduler.start()
-     
+    
+    monthly_score_scheduler = BackgroundScheduler()
+    monthly_score_scheduler.add_job(monthly_score, trigger='cron', day_of_week='mon-sat', hour=11, minute=8)
+    monthly_score_scheduler.start()
+    
+    monthly_remainder_scheduler = BackgroundScheduler()
+    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=11, minute=8)
+    monthly_remainder_scheduler.start()
+        
     try:
         print("create app..")
         return app
@@ -103,6 +113,8 @@ def create_app(test_config=None):
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
         disable_user_scheduler.shutdown()
+        monthly_score_scheduler.shutdown()
+        monthly_remainder_scheduler.shutdown()
     
         
        
