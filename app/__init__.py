@@ -51,6 +51,7 @@ def create_app(test_config=None):
     from app.api import auth
     from app.api import kpi
     from app.api import user
+    from app.api import threesixty
     from app.api import report
     from app.api import settings
     from app.api import monthly
@@ -58,6 +59,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth.bp)
     app.register_blueprint(kpi.bp)
     app.register_blueprint(user.bp)
+    app.register_blueprint(threesixty.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(settings.bp)
     app.register_blueprint(monthly.bp)

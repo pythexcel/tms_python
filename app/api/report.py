@@ -494,18 +494,6 @@ def week_reviewed_reports():
     docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
     return jsonify(docs), 200
 
-@bp.route("/360_reviewers", methods=["GET"])
-@jwt_required
-def review_360():
-    current_user = get_current_user()
-    user = mongo.db.users.find_one({
-        "_id": ObjectId(current_user["_id"])
-    })
-    if "managers" not in user:
-        return []
-    else:
-        ret = [get_manager_profile(manager) for manager in user["managers"]]
-        return jsonify(ret)
 
 
     
@@ -1044,4 +1032,5 @@ def junior_monthly_report():
     report_all = reports + report
 
     return jsonify(report_all)
+
 
