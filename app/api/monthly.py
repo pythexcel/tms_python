@@ -182,6 +182,7 @@ def add_monthly_checkin():
         report = [add_user_data(serialize_doc(doc)) for doc in report]
         return jsonify(report)
     else:
+        #checking if join date is less than 7 or not if not subtract 7 from it
         if datee > 7:
             join_date = datee - 7
         else:
@@ -190,6 +191,7 @@ def add_monthly_checkin():
         print(join_date)
         today_date = int(today.strftime("%d"))
         print(today_date)
+        #check if today date is greater than join date allow user to create monthly report
         if today_date > join_date:
             if not request.json:
                 abort(500)
@@ -227,7 +229,7 @@ def add_monthly_checkin():
                                    " you can submit your monthly report after " + str(join_date) +
                                    "th of this month"}), 405
 
-
+#manager to find all their juniors monthly report
 @bp.route("/manager_monthly_all", methods=["GET"])
 @jwt_required
 @token.manager_required
@@ -244,7 +246,7 @@ def get_manager_monthly_list_all():
     docs = [load_details(serialize_doc(doc)) for doc in docs]
     return jsonify(docs), 200
 
-
+# managers to review their juniors monthly report
 @bp.route("/manager_monthly/<string:monthly_id>", methods=["POST"])
 @jwt_required
 @token.manager_required
@@ -301,61 +303,12 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                dec = mongo.db.recent_activity.update({
-                    "user": str(ID)},
-                    {"$push": {
-                        "report_reviewed": {
-                            "created_at": datetime.datetime.now(),
-                            "priority": 0,
-                            "Message": "Your monthly report has been reviewed by "" " + manager_name
-                        }}}, upsert=True)
-                # slack_message(msg=junior_name + " " + 'your monthly report is reviewed by' + ' ' + manager_name)
+                slack_message(msg=junior_name + " " + 'your monthly report is reviewed by' + ' ' + manager_name)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400
 
-
-@bp.route('/skip_review/<string:weekly_id>', methods=['POST'])
-@jwt_required
-@token.manager_required
-def skip_review(weekly_id):
-    current_user = get_current_user()
-    doj = current_user['dateofjoining']
-    print(doj)
-    reports = mongo.db.reports.find({
-        "_id": ObjectId(weekly_id),
-        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
-                        }
-    })
-    reports = [serialize_doc(doc) for doc in reports]
-    manager_id = []
-    for data in reports:
-        for elem in data['is_reviewed']:
-            manager_id.append(ObjectId(elem['_id']))
-    managers = mongo.db.users.find({
-        "_id": {"$in": manager_id}
-    })
-    managers = [serialize_doc(doc) for doc in managers]
-    join_date = []
-    for dates in managers:
-        join_date.append(dates['dateofjoining'])
-    if len(join_date) > 1:
-        oldest = min(join_date)
-        if doj == oldest:
-            rep = mongo.db.reports.update({
-                "_id": ObjectId(weekly_id),
-                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-            }, {
-                "$pull": {
-                    "is_reviewed": {"_id": str(current_user["_id"])}
-                }}, upsert=False)
-            return jsonify(str(rep))
-        else:
-            return jsonify({"msg": "You cannot skip this report review"}), 400
-    else:
-        return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
-
-
+# api for manager to delete its given response on a report within 1 hour            
 @bp.route('/delete_manager_monthly_response/<string:manager_id>', methods=['DELETE'])
 @jwt_required
 @token.manager_required
@@ -405,7 +358,7 @@ def details_manager(data):
             elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
     return data
 
-
+# managers to seel all their monthly report of juniors including thier profile and with COMMENT condition
 @bp.route('/junior_monthly_report', methods=['GET'])
 @jwt_required
 @token.manager_required
@@ -437,11 +390,11 @@ def junior_monthly_report():
 
     return jsonify(report_all)
 
-
-@bp.route('/skip_review/<string:monthly_id>', methods=['POST'])
+# api for manager to skip monthly report review if he is the senior most and not the only reviewer
+@bp.route('/monthly_skip_review/<string:monthly_id>', methods=['POST'])
 @jwt_required
 @token.manager_required
-def skip_review(monthly_id):
+def monthly_skip_review(monthly_id):
     current_user = get_current_user()
     doj = current_user['dateofjoining']
     print(doj)
@@ -477,3 +430,4 @@ def skip_review(monthly_id):
             return jsonify({"msg": "You cannot skip this report review"}), 400
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
+
