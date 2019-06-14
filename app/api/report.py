@@ -11,6 +11,7 @@ from app.config import slack_token
 from slackclient import SlackClient
 import requests
 from app.config import attn_url,secret_key
+from app.util import get_manager_juniors
 
 import datetime
 
@@ -318,20 +319,6 @@ def delete_weekly(weekly_id):
         "user": str(current_user['_id'])
     })
     return jsonify(str(docs))
-
-
-def get_manager_juniors(id):
-
-    users = mongo.db.users.find({
-        "managers": {
-            "$elemMatch": {"_id": str(id)}
-        }
-    })
-    user_ids = []
-    for user in users:
-        user_ids.append(str(user['_id']))
-    return user_ids
-
 
 def load_checkin(id):
     ret = mongo.db.reports.find_one({
