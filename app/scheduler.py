@@ -101,7 +101,10 @@ def monthly_remainder():
         doj = str(doc['dateofjoining'])
         date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
         datee = date.day
-        join_date = datee - 3
+        if datee > 3:
+            join_date = datee - 3
+        else:
+            join_date = datee
         today_date = int(today.strftime("%d"))
         print(today_date)
         print(join_date)
