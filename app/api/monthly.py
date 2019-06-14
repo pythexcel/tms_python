@@ -9,7 +9,7 @@ from app.config import attn_url, secret_key
 import json
 import dateutil.parser
 from bson.objectid import ObjectId
-
+from app.util import get_manager_juniors
 from app.util import slack_message, slack_msg
 from app.config import slack_token
 from slackclient import SlackClient
@@ -23,18 +23,6 @@ from flask_jwt_extended import (
 from app.config import slack_token
 
 bp = Blueprint('monthly', __name__, url_prefix='/')
-
-# function for getting all the juniors of managers
-def get_manager_juniors(id):
-    users = mongo.db.users.find({
-        "managers": {
-            "$elemMatch": {"_id": str(id)}
-        }
-    })
-    user_ids = []
-    for user in users:
-        user_ids.append(str(user['_id']))
-    return user_ids
 
 # function for loading checkins
 def load_checkin(id):
