@@ -339,14 +339,14 @@ def weekly_remainder():
             if role != 'Admin':
                 day = datetime.datetime.today().weekday()
 
-                week_day=[0,1,2]
-                last =[3,4]
+                week_day=[0,1]
+                last =[2,3]
                 if day in week_day:
                     slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
                 elif day in last:
-                        slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report asap. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
+                        slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
                 else:
-                    if day == 5:
+                    if day == 4:
                         print("adding reportttttttttttttttttttttttttttt")
                         reviewed = False
                         users = mongo.db.users.find({
