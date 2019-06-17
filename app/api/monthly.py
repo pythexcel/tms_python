@@ -173,7 +173,7 @@ def add_monthly_checkin():
     else:
         # finding weekly of the current user
         rep = mongo.db.reports.find({
-            "users": str(current_user['_id']),
+            "user": str(current_user['_id']),
             "type": "weekly"
         })
         rep = [serialize_doc(doc) for doc in rep]
