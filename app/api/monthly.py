@@ -281,6 +281,7 @@ def get_manager_monthly_list(monthly_id):
         # check if manager have given its comment or not if given don't allow to make new one else allow him
         for dub in rap:
             junior_name = dub['username']
+            slack = dub['slack_id']
             sap = mongo.db.reports.find({
                 "_id": ObjectId(monthly_id),
                 "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
@@ -308,7 +309,8 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                slack_message(msg=junior_name + " " + 'your monthly report is reviewed by' + ' ' + manager_name)
+                slack_message(
+                    msg="Hi" + ' ' + "<@" + slack + ">!" + ' ' + "your report is reviewed by" + ' ' + manager_name)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400
