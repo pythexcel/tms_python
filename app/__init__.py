@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder,monthly_manager_reminder
 
 
 def create_app(test_config=None):
@@ -103,6 +103,10 @@ def create_app(test_config=None):
     monthly_remainder_scheduler = BackgroundScheduler()
     monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=13, minute=25)
     monthly_remainder_scheduler.start()
+    
+    monthly_manager_reminder_scheduler = BackgroundScheduler()
+    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=13,minute=40)
+    monthly_manager_reminder_scheduler.start()
         
     try:
         print("create app..")
@@ -117,6 +121,7 @@ def create_app(test_config=None):
         disable_user_scheduler.shutdown()
         monthly_score_scheduler.shutdown()
         monthly_remainder_scheduler.shutdown()
+        monthly_manager_reminder_scheduler.shutdown()
     
         
        
