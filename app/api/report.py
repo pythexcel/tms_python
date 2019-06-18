@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-
+import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import slack_message, slack_msg
 from app.config import slack_token
@@ -180,6 +180,7 @@ def checkin_reports():
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
 
+
 @bp.route('/delete/<string:checkin_id>', methods=['DELETE'])
 @jwt_required
 def delete_checkkin(checkin_id):
@@ -190,6 +191,7 @@ def delete_checkkin(checkin_id):
         "user": str(current_user['_id'])
     })
     return jsonify(str(docs))
+
 
 @bp.route('/week_checkin', methods=["GET"])
 @jwt_required
@@ -229,6 +231,27 @@ def revoke_checkin_reports():
     }).sort("created_at", 1)
     docs = [serialize_doc(doc) for doc in docs]
     return jsonify(docs), 200
+
+
+@bp.route('/weekly_revoked/<string:weekly_id>', methods=["PUT"])
+@jwt_required
+def delete_weekly_checkin(weekly_id):
+    created = request.json.get("created_at", None)
+    user = request.json.get("user", None)
+    datee=dateutil.parser.parse(created)
+    use = mongo.db.users.update({
+        "_id": ObjectId(user)},
+        {"$set":{
+            "revoke":datee
+        }
+    },upsert=True)
+
+    docs = mongo.db.reports.remove({
+        "_id": ObjectId(weekly_id),
+        "type": "weekly",
+    })
+    return jsonify(str(docs))
+
 
 
 @bp.route('/week_reports', methods=["GET"])
