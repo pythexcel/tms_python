@@ -210,6 +210,26 @@ def week_checkin_reports():
     return jsonify(docs), 200
 
     
+@bp.route('/revoked_checkin', methods=["GET"])
+@jwt_required
+def revoke_checkin_reports():
+    current_user = get_current_user()
+    date_t=current_user["revoke"]
+    today = date_t
+    last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
+    last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
+    current_user = get_current_user()
+    docs = mongo.db.reports.find({
+        "user": str(current_user["_id"]),
+        "type": "daily",
+        "created_at": {
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
+            "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
+        }
+    }).sort("created_at", 1)
+    docs = [serialize_doc(doc) for doc in docs]
+    return jsonify(docs), 200
+
 
 @bp.route('/week_reports', methods=["GET"])
 @jwt_required
