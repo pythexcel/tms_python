@@ -370,9 +370,9 @@ def get_manager_weekly_list_all():
         "type": "weekly",
         "user": {
             "$in": juniors
-        },
-        "created_at": {
-            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+        }
+#         "created_at": {
+#             "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
     }).sort("created_at", 1)
     docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
     return jsonify(docs), 200
