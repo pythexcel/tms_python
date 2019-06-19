@@ -213,7 +213,7 @@ def week_checkin_reports():
     return jsonify(docs), 200
 
     
-@bp.route('/revoked_checkin', methods=["GET"])
+@bp.route('/revoke_checkin', methods=["GET"])
 @jwt_required
 def revoke_checkin_reports():
     current_user = get_current_user()
