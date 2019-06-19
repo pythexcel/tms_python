@@ -101,7 +101,7 @@ def create_app(test_config=None):
     monthly_score_scheduler.start()
     
     monthly_remainder_scheduler = BackgroundScheduler()
-    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=13, minute=25)
+    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=14, minute=55)
     monthly_remainder_scheduler.start()
     
     monthly_manager_reminder_scheduler = BackgroundScheduler()
