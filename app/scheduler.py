@@ -75,7 +75,6 @@ def monthly_remainder():
             ID.append(data['_id'])
         # find the monthly reports of all the user
         print("users id")
-        print(len(ID))
         reports = mongo.db.reports.find({
             "type": "monthly",
             "user": {"$in": ID},
@@ -83,7 +82,6 @@ def monthly_remainder():
         })
         reports = [serialize_doc(doc) for doc in reports]
         print("find monthly reports ")
-        print(len(reports))
         user_id = []
         for data_id in reports:
             user_id.append(ObjectId(data_id['user']))
@@ -94,50 +92,52 @@ def monthly_remainder():
             "_id": {"$nin": user_id},
             "status": "Enabled"
         })
-        rep = [serialize_doc(doc) for doc in rep]
+        repp = [serialize_doc(doc) for doc in rep]
         print("users for send notifications")
-        print(len(rep))
         monthly_id = []
         # FInd detail of user who have not done monthly report
-        if 'profileImage' and 'team' and 'job_title' and "dateofjoining" in rep:
-            for details in rep:
+        for details in repp:
+            if 'slack_id' and 'role' and "dateofjoining" in details:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'], "role": details['role'],
                                                     "dateofjoining": details['dateofjoining']})
-        else:
-            for details in rep:
+            else:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
-                                    "role": details['role'],"dateofjoining": details['dateofjoining']})
+                                    "role": details['role']})
         print("monthy or data doj")
         print(monthly_id)
         for doc in monthly_id:
-            print(doc['name'])
-            role = doc['role']
-            print(role)
-            slack_id = doc['slack_id']
-            print(slack_id)
-            doj = str(doc['dateofjoining'])
-            date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
-            datee = date.day
-            # check if joining date is less than 3 or not if not subtract 3 from it
-            print("date")
-            print(datee)
-            if datee > 3:
-                join_date = datee - 3
-            else:
-                join_date = datee
-            today_date = int(today.strftime("%d"))
-            print("today_date")
-            print(today_date)
-            print("joining date")
-            print(join_date)
-            # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
-            if role != 'Admin':
-                print("Not admin")
-                if today_date > join_date:
-                    slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
-                    print('sended')
+            if "dateofjoining" in doc:
+                print(doc['name'])
+                role = doc['role']
+                print(role)
+                slack_id = doc['slack_id']
+                print(slack_id)
+                doj = str(doc['dateofjoining'])
+                date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
+                datee = date.day
+                # check if joining date is less than 3 or not if not subtract 3 from it
+                print("date")
+                print(datee)
+                if datee > 3:
+                    join_date = datee - 3
                 else:
-                    print('wait')
+                    join_date = datee
+                today_date = int(today.strftime("%d"))
+                print("today_date")
+                print(today_date)
+                print("joining date")
+                print(join_date)
+                # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
+                if role != 'Admin':
+                    print("Not admin")
+                    if today_date > join_date:
+                        slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
+                        print('sended')
+                    else:
+                        print('wait')
+            else:
+                pass
+
 
 def random_kpi():
     docs = mongo.db.kpi.find({})
