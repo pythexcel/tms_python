@@ -61,7 +61,7 @@ def monthly_score():
 
         
 def monthly_remainder():
-    print("running")
+        print("running")
         today = datetime.datetime.utcnow()
         month = today.strftime("%B")
         # find all the users
