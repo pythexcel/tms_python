@@ -48,6 +48,7 @@ def add_checkin():
         abort(500)
 
     report = request.json.get("report", None)
+    slackReport = request.json.get("slackReport", None)
     task_completed = request.json.get("task_completed", False)
     task_not_completed_reason = request.json.get(
         "task_not_completed_reason", "")
@@ -100,11 +101,11 @@ def add_checkin():
                 }})
             if len(highlight) > 0:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + report + "_" + "\n"
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_" + "\n"
                               + "Highlight: " + highlight)
             else:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + report + "_")
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_")
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
@@ -128,11 +129,11 @@ def add_checkin():
             slack_message(msg="<@" + slack + ">!" + ' ''have created daily chechk-in at' + ' ' + str(formatted_date))
             if len(highlight) > 0:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + report + "_" + "\n"
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_" + "\n"
                               + "Highlight: " + highlight)
             else:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + report + "_")
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_")
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
