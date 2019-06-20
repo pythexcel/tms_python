@@ -105,7 +105,7 @@ def create_app(test_config=None):
     monthly_remainder_scheduler.start()
     
     monthly_manager_reminder_scheduler = BackgroundScheduler()
-    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=13,minute=40)
+    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=14,minute=45)
     monthly_manager_reminder_scheduler.start()
         
     try:
