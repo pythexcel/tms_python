@@ -30,12 +30,28 @@ def get_manager_profile(manager):
         ret["weight"] = manager["weight"]
     return ret
 
+def load_hook():
+    url = mongo.db.slack_tokens.find_one({
+        "webhook_url": {"$exists": True}
+    }, {"webhook_url": 1, '_id': 0})
+    web_url = url['webhook_url']
+    return web_url
+
 def slack_message(msg):
     slackmsg = {"text": msg}
+    webhook_url = load_hook()
     response = requests.post(
-    webhook_url, json=slackmsg,
-    headers={'Content-Type': 'application/json'})
+        webhook_url, json=slackmsg,
+        headers={'Content-Type': 'application/json'})
 
+def load_token():
+    token = mongo.db.slack_tokens.find_one({
+        "slack_token": {"$exists": True}
+    }, {"slack_token": 1, '_id': 0})
+    sl_token = token['slack_token']
+    return sl_token
+
+    
 def slack_msg(channel, msg):
     print(channel)
     sc = SlackClient(slack_token)
