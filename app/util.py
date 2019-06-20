@@ -73,3 +73,43 @@ def get_manager_juniors(id):
     for user in users:
         user_ids.append(str(user['_id']))
     return user_ids        
+
+def load_monthly_manager_reminder():
+    msg = mongo.db.schdulers_msg.find_one({
+        "monthly_manager_reminder": {"$exists": True}
+    }, {"monthly_manager_reminder": 1, '_id': 0})
+    manager_reminder = msg['monthly_manager_reminder']
+    return manager_reminder
+
+def monthly_remainder():
+    msg = mongo.db.schdulers_msg.find_one({
+        "monthly_remainder": {"$exists": True}
+    }, {"monthly_remainder": 1, '_id': 0})
+    monthly_remainder = msg['monthly_remainder']
+    return monthly_remainder
+
+
+def load_review_activity():
+    msg = mongo.db.schdulers_msg.find_one({
+        "review_activity": {"$exists": True}
+    }, {"review_activity": 1, '_id': 0})
+    review_msg = msg['review_activity']
+    return review_msg
+
+
+def load_weekly1():
+    msg = mongo.db.schdulers_msg.find_one({
+        "weekly_remainder1": {"$exists": True}
+    }, {"weekly_remainder1": 1, '_id': 0})
+    weekly_msg = msg['weekly_remainder1']
+    return weekly_msg
+
+def load_weekly2():
+    msg = mongo.db.schdulers_msg.find_one({
+        "weekly_remainder2": {"$exists": True}
+    }, {"weekly_remainder2": 1, '_id': 0})
+    weekly_msg2 = msg['weekly_remainder2']
+    return weekly_msg2
+
+
+
