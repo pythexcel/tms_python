@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import attn_url, secret_key
 from bson.objectid import ObjectId
-from app.util import serialize_doc
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder
 from app import mongo
 import numpy as np
 from app.util import slack_message
@@ -119,6 +119,7 @@ def monthly_remainder():
         print(monthly_id)
         for doc in monthly_id:
             if "dateofjoining" in doc:
+                mesg = monthly_remainder()
                 print(doc['name'])
                 role = doc['role']
                 print(role)
@@ -143,7 +144,7 @@ def monthly_remainder():
                 if role != 'Admin':
                     print("Not admin")
                     if today_date > join_date:
-                        slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
+                        slack_message(msg= mesg + ' ' + "<@" + slack_id + ">!")
                         print('sended')
                     else:
                         print('wait')
@@ -408,7 +409,6 @@ def update_croncheckin():
 
     
 def weekly_remainder():
-    print("state_check")
     state = mongo.db.schdulers_setting.find_one({
         "weekly_remainder": {"$exists": True}
     }, {"weekly_remainder": 1, '_id': 0})
@@ -424,6 +424,8 @@ def weekly_remainder():
         last_mon = today - datetime.timedelta(days=(today.weekday() + 8))
         users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
         users = [serialize_doc(user) for user in users]
+        mesg1 = load_weekly2()
+        mesg = load_weekly1()
         ID = []
 
         for data in users:
@@ -488,9 +490,9 @@ def weekly_remainder():
                     week_day=[0,1]
                     last =[2,3]
                     if day in week_day:
-                        slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
+                        slack_message(msg= mesg + ' ' +"<@"+slack_id+">!")
                     elif day in last:
-                            slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
+                            slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +mesg1)
                     else:
                         if day == 4:
                             print("adding reportttttttttttttttttttttttttttt")
@@ -660,6 +662,7 @@ def review_activity():
     status = state['review_activity']
     if status == 1:
         print("running")
+        review_activity_mesg=load_review_activity()
         today = datetime.datetime.utcnow()
         last_monday = today - datetime.timedelta(days=today.weekday())
         # First take date time where weekly report is to be dealt with
@@ -693,7 +696,7 @@ def review_activity():
                                 "Message": "You have to review your Juniors weekly report"
                                 }}}, upsert=True)                
         for ids in managers_name:    
-            slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +"you have weekly report's pending to be reviewed") 
+            slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +review_activity_mesg) 
 
  
 def manager_update():
@@ -737,10 +740,16 @@ def manager_update():
         
         
 def monthly_manager_reminder():
+    state = mongo.db.schdulers_setting.find_one({
+        "monthly_manager_reminder": {"$exists": True}
+    }, {"monthly_manager_reminder": 1, '_id': 0})
+    status = state['monthly_manager_reminder']
+    if status == 1:
         print("running")
         today = datetime.datetime.utcnow()
         month = today.strftime("%B")
         # First take date time where weekly report is to be dealt with
+        notification = load_monthly_manager_reminder()
         reports = mongo.db.reports.find({"type": "monthly"})
         reports = [serialize_doc(doc) for doc in reports]
         managers_name = []
@@ -760,4 +769,4 @@ def monthly_manager_reminder():
                             managers_name.append(slack)
         print(managers_name)
         for ids in managers_name:
-            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + "you have monthly report's pending to be reviewed")
+            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + notification)
