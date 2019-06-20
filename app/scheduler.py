@@ -708,34 +708,27 @@ def manager_update():
         
         
 def monthly_manager_reminder():
-    print("running")
-    today = datetime.datetime.utcnow()
-    month = today.strftime("%B")
-
-    # First take date time where weekly report is to be dealt with
-    reports = mongo.db.reports.find({"type": "monthly"})
-    reports = [serialize_doc(doc) for doc in reports]
-    managers_name = []
-    for detail in reports:
-        for data in detail['is_reviewed']:
-            if data['reviewed'] is False:
-                username = detail['username']
-                slack_id = data['_id']
-                print(slack_id)
-                use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
-                use = [serialize_doc(doc) for doc in use]
-                for data in use:
-                    slack = data['slack_id']
-                    mang_id = data['_id']
-                    if slack not in managers_name:
-                        managers_name.append(slack)
-                        ret = mongo.db.recent_activity.update({
-                            "user": mang_id},
-                            {"$push": {
-                                "weekly_reviewed": {
-                                    "created_at": datetime.datetime.utcnow(),
-                                    "priority": 1,
-                                    "Message": "You have to review your Juniors monthly report"
-                                }}}, upsert=True)
-    for ids in managers_name:
-        slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + "you have monthly report's pending to be reviewed")
+        print("running")
+        today = datetime.datetime.utcnow()
+        month = today.strftime("%B")
+        # First take date time where weekly report is to be dealt with
+        reports = mongo.db.reports.find({"type": "monthly"})
+        reports = [serialize_doc(doc) for doc in reports]
+        managers_name = []
+        print("for loop started")
+        for detail in reports:
+            for data in detail['is_reviewed']:
+                if data['reviewed'] is False:
+                    print("if reviewed is false")
+                    slack_id = data['_id']
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                    use = [serialize_doc(doc) for doc in use]
+                    for data in use:
+                        slack = data['slack_id']
+                        mang_id = data['_id']
+                        if slack not in managers_name:
+                            print("append")
+                            managers_name.append(slack)
+        print(managers_name)
+        for ids in managers_name:
+            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + "you have monthly report's pending to be reviewed")
