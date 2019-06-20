@@ -101,11 +101,11 @@ def add_checkin():
                 }})
             if len(highlight) > 0:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_" + "\n"
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "" + "\n"
                               + "Highlight: " + highlight)
             else:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_")
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "")
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
@@ -129,11 +129,11 @@ def add_checkin():
             slack_message(msg="<@" + slack + ">!" + ' ''have created daily chechk-in at' + ' ' + str(formatted_date))
             if len(highlight) > 0:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_" + "\n"
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "" + "\n"
                               + "Highlight: " + highlight)
             else:
                 slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "_" + slackReport + "_")
+                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "")
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
