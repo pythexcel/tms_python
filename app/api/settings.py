@@ -7,6 +7,7 @@ from flask_jwt_extended import (
 from app import token
 from bson import ObjectId
 from app.util import serialize_doc
+from app.config import default
 
 
 bp = Blueprint('system', __name__, url_prefix='/system')
@@ -98,14 +99,6 @@ def slack_schduler():
         ret = mongo.db.schdulers_msg.find({
         })
         ret = [serialize_doc(doc) for doc in ret]
-        default=[{
-            "monthly_remainder":"Please create your monthly report",
-            "weekly_remainder1":"you need to create your weekly",
-            "weekly_remainder2":"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
-            "review_activity":"you have weekly report's pending to be reviewed",
-            "monthly_manager_reminder":"you have monthly report's pending to be reviewed",
-            "missed_checkin":"you have missed"
-            }]
         return jsonify(default if not ret else ret)
     if request.method == "PUT":
         monthly_remainder = request.json.get("monthly_remainder")
@@ -124,5 +117,5 @@ def slack_schduler():
                 "monthly_manager_reminder":monthly_manager_reminder,
                 "missed_checkin":missed_checkin
             }
-        })
+        },upsert=True)
         return jsonify(str(ret))
