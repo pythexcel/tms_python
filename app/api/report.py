@@ -9,7 +9,8 @@ from bson.objectid import ObjectId
 from app.util import slack_message, slack_msg
 from slackclient import SlackClient
 import requests
-from app.config import attn_url,secret_key
+
+
 from app.util import get_manager_juniors
 from app.util import load_token
 import datetime
