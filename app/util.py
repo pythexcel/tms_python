@@ -30,20 +30,21 @@ def get_manager_profile(manager):
         ret["weight"] = manager["weight"]
     return ret
 
+#Function for find webhook_url
 def load_hook():
     url = mongo.db.slack_tokens.find_one({
         "webhook_url": {"$exists": True}
     }, {"webhook_url": 1, '_id': 0})
     web_url = url['webhook_url']
     return web_url
-
+#function for send mesg 
 def slack_message(msg):
     slackmsg = {"text": msg}
     webhook_url = load_hook()
     response = requests.post(
         webhook_url, json=slackmsg,
         headers={'Content-Type': 'application/json'})
-
+#function for find slack_token
 def load_token():
     token = mongo.db.slack_tokens.find_one({
         "slack_token": {"$exists": True}
@@ -51,7 +52,6 @@ def load_token():
     sl_token = token['slack_token']
     return sl_token
 
-    
 def slack_msg(channel, msg):
     print(channel)
     sc = SlackClient(slack_token)
@@ -74,6 +74,7 @@ def get_manager_juniors(id):
         user_ids.append(str(user['_id']))
     return user_ids        
 
+#function for find monthly_manager_reminder mesg from db
 def load_monthly_manager_reminder():
     msg = mongo.db.schdulers_msg.find_one({
         "monthly_manager_reminder": {"$exists": True}
@@ -81,6 +82,7 @@ def load_monthly_manager_reminder():
     manager_reminder = msg['monthly_manager_reminder']
     return manager_reminder
 
+#function for find monthly_reminder mesg from db
 def monthly_remainder():
     msg = mongo.db.schdulers_msg.find_one({
         "monthly_remainder": {"$exists": True}
@@ -88,7 +90,7 @@ def monthly_remainder():
     monthly_remainder = msg['monthly_remainder']
     return monthly_remainder
 
-
+#function for find review_activity mesg from db
 def load_review_activity():
     msg = mongo.db.schdulers_msg.find_one({
         "review_activity": {"$exists": True}
@@ -96,7 +98,7 @@ def load_review_activity():
     review_msg = msg['review_activity']
     return review_msg
 
-
+#function for find first two days weekly remienderr mesg
 def load_weekly1():
     msg = mongo.db.schdulers_msg.find_one({
         "weekly_remainder1": {"$exists": True}
@@ -104,6 +106,7 @@ def load_weekly1():
     weekly_msg = msg['weekly_remainder1']
     return weekly_msg
 
+#function for find first two days weekly remienderr mesg
 def load_weekly2():
     msg = mongo.db.schdulers_msg.find_one({
         "weekly_remainder2": {"$exists": True}
