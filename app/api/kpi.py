@@ -37,7 +37,6 @@ def kpi(id=None):
 
     if not request.json:
         abort(500)
-
     kpi_name = request.json.get('kpi_name', None)
     kpi_json = request.json.get('kpi_json', None)
     era_json = request.json.get('era_json', None)
