@@ -37,7 +37,7 @@ def settings():
         return ("settings off")
 
    
-   
+#Api for slack token settings   
 @bp.route('/slack_settings', methods=["PUT","GET"])
 @jwt_required
 @token.admin_required
@@ -60,7 +60,7 @@ def slack_setings():
         return jsonify(str(ret))
 
 
-
+#Api for schdulers on off settings.
 @bp.route('/schdulers_settings', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
@@ -91,7 +91,7 @@ def schdulers_setings():
         return jsonify(str(ret))
 
 
-
+#Api for schduler_msg settings.
 @bp.route('/schduler_mesg', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
@@ -116,5 +116,5 @@ def slack_schduler():
                 "review_activity":review_activity,
                 "monthly_manager_reminder":monthly_manager_reminder
             }
-        })
+        },upsert=True)
         return jsonify(str(ret))
