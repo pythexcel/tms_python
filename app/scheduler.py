@@ -197,7 +197,7 @@ def checkin_score():
         print("updated cron value  as true")
     
 
-        URL = 
+        URL = URL
         # generating current month and year
         today = datetime.datetime.now()
         month = str(today.month)
