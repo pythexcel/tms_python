@@ -50,11 +50,13 @@ def slack_setings():
     if request.method == "PUT":
         webhook_url = request.json.get("webhook_url")
         slack_token = request.json.get("slack_token")
+        secret_key =request.json.get("secret_key")
         ret = mongo.db.slack_tokens.update({
         }, {
             "$set": {
                 "webhook_url": webhook_url,
-                "slack_token": slack_token
+                "slack_token": slack_token,
+                "secret_key":secret_key
             }
         },upsert=True)
         return jsonify(str(ret))
