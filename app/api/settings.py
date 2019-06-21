@@ -44,12 +44,7 @@ def slack_setings():
     if request.method == "GET":
         users = mongo.db.slack_tokens.find({})
         users = [serialize_doc(doc) for doc in users]
-        default = [{
-        "slack_token":"xoxp-124720392913-124692552128-671654051172-e445a95943aec1a243e3f496d51ff454",
-        "webhook_url":"https://hooks.slack.com/services/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",
-        "secret_key":"3dd7fe8a6ea2ea9afb9a7366980253b7"
-        }]
-        return jsonify(default if not users else users)
+        return jsonify(users)
 
     if request.method == "PUT":
         webhook_url = request.json.get("webhook_url")
@@ -74,15 +69,7 @@ def schdulers_setings():
         ret = mongo.db.schdulers_setting.find({
         })
         ret = [serialize_doc(doc) for doc in ret]
-        default=[{
-            "monthly_remainder":"Please create your monthly report",
-            "weekly_remainder1":"you need to create your weekly",
-            "weekly_remainder2":"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
-            "review_activity":"you have weekly report's pending to be reviewed",
-            "monthly_manager_reminder":"you have to be reviewed",
-            "missed_checkin":"you have missed"
-            }]
-        return jsonify(default if not ret else ret)
+        return jsonify(ret)
 
     if request.method == "PUT":
         monthly_remainder = request.json.get("monthly_remainder")
@@ -116,7 +103,7 @@ def slack_schduler():
             "weekly_remainder1":"you need to create your weekly",
             "weekly_remainder2":"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
             "review_activity":"you have weekly report's pending to be reviewed",
-            "monthly_manager_reminder":"you have to be reviewed",
+            "monthly_manager_reminder":"you have monthly report's pending to be reviewed",
             "missed_checkin":"you have missed"
             }]
         return jsonify(default if not ret else ret)
