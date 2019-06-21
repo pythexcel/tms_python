@@ -72,7 +72,6 @@ def schdulers_setings():
         return jsonify(ret)
 
     if request.method == "PUT":
-        monthly_score = request.json.get("monthly_score")
         monthly_remainder = request.json.get("monthly_remainder")
         weekly_remainder = request.json.get("weekly_remainder")
         recent_activity = request.json.get("recent_activity")
@@ -81,12 +80,11 @@ def schdulers_setings():
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
-                "monthly_score": monthly_score,
                 "monthly_remainder": monthly_remainder,
                 "weekly_remainder": weekly_remainder,
                 "recent_activity": recent_activity,
                 "review_activity": review_activity,
-                "monthly_manager_reminder": monthly_manager_reminder,
+                "monthly_manager_reminder": monthly_manager_reminder
             }}, upsert=True)
         return jsonify(str(ret))
 
@@ -107,9 +105,11 @@ def slack_schduler():
         weekly_remainder2 = request.json.get("weekly_remainder2")
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
-        ret = mongo.db.schdulers_msg.update({
+        missed_checkin = request.json.get("missed_checkin")
+         ret = mongo.db.schdulers_msg.update({
         }, {
             "$set": {
+                "missed_checkin": missed_checkin,
                 "monthly_remainder": monthly_remainder,
                 "weekly_remainder1": weekly_remainder1,
                 "weekly_remainder2":weekly_remainder2,
