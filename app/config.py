@@ -1,6 +1,17 @@
 URL = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
 URL_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/sal_info/api.php'
-secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
+#secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
+default=[{
+            "monthly_remainder":"Please create your monthly report",
+            "weekly_remainder1":"you need to create your weekly",
+            "weekly_remainder2":"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
+            "review_activity":"you have weekly report's pending to be reviewed",
+            "monthly_manager_reminder":"you have monthly report's pending to be reviewed",
+            "missed_checkin":"you have missed"
+            }]
+
+
+
 
 checkin_score_scheduler_seconds = 90
 
