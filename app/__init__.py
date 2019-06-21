@@ -15,7 +15,7 @@ from app import token
 jwt = token.init_token()
 
 from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder,monthly_manager_reminder
-
+from app.config import checkin_score_scheduler_seconds,overall_score_scheduler_hour,overall_score_scheduler_min,reset_cron_scheduler_hour,reset_cron_scheduler_min,missed_checkin_scheduler_hour,missed_checkin_scheduler_min,weekly_remainder_scheduler_hour,weekly_remainder_scheduler_min,review_activity_scheduler_hour,review_activity_scheduler_min,disable_user_scheduler_hour,disable_user_scheduler_min,monthly_manager_reminder_scheduler_hour,monthly_manager_reminder_scheduler_min,monthly_remainder_scheduler_hour,monthly_remainder_scheduler_min,monthly_score_scheduler_hour,monthly_score_scheduler_min
 
 def create_app(test_config=None):
     # create and configure the app
@@ -66,46 +66,46 @@ def create_app(test_config=None):
 
     # Scheduler which will run at interval of 60 seconds for user checkin score
     checkin_score_scheduler = BackgroundScheduler()
-    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=80)
+    checkin_score_scheduler.add_job(checkin_score, trigger='interval', seconds=checkin_score_scheduler_seconds)
     checkin_score_scheduler.start()
     
     # Scheduler which will run at interval of 60 seconds for overall user rating
     
     overall_scheduler = BackgroundScheduler()
-    overall_scheduler.add_job(overall_reviewes, trigger='cron', day_of_week='mon-sat', hour=16, minute=30)
+    overall_scheduler.add_job(overall_reviewes, trigger='cron', day_of_week='mon-sat', hour=overall_score_scheduler_hour, minute=overall_score_scheduler_min)
     overall_scheduler.start()
     
     # Scheduler which will run every monday to friday at 12:30am in midnight
     reset_scheduler = BackgroundScheduler()
-    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=18, minute=10)
+    reset_scheduler.add_job(update_croncheckin, trigger='cron', day_of_week='mon-sat', hour=reset_cron_scheduler_hour, minute=reset_cron_scheduler_min)
     reset_scheduler.start()
     
     recent_activity_scheduler = BackgroundScheduler()
-    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=11, minute=30)
+    recent_activity_scheduler.add_job(recent_activity, trigger='cron', day_of_week='mon-sat', hour=missed_checkin_scheduler_hour, minute=missed_checkin_scheduler_min)
     recent_activity_scheduler.start()
     
     weekly_remainder_scheduler = BackgroundScheduler()
-    weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=16, minute=45)
+    weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=weekly_remainder_scheduler_hour, minute=weekly_remainder_scheduler_min)
     weekly_remainder_scheduler.start()
     
     review_activity_scheduler = BackgroundScheduler()
-    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=11, minute=30)
+    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=review_activity_scheduler_hour, minute=review_activity_scheduler_min)
     review_activity_scheduler.start()
     
     disable_user_scheduler = BackgroundScheduler()
-    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=20, minute=30)
+    disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=disable_user_scheduler_hour, minute=disable_user_scheduler_min)
     disable_user_scheduler.start()
     
     monthly_score_scheduler = BackgroundScheduler()
-    monthly_score_scheduler.add_job(monthly_score, trigger='cron', day_of_week='mon-sat', hour=13, minute=10)
+    monthly_score_scheduler.add_job(monthly_score, trigger='cron', day_of_week='mon-sat', hour=monthly_score_scheduler_hour, minute=monthly_score_scheduler_min)
     monthly_score_scheduler.start()
     
     monthly_remainder_scheduler = BackgroundScheduler()
-    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=18, minute=5)
+    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=monthly_remainder_scheduler_hour, minute=monthly_remainder_scheduler_min)
     monthly_remainder_scheduler.start()
     
     monthly_manager_reminder_scheduler = BackgroundScheduler()
-    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=17,minute=30)
+    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=monthly_manager_reminder_scheduler_hour,minute=monthly_manager_reminder_scheduler_min)
     monthly_manager_reminder_scheduler.start()
         
     try:
