@@ -30,6 +30,15 @@ def get_manager_profile(manager):
         ret["weight"] = manager["weight"]
     return ret
 
+def secret_key():
+    msg = mongo.db.slack_tokens.find_one({
+        "secret_key": {"$exists": True}
+    }, {"secret_key": 1, '_id': 0})
+    secret_key = msg['secret_key']
+    return secret_key
+
+
+
 #Function for find webhook_url
 def load_hook():
     url = mongo.db.slack_tokens.find_one({
