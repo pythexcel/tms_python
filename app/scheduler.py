@@ -1,6 +1,7 @@
 import datetime
 import requests
 import dateutil.parser as parser
+from app.config import URL
 from bson.objectid import ObjectId
 from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder,missed_checkin
 from app import mongo
@@ -196,14 +197,14 @@ def checkin_score():
         print("updated cron value  as true")
     
 
-        URL = attn_url
+        URL = 
         # generating current month and year
         today = datetime.datetime.now()
         month = str(today.month)
         year = str(today.year)
 
         # passing parameters in payload to call the api
-        payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+        payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                    "month": month, "year": year}
         response = requests.post(url=URL, json=payload)
         data = response.json()
@@ -285,8 +286,8 @@ def checkin_score():
         
 def disable_user():
     print('Disable schduler running....')
-    payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key}
-    response_all_disabled_users_details = requests.post(url=attn_url, json=payload_all_disabled_users_details)
+    payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key1}
+    response_all_disabled_users_details = requests.post(url=URL, json=payload_all_disabled_users_details)
     result_disabled = response_all_disabled_users_details.json()
     print('fetching the list of disable users')
     disabled_names = []
@@ -567,6 +568,7 @@ def weekly_remainder():
 # Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
     print("state_check")
+    secret_key1=secret_key()
     state = mongo.db.schdulers_setting.find_one({
         "recent_activity": {"$exists": True}
     }, {"recent_activity": 1, '_id': 0})
@@ -605,12 +607,12 @@ def recent_activity():
             slack_id = users['slack_id']
             role = users['role']
             ID_ = users['user_Id']
-            URL = attn_url
+            URL = URL
             if role != 'Admin':
                 # generating current month and year
                 month = str(today.month)
                 year = str(today.year)
-                payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+                payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                             "month": month, "year": year}
                 response = requests.post(url=URL, json=payload)
                 data = response.json()
