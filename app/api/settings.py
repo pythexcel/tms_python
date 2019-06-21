@@ -59,7 +59,7 @@ def slack_setings():
         },upsert=True)
         return jsonify(str(ret))
 
-
+#Api for schdulers on off settings
 @bp.route('/schdulers_settings', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
@@ -88,7 +88,7 @@ def schdulers_setings():
         return jsonify(str(ret))
 
 
-
+#Api for schdulers mesg settings
 @bp.route('/schduler_mesg', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
