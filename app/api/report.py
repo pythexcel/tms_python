@@ -7,12 +7,12 @@ from flask import (
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import slack_message, slack_msg
-from app.config import slack_token
 from slackclient import SlackClient
 import requests
-from app.config import attn_url,secret_key
-from app.util import get_manager_juniors
 
+
+from app.util import get_manager_juniors
+from app.util import load_token
 import datetime
 
 
@@ -27,19 +27,19 @@ bp = Blueprint('report', __name__, url_prefix='/')
 @bp.route('/slack', methods=["GET"])
 @jwt_required
 def slack():
-    current_user = get_current_user()
-    slack = current_user['slack_id']
-    slack_id = SlackClient(slack_token)
-    data = slack_id.api_call(
-        "groups.list"
-    )
-    element = data['groups']
-    channels = []
-    for ret in element:
-        if slack in ret['members']:
-            channels.append({'value': ret['id'], 'text': ret['name']})
-    return jsonify(channels)
-
+   current_user = get_current_user()
+   slack = current_user['slack_id']
+   token = load_token()
+   sc = SlackClient(token)
+   data = sc.api_call(
+       "groups.list"
+   )
+   element = data['groups']
+   channels = []
+   for ret in element:
+       if slack in ret['members']:
+           channels.append({'value': ret['id'], 'text': ret['name']})
+   return jsonify(channels)
 
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
