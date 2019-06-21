@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import attn_url, secret_key
 from bson.objectid import ObjectId
-from app.util import serialize_doc
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder
 from app import mongo
 import numpy as np
 from app.util import slack_message
@@ -12,55 +12,67 @@ import uuid
 # schduler to caculate monthly score
 
 def monthly_score():
-    print('running...')
-    # find all the reports of monthly
-    reports = mongo.db.reports.find({"type": "monthly"})
-    reports = [serialize_doc(doc) for doc in reports]
-    for detail in reports:
-        _id = detail['user']
-        print(_id)
-        #find monthly report of one particular user
-        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
-        docs = [serialize_doc(doc) for doc in docs]
-        print(docs)
-        # append in all_sum arrays all the ID of kpi/era and their rating
-        all_sum = []
-        for detail in docs:
-            if 'review' in detail:
-                for review in detail['review']:
-                    for data in review['comment']['kpi']:
-                        all_sum.append({'id': data['id'], 'rating': data['rating']})
-                    for data in review['comment']['era']:
-                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+    print("state_check")
+    state = mongo.db.schdulers_setting.find_one({
+        "monthly_score": {"$exists": True}
+    }, {"monthly_score": 1, '_id': 0})
+    status = state['monthly_score']
+    if status == 1:
+        print('running...')
+        # find all the reports of monthly
+        reports = mongo.db.reports.find({"type": "monthly"})
+        reports = [serialize_doc(doc) for doc in reports]
+        for detail in reports:
+            _id = detail['user']
+            print(_id)
+            #find monthly report of one particular user
+            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+            docs = [serialize_doc(doc) for doc in docs]
+            print(docs)
+            # append in all_sum arrays all the ID of kpi/era and their rating
+            all_sum = []
+            for detail in docs:
+                if 'review' in detail:
+                    for review in detail['review']:
+                        for data in review['comment']['kpi']:
+                            all_sum.append({'id': data['id'], 'rating': data['rating']})
+                        for data in review['comment']['era']:
+                            all_sum.append({'id': data['id'], 'rating': data['rating']})
 
-        print(all_sum)
-        score = {}
-        # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
-        for data in all_sum:
-            # checking if id in score dic if not add if yes add only the rating assigned to it
-            if data['id'] in score:
-                # here we add both the scores of one particular key and find the count/len of those rating availabel
-                score[data['id']][0] = (score[data['id']][0] + data['rating'])
-                score[data['id']][1] = score[data['id']][1] + 1
-                # (y[data['title']] + data['rating'])
+            print(all_sum)
+            score = {}
+            # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
+            for data in all_sum:
+                # checking if id in score dic if not add if yes add only the rating assigned to it
+                if data['id'] in score:
+                    # here we add both the scores of one particular key and find the count/len of those rating availabel
+                    score[data['id']][0] = (score[data['id']][0] + data['rating'])
+                    score[data['id']][1] = score[data['id']][1] + 1
+                    # (y[data['title']] + data['rating'])
 
-            else:
-                score[data['id']] = [data['rating'], 1]
-        # find all the avg of kpi/era ratings
-        for elem in score:
-            score[elem] = score[elem][0] / score[elem][1]
-       # update the kpi/era rating in particular user profile
-        ret = mongo.db.users.update({
-            "_id": ObjectId(str(_id))
-        }, {
-            "$set": {
-                "Monthly_rating": score
-            }
-        })
-        print(ret)
+                else:
+                    score[data['id']] = [data['rating'], 1]
+            # find all the avg of kpi/era ratings
+            for elem in score:
+                score[elem] = score[elem][0] / score[elem][1]
+           # update the kpi/era rating in particular user profile
+            ret = mongo.db.users.update({
+                "_id": ObjectId(str(_id))
+            }, {
+                "$set": {
+                    "Monthly_rating": score
+                }
+            })
+            print(ret)
 
         
 def monthly_remainder():
+    print("state_check")
+    state = mongo.db.schdulers_setting.find_one({
+        "monthly_remainder": {"$exists": True}
+    }, {"monthly_remainder": 1, '_id': 0})
+    status = state['monthly_remainder']
+    if status == 1:
         print("running")
         today = datetime.datetime.utcnow()
         month = today.strftime("%B")
@@ -107,6 +119,7 @@ def monthly_remainder():
         print(monthly_id)
         for doc in monthly_id:
             if "dateofjoining" in doc:
+                mesg = monthly_remainder()
                 print(doc['name'])
                 role = doc['role']
                 print(role)
@@ -131,7 +144,7 @@ def monthly_remainder():
                 if role != 'Admin':
                     print("Not admin")
                     if today_date > join_date:
-                        slack_message(msg="Please create your monthly report " + ' ' + "<@" + slack_id + ">!")
+                        slack_message(msg= mesg + ' ' + "<@" + slack_id + ">!")
                         print('sended')
                     else:
                         print('wait')
@@ -396,275 +409,294 @@ def update_croncheckin():
 
     
 def weekly_remainder():
-    print("running")
-    today = datetime.datetime.today()
-    last_monday = today - datetime.timedelta(days=today.weekday())
-    next_day = today + datetime.timedelta(1)
-    last_day = today - datetime.timedelta(1)
-   # today = datetime.datetime.utcnow()
-    last_sun = today - datetime.timedelta(days=(today.weekday() + 1))
-    last_mon = today - datetime.timedelta(days=(today.weekday() + 8))
-    users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
-    users = [serialize_doc(user) for user in users]
-    ID = []
+    state = mongo.db.schdulers_setting.find_one({
+        "weekly_remainder": {"$exists": True}
+    }, {"weekly_remainder": 1, '_id': 0})
+    status = state['weekly_remainder']
+    if status == 1:
+        print("running")
+        today = datetime.datetime.today()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        next_day = today + datetime.timedelta(1)
+        last_day = today - datetime.timedelta(1)
+       # today = datetime.datetime.utcnow()
+        last_sun = today - datetime.timedelta(days=(today.weekday() + 1))
+        last_mon = today - datetime.timedelta(days=(today.weekday() + 8))
+        users = mongo.db.users.find({"status": "Enabled"}, {"username": 1})
+        users = [serialize_doc(user) for user in users]
+        mesg1 = load_weekly2()
+        mesg = load_weekly1()
+        ID = []
 
-    for data in users:
-        ID.append(data['_id'])
-    reports = mongo.db.reports.find({
-        "type": "weekly",
-        "user": {"$in":ID},
-        "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
-            }
-    })
-
-    reports = [serialize_doc(doc) for doc in reports]
-    user_id = []
-    for data_id in reports:
-        user_id.append(ObjectId(data_id['user']))
-    rep = mongo.db.users.find({
-        "_id": {"$nin": user_id},
-        "status": "Enabled"
-    })
-    rep = [serialize_doc(doc) for doc in rep]
-    weekly_id = []
-    if 'profileImage' and 'team' and 'job_title' in rep:
-        for details in rep:
-            weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id'],"profileImage": details['profileImage'],"team": details['team'],"job_title": details['job_title'],"role":details['role']})
-    else:
-        for details in rep:
-            weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id'],"role":details['role'],"profileImage":"","team":"","job_title":""})
-    
-    for doc in weekly_id:
-        ID_ = doc['ID_']
-        print(ID_)
-        repp = mongo.db.reports.find({
-            "user": str(ID_),
-            "type":"daily",
+        for data in users:
+            ID.append(data['_id'])
+        reports = mongo.db.reports.find({
+            "type": "weekly",
+            "user": {"$in":ID},
             "created_at": {
-            "$gte": datetime.datetime(last_mon.year, last_mon.month, last_mon.day),
-            "$lte": datetime.datetime(last_sun.year, last_sun.month, last_sun.day)
-        }
+                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+                }
         })
-        repp = [serialize_doc(doc) for doc in repp]
-        print(len(repp))
-        if repp:
-            name = doc['name']
-            profileimage = doc['profileImage']
-            job_title = doc['job_title']
-            team = doc['team']
-            role=doc['role']
-            slack_id = doc['slack_id']
-            ret = mongo.db.recent_activity.update({
-                "user": ID_},
-                {"$push": {
-                    "weekly": {
-                        "created_at": datetime.datetime.now(),
-                        "priority": 1,
-                        "Message": "Please create your weekly report" + ' ' + str(name)
-                    }}}, upsert=True)
 
-            if role != 'Admin':
-                day = datetime.datetime.today().weekday()
+        reports = [serialize_doc(doc) for doc in reports]
+        user_id = []
+        for data_id in reports:
+            user_id.append(ObjectId(data_id['user']))
+        rep = mongo.db.users.find({
+            "_id": {"$nin": user_id},
+            "status": "Enabled"
+        })
+        rep = [serialize_doc(doc) for doc in rep]
+        weekly_id = []
+        if 'profileImage' and 'team' and 'job_title' in rep:
+            for details in rep:
+                weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id'],"profileImage": details['profileImage'],"team": details['team'],"job_title": details['job_title'],"role":details['role']})
+        else:
+            for details in rep:
+                weekly_id.append({"ID_": details['_id'], "name": details['username'],"slack_id": details['slack_id'],"role":details['role'],"profileImage":"","team":"","job_title":""})
 
-                week_day=[0,1]
-                last =[2,3]
-                if day in week_day:
-                    slack_message(msg="Please create your weekly report " + ' ' +"<@"+slack_id+">!")
-                elif day in last:
-                        slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +"You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.")
-                else:
-                    if day == 4:
-                        print("adding reportttttttttttttttttttttttttttt")
-                        reviewed = False
-                        users = mongo.db.users.find({
-                            "_id": ObjectId(ID_)
-                        })
-                        users = [serialize_doc(doc) for doc in users]
-                        managers_data = []
-                        for data in users:
-                            if "managers" in data:
-                                for mData in data['managers']:
-                                    manager_id = mData['_id']
-                                    mData['reviewed'] = reviewed
-                                    managers_data.append(mData)
-                        ret = mongo.db.reports.insert_one({
-                            "k_highlight": [],
-                            "extra": "No comment",
-                            "select_days": [],
-                            "user": str(ID_),
-                            "created_at": datetime.datetime.utcnow(),
-                            "type": "weekly",
-                            "is_reviewed": managers_data,
-                            "profileImage": profileimage,
-                            "jobtitle": job_title,
-                            "team": team,
-                            "cron_review_activity":False,
-                            "cron_checkin": True,
-                            "weekly_cron": True,
-                            "difficulty": 0
-                        }).inserted_id
+        for doc in weekly_id:
+            ID_ = doc['ID_']
+            print(ID_)
+            repp = mongo.db.reports.find({
+                "user": str(ID_),
+                "type":"daily",
+                "created_at": {
+                "$gte": datetime.datetime(last_mon.year, last_mon.month, last_mon.day),
+                "$lte": datetime.datetime(last_sun.year, last_sun.month, last_sun.day)
+            }
+            })
+            repp = [serialize_doc(doc) for doc in repp]
+            print(len(repp))
+            if repp:
+                name = doc['name']
+                profileimage = doc['profileImage']
+                job_title = doc['job_title']
+                team = doc['team']
+                role=doc['role']
+                slack_id = doc['slack_id']
+                ret = mongo.db.recent_activity.update({
+                    "user": ID_},
+                    {"$push": {
+                        "weekly": {
+                            "created_at": datetime.datetime.now(),
+                            "priority": 1,
+                            "Message": "Please create your weekly report" + ' ' + str(name)
+                        }}}, upsert=True)
 
-                        users = mongo.db.reports.find({"weekly_cron": True},{"_id": 1,"is_reviewed":1})
-                        users = [serialize_doc(doc) for doc in users]
+                if role != 'Admin':
+                    day = datetime.datetime.today().weekday()
+
+                    week_day=[0,1]
+                    last =[2,3]
+                    if day in week_day:
+                        slack_message(msg= mesg + ' ' +"<@"+slack_id+">!")
+                    elif day in last:
+                            slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +mesg1)
+                    else:
+                        if day == 4:
+                            print("adding reportttttttttttttttttttttttttttt")
+                            reviewed = False
+                            users = mongo.db.users.find({
+                                "_id": ObjectId(ID_)
+                            })
+                            users = [serialize_doc(doc) for doc in users]
+                            managers_data = []
+                            for data in users:
+                                if "managers" in data:
+                                    for mData in data['managers']:
+                                        manager_id = mData['_id']
+                                        mData['reviewed'] = reviewed
+                                        managers_data.append(mData)
+                            ret = mongo.db.reports.insert_one({
+                                "k_highlight": [],
+                                "extra": "No comment",
+                                "select_days": [],
+                                "user": str(ID_),
+                                "created_at": datetime.datetime.utcnow(),
+                                "type": "weekly",
+                                "is_reviewed": managers_data,
+                                "profileImage": profileimage,
+                                "jobtitle": job_title,
+                                "team": team,
+                                "cron_review_activity":False,
+                                "cron_checkin": True,
+                                "weekly_cron": True,
+                                "difficulty": 0
+                            }).inserted_id
+
+                            users = mongo.db.reports.find({"weekly_cron": True},{"_id": 1,"is_reviewed":1})
+                            users = [serialize_doc(doc) for doc in users]
 
 
-                        for user in users:
-                            for deta in user['is_reviewed']:
-                                manager_id = deta['_id']
-                                manager_weights = deta['weight']
-                                weekly = user['_id']
+                            for user in users:
+                                for deta in user['is_reviewed']:
+                                    manager_id = deta['_id']
+                                    manager_weights = deta['weight']
+                                    weekly = user['_id']
 
-                                ret = mongo.db.reports.update({
-                                            "_id": ObjectId(weekly)
-                                        }, {
-                                            "$push": {
-                                                "review": {
-                                                    "difficulty": 0,
-                                                    "rating": 0,
-                                                    "created_at": datetime.datetime.utcnow(),
-                                                    "comment": "you have not done your weekly report",
-                                                    "manager_id":manager_id,
-                                                    "manager_weight":manager_weights
+                                    ret = mongo.db.reports.update({
+                                                "_id": ObjectId(weekly)
+                                            }, {
+                                                "$push": {
+                                                    "review": {
+                                                        "difficulty": 0,
+                                                        "rating": 0,
+                                                        "created_at": datetime.datetime.utcnow(),
+                                                        "comment": "you have not done your weekly report",
+                                                        "manager_id":manager_id,
+                                                        "manager_weight":manager_weights
+                                                    }
                                                 }
-                                            }
-                                        })
+                                            })
 
-                                docs = mongo.db.reports.update({
-                                        "_id": ObjectId(weekly),
-                                        "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
-                                    }, {
-                                        "$set": {
-                                            "is_reviewed.$.reviewed": True
-                                        }})
-
-                                cron = mongo.db.reports.update({
-                                    "_id": ObjectId(weekly)
+                                    docs = mongo.db.reports.update({
+                                            "_id": ObjectId(weekly),
+                                            "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                         }, {
-                                    "$set": {
-                                        "weekly_cron": False
-                                        }})
+                                            "$set": {
+                                                "is_reviewed.$.reviewed": True
+                                            }})
+
+                                    cron = mongo.db.reports.update({
+                                        "_id": ObjectId(weekly)
+                                            }, {
+                                        "$set": {
+                                            "weekly_cron": False
+                                            }})
+                else:
+                    pass
             else:
                 pass
-        else:
-            pass
 
                         
                         
 # Function of recent_activity for checkin_missed and reviewed.
 def recent_activity():
-    print("running")
-    users = mongo.db.users.find({}, {"username": 1})
-    users = [serialize_doc(doc) for doc in users]
-    today = datetime.datetime.now()
-    last_day = today - datetime.timedelta(1)
-    last_day_checkin=[]
-    for detail in users:
-        ID = detail['_id']
-        reports = mongo.db.reports.find_one({
-            "user": str(ID),
-            "type": "daily",
-            "created_at": {
-                "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
-                "$lte": datetime.datetime(today.year, today.month, today.day)
-            }
-        })
-        if reports is not None:
-            user=reports['user']
-            last_day_checkin.append(ObjectId(user))
-    print(last_day_checkin)
-    rep = mongo.db.users.find({
-            "_id": {"$nin": last_day_checkin}
-        })
-    rep = [serialize_doc(doc) for doc in rep]
-    
-    for users in rep:
-        id_=users['_id']
-        username = users['username']
-        print(username)
-        slack_id = users['slack_id']
-        role = users['role']
-        ID_ = users['user_Id']
-        URL = attn_url
-        if role != 'Admin':
-            # generating current month and year
-            month = str(today.month)
-            year = str(today.year)
-            payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
-                        "month": month, "year": year}
-            response = requests.post(url=URL, json=payload)
-            data = response.json()
-            attn_data = data['data']['attendance']
+    print("state_check")
+    state = mongo.db.schdulers_setting.find_one({
+        "recent_activity": {"$exists": True}
+    }, {"recent_activity": 1, '_id': 0})
+    status = state['recent_activity']
+    if status==1:
+        print("running")
+        users = mongo.db.users.find({}, {"username": 1})
+        users = [serialize_doc(doc) for doc in users]
+        today = datetime.datetime.now()
+        last_day = today - datetime.timedelta(1)
+        last_day_checkin=[]
+        for detail in users:
+            ID = detail['_id']
+            reports = mongo.db.reports.find_one({
+                "user": str(ID),
+                "type": "daily",
+                "created_at": {
+                    "$gte": datetime.datetime(last_day.year, last_day.month, last_day.day),
+                    "$lte": datetime.datetime(today.year, today.month, today.day)
+                }
+            })
+            if reports is not None:
+                user=reports['user']
+                last_day_checkin.append(ObjectId(user))
+        print(last_day_checkin)
+        rep = mongo.db.users.find({
+                "_id": {"$nin": last_day_checkin}
+            })
+        rep = [serialize_doc(doc) for doc in rep]
 
-            # getting the dates where user was present and store it in date_list
-            date_list = list()
-            date_time = today - datetime.timedelta(1)
-            date = date_time.strftime("%Y-%m-%d")
+        for users in rep:
+            id_=users['_id']
+            username = users['username']
+            print(username)
+            slack_id = users['slack_id']
+            role = users['role']
+            ID_ = users['user_Id']
+            URL = attn_url
+            if role != 'Admin':
+                # generating current month and year
+                month = str(today.month)
+                year = str(today.year)
+                payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key,
+                            "month": month, "year": year}
+                response = requests.post(url=URL, json=payload)
+                data = response.json()
+                attn_data = data['data']['attendance']
 
-            for data in attn_data:
-                attn = data['full_date']
-                intime = data['in_time']       
-                if intime:
-                    date_list.append(attn)
-            print(date_list)
-            if date in date_list:
-                ret = mongo.db.users.update({
-                    "_id": ObjectId(str(id_))},
-                    {"$push": {"missed_checkin_dates": {
-                        "date": date,
-                        "created_at": datetime.datetime.now()
-                    }}})
-                                
-                docs = mongo.db.recent_activity.update({
-                    "user": str(id_)},
-                    {"$push": {"missed_checkin": {
-                        "checkin_message": date_time,
-                        "created_at": datetime.datetime.now(),
-                        "priority": 1
+                # getting the dates where user was present and store it in date_list
+                date_list = list()
+                date_time = today - datetime.timedelta(1)
+                date = date_time.strftime("%Y-%m-%d")
 
-                    }}}, upsert=True)
-                slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")   
-        else:
-            pass
+                for data in attn_data:
+                    attn = data['full_date']
+                    intime = data['in_time']       
+                    if intime:
+                        date_list.append(attn)
+                print(date_list)
+                if date in date_list:
+                    ret = mongo.db.users.update({
+                        "_id": ObjectId(str(id_))},
+                        {"$push": {"missed_checkin_dates": {
+                            "date": date,
+                            "created_at": datetime.datetime.now()
+                        }}})
+
+                    docs = mongo.db.recent_activity.update({
+                        "user": str(id_)},
+                        {"$push": {"missed_checkin": {
+                            "checkin_message": date_time,
+                            "created_at": datetime.datetime.now(),
+                            "priority": 1
+
+                        }}}, upsert=True)
+                    slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")   
+            else:
+                pass
                 
                 
                 
 def review_activity(): 
-    print("running")
-    today = datetime.datetime.utcnow()
-    last_monday = today - datetime.timedelta(days=today.weekday())
-    # First take date time where weekly report is to be dealt with
-    reports = mongo.db.reports.find({"cron_review_activity": False,
-                                    "type": "weekly",
-                                    "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
-            }})
-   
-    reports = [serialize_doc(doc) for doc in reports]
-    managers_name = []
-    for detail in reports:
-        for data in detail['is_reviewed']:
-            if data['reviewed'] is False:
-                username = detail['username']    
-                slack_id = data['_id']
-                print(slack_id)
-                use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
-                use = [serialize_doc(doc) for doc in use]
-                for data in use:
-                    slack = data['slack_id']
-                    mang_id = data['_id']
-                    if slack not in managers_name:
-                        managers_name.append(slack)
-                        ret = mongo.db.recent_activity.update({
-                            "user": mang_id},
-                            {"$push": {
-                            "weekly_reviewed": {
-                            "created_at": datetime.datetime.utcnow(),
-                            "priority": 1,
-                            "Message": "You have to review your Juniors weekly report"
-                            }}}, upsert=True)                
-    for ids in managers_name:    
-        slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +"you have weekly report's pending to be reviewed") 
+    state = mongo.db.schdulers_setting.find_one({
+        "review_activity": {"$exists": True}
+    }, {"review_activity": 1, '_id': 0})
+    status = state['review_activity']
+    if status == 1:
+        print("running")
+        review_activity_mesg=load_review_activity()
+        today = datetime.datetime.utcnow()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        # First take date time where weekly report is to be dealt with
+        reports = mongo.db.reports.find({"cron_review_activity": False,
+                                        "type": "weekly",
+                                        "created_at": {
+                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+                }})
+
+        reports = [serialize_doc(doc) for doc in reports]
+        managers_name = []
+        for detail in reports:
+            for data in detail['is_reviewed']:
+                if data['reviewed'] is False:
+                    username = detail['username']    
+                    slack_id = data['_id']
+                    print(slack_id)
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                    use = [serialize_doc(doc) for doc in use]
+                    for data in use:
+                        slack = data['slack_id']
+                        mang_id = data['_id']
+                        if slack not in managers_name:
+                            managers_name.append(slack)
+                            ret = mongo.db.recent_activity.update({
+                                "user": mang_id},
+                                {"$push": {
+                                "weekly_reviewed": {
+                                "created_at": datetime.datetime.utcnow(),
+                                "priority": 1,
+                                "Message": "You have to review your Juniors weekly report"
+                                }}}, upsert=True)                
+        for ids in managers_name:    
+            slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +review_activity_mesg) 
 
  
 def manager_update():
@@ -708,10 +740,16 @@ def manager_update():
         
         
 def monthly_manager_reminder():
+    state = mongo.db.schdulers_setting.find_one({
+        "monthly_manager_reminder": {"$exists": True}
+    }, {"monthly_manager_reminder": 1, '_id': 0})
+    status = state['monthly_manager_reminder']
+    if status == 1:
         print("running")
         today = datetime.datetime.utcnow()
         month = today.strftime("%B")
         # First take date time where weekly report is to be dealt with
+        notification = load_monthly_manager_reminder()
         reports = mongo.db.reports.find({"type": "monthly"})
         reports = [serialize_doc(doc) for doc in reports]
         managers_name = []
@@ -731,4 +769,4 @@ def monthly_manager_reminder():
                             managers_name.append(slack)
         print(managers_name)
         for ids in managers_name:
-            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + "you have monthly report's pending to be reviewed")
+            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + notification)
