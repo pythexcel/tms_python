@@ -5,22 +5,19 @@ from flask import (
     Blueprint, flash, jsonify, abort, request
 )
 import requests
-from app.config import attn_url, secret_key
 import json
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
 from app.util import slack_message, slack_msg
-from app.config import slack_token
 from slackclient import SlackClient
-
 import datetime
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
     verify_jwt_in_request
 )
-from app.config import slack_token
+
 
 bp = Blueprint('monthly', __name__, url_prefix='/')
 
