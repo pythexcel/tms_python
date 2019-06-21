@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import attn_url, secret_key
 from bson.objectid import ObjectId
-from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder,missed_checkin
 from app import mongo
 import numpy as np
 from app.util import slack_message
@@ -578,6 +578,7 @@ def recent_activity():
         users = [serialize_doc(doc) for doc in users]
         today = datetime.datetime.now()
         last_day = today - datetime.timedelta(1)
+        notification=missed_checkin()
         last_day_checkin=[]
         for detail in users:
             ID = detail['_id']
@@ -643,7 +644,7 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+"you have missed "+str(date)+"check-in")   
+                    slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+notification+str(date)+"check-in")   
             else:
                 pass
                 
