@@ -1,7 +1,6 @@
 from app import mongo
 from bson.objectid import ObjectId
 import requests
-from app.config import webhook_url, slack_token
 from slackclient import SlackClient
 
 
