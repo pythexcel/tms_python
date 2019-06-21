@@ -1,7 +1,6 @@
 import datetime
 import requests
 import dateutil.parser as parser
-from app.config import attn_url, secret_key
 from bson.objectid import ObjectId
 from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder,missed_checkin
 from app import mongo
