@@ -61,7 +61,7 @@ def load_token():
     return sl_token
 
 def slack_msg(channel, msg):
-    print(channel)
+    slack_token = load_token()
     sc = SlackClient(slack_token)
     for data in channel:
         sc.api_call(
@@ -91,12 +91,12 @@ def load_monthly_manager_reminder():
     return manager_reminder
 
 #function for find monthly_reminder mesg from db
-def monthly_remainder():
+def load_monthly_remainder():
     msg = mongo.db.schdulers_msg.find_one({
         "monthly_remainder": {"$exists": True}
     }, {"monthly_remainder": 1, '_id': 0})
-    monthly_remainder = msg['monthly_remainder']
-    return monthly_remainder
+    load_monthly_remainder = msg['monthly_remainder']
+    return load_monthly_remainder
 
 def missed_checkin():
     msg = mongo.db.schdulers_msg.find_one({
