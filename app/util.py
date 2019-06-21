@@ -90,7 +90,7 @@ def monthly_remainder():
     monthly_remainder = msg['monthly_remainder']
     return monthly_remainder
 
-def monthly_remainder():
+def missed_checkin():
     msg = mongo.db.schdulers_msg.find_one({
         "missed_checkin": {"$exists": True}
     }, {"missed_checkin": 1, '_id': 0})
