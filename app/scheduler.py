@@ -12,58 +12,52 @@ import uuid
 # schduler to caculate monthly score
 
 def monthly_score():
-    print("state_check")
-    state = mongo.db.schdulers_setting.find_one({
-        "monthly_score": {"$exists": True}
-    }, {"monthly_score": 1, '_id': 0})
-    status = state['monthly_score']
-    if status == 1:
-        print('running...')
-        # find all the reports of monthly
-        reports = mongo.db.reports.find({"type": "monthly"})
-        reports = [serialize_doc(doc) for doc in reports]
-        for detail in reports:
-            _id = detail['user']
-            print(_id)
-            #find monthly report of one particular user
-            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
-            docs = [serialize_doc(doc) for doc in docs]
-            print(docs)
-            # append in all_sum arrays all the ID of kpi/era and their rating
-            all_sum = []
-            for detail in docs:
-                if 'review' in detail:
-                    for review in detail['review']:
-                        for data in review['comment']['kpi']:
-                            all_sum.append({'id': data['id'], 'rating': data['rating']})
-                        for data in review['comment']['era']:
-                            all_sum.append({'id': data['id'], 'rating': data['rating']})
+    print('running...')
+    # find all the reports of monthly
+    reports = mongo.db.reports.find({"type": "monthly"})
+    reports = [serialize_doc(doc) for doc in reports]
+    for detail in reports:
+        _id = detail['user']
+        print(_id)
+        #find monthly report of one particular user
+        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+        docs = [serialize_doc(doc) for doc in docs]
+        print(docs)
+        # append in all_sum arrays all the ID of kpi/era and their rating
+        all_sum = []
+        for detail in docs:
+            if 'review' in detail:
+                for review in detail['review']:
+                    for data in review['comment']['kpi']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
+                    for data in review['comment']['era']:
+                        all_sum.append({'id': data['id'], 'rating': data['rating']})
 
-            print(all_sum)
-            score = {}
-            # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
-            for data in all_sum:
-                # checking if id in score dic if not add if yes add only the rating assigned to it
-                if data['id'] in score:
-                    # here we add both the scores of one particular key and find the count/len of those rating availabel
-                    score[data['id']][0] = (score[data['id']][0] + data['rating'])
-                    score[data['id']][1] = score[data['id']][1] + 1
-                    # (y[data['title']] + data['rating'])
+        print(all_sum)
+        score = {}
+        # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
+        for data in all_sum:
+            # checking if id in score dic if not add if yes add only the rating assigned to it
+            if data['id'] in score:
+                # here we add both the scores of one particular key and find the count/len of those rating availabel
+                score[data['id']][0] = (score[data['id']][0] + data['rating'])
+                score[data['id']][1] = score[data['id']][1] + 1
+                # (y[data['title']] + data['rating'])
 
-                else:
-                    score[data['id']] = [data['rating'], 1]
-            # find all the avg of kpi/era ratings
-            for elem in score:
-                score[elem] = score[elem][0] / score[elem][1]
-           # update the kpi/era rating in particular user profile
-            ret = mongo.db.users.update({
-                "_id": ObjectId(str(_id))
-            }, {
-                "$set": {
-                    "Monthly_rating": score
-                }
-            })
-            print(ret)
+            else:
+                score[data['id']] = [data['rating'], 1]
+        # find all the avg of kpi/era ratings
+        for elem in score:
+            score[elem] = score[elem][0] / score[elem][1]
+       # update the kpi/era rating in particular user profile
+        ret = mongo.db.users.update({
+            "_id": ObjectId(str(_id))
+        }, {
+            "$set": {
+                "Monthly_rating": score
+            }
+        })
+        print(ret)
 
         
 def monthly_remainder():
