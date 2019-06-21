@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,monthly_remainder,load_monthly_manager_reminder,missed_checkin
 from app import mongo
 import numpy as np
-from app.util import slack_message
+from app.util import slack_message,secret_key
 import uuid
 
 # schduler to caculate monthly score
