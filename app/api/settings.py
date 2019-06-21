@@ -60,7 +60,6 @@ def slack_setings():
         return jsonify(str(ret))
 
 
-#Api for schdulers on off settings.
 @bp.route('/schdulers_settings', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
@@ -89,7 +88,7 @@ def schdulers_setings():
         return jsonify(str(ret))
 
 
-#Api for schduler_msg settings.
+
 @bp.route('/schduler_mesg', methods=["GET","PUT"])
 @jwt_required
 @token.admin_required
@@ -106,15 +105,15 @@ def slack_schduler():
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
         missed_checkin = request.json.get("missed_checkin")
-         ret = mongo.db.schdulers_msg.update({
+        ret = mongo.db.schdulers_msg.update({
         }, {
             "$set": {
-                "missed_checkin": missed_checkin,
                 "monthly_remainder": monthly_remainder,
                 "weekly_remainder1": weekly_remainder1,
                 "weekly_remainder2":weekly_remainder2,
                 "review_activity":review_activity,
-                "monthly_manager_reminder":monthly_manager_reminder
+                "monthly_manager_reminder":monthly_manager_reminder,
+                "missed_checkin":missed_checkin
             }
-        },upsert=True)
+        })
         return jsonify(str(ret))
