@@ -1,5 +1,5 @@
-URL = 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php'
-URL_details = 'http://dev.hr.excellencetechnologies.in/hr/attendance/sal_info/api.php'
+URL = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/API_HR/api.php'
+URL_details = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/sal_info/api.php'
 #secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
 default=[{
             "monthly_remainder":"Please create your monthly report",
@@ -21,14 +21,14 @@ overall_score_scheduler_min = 30
 reset_cron_scheduler_hour =18
 reset_cron_scheduler_min = 10
 
-missed_checkin_scheduler_hour =11
-missed_checkin_scheduler_min =30
+missed_checkin_scheduler_hour =14
+missed_checkin_scheduler_min =48
 
-weekly_remainder_scheduler_hour=16
-weekly_remainder_scheduler_min=45
+weekly_remainder_scheduler_hour=14
+weekly_remainder_scheduler_min=54
 
-review_activity_scheduler_hour =11
-review_activity_scheduler_min =30
+review_activity_scheduler_hour =14
+review_activity_scheduler_min =46
 
 disable_user_scheduler_hour=20
 disable_user_scheduler_min=30
@@ -39,5 +39,5 @@ monthly_score_scheduler_min=10
 monthly_remainder_scheduler_hour=18
 monthly_remainder_scheduler_min=5
 
-monthly_manager_reminder_scheduler_hour=9
-monthly_manager_reminder_scheduler_min=48
+monthly_manager_reminder_scheduler_hour=14
+monthly_manager_reminder_scheduler_min=30

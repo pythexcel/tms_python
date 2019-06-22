@@ -138,7 +138,8 @@ def monthly_remainder():
                 if role != 'Admin':
                     print("Not admin")
                     if today_date > join_date:
-                        slack_message(msg= mesg + ' ' + "<@" + slack_id + ">!")
+                        monthly_mesg=mesg.replace("Slack_id", "<@" + slack_id + ">!")
+                        slack_message(msg=monthly_mesg)
                         print('sended')
                     else:
                         print('wait')
@@ -485,9 +486,11 @@ def weekly_remainder():
                     week_day=[0,1]
                     last =[2,3]
                     if day in week_day:
-                        slack_message(msg= mesg + ' ' +"<@"+slack_id+">!")
+                        weekly_mesg1=mesg.replace("Slack_id", "<@" + slack_id + ">!")
+                        slack_message(msg=weekly_mesg1)
                     elif day in last:
-                            slack_message(msg=' ' +"<@"+slack_id+">!"+' ' +mesg1)
+                            weekly_mesg2=mesg1.replace("Slack_id", "<@" + slack_id + ">!")
+                            slack_message(msg=weekly_mesg2)
                     else:
                         if day == 4:
                             print("adding reportttttttttttttttttttttttttttt")
@@ -608,7 +611,6 @@ def recent_activity():
             slack_id = users['slack_id']
             role = users['role']
             ID_ = users['user_Id']
-            URL = URL
             if role != 'Admin':
                 # generating current month and year
                 month = str(today.month)
@@ -646,7 +648,9 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    slack_message(msg=' ' +"<@"+slack_id+">!"+' '+notification+str(date)+"check-in")   
+                    missed_chec_mesg=notification.replace("Slack_id", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace("Date",""+date+"")
+                    slack_message(msg=mesgg)   
             else:
                 pass
                 
@@ -673,8 +677,7 @@ def review_activity():
         managers_name = []
         for detail in reports:
             for data in detail['is_reviewed']:
-                if data['reviewed'] is False:
-                    username = detail['username']    
+                if data['reviewed'] is False:   
                     slack_id = data['_id']
                     print(slack_id)
                     use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
@@ -692,8 +695,9 @@ def review_activity():
                                 "priority": 1,
                                 "Message": "You have to review your Juniors weekly report"
                                 }}}, upsert=True)                
-        for ids in managers_name:    
-            slack_message(msg=' ' +"<@"+ids+">!"+' ' +review_activity_mesg) 
+        for ids in managers_name:
+            review_act_mesg=review_activity_mesg.replace("Slack_id", "<@" + ids + ">!")    
+            slack_message(msg=review_act_mesg) 
 
  
 def manager_update():
@@ -766,4 +770,5 @@ def monthly_manager_reminder():
                             managers_name.append(slack)
         print(managers_name)
         for ids in managers_name:
-            slack_message(msg=' ' + "<@" + ids + ">!" + ' ' + notification)
+            manager_mesg=notification.replace("Slack_id", "<@" + ids + ">!")
+            slack_message(msg=manager_mesg)
