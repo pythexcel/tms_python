@@ -39,5 +39,5 @@ monthly_score_scheduler_min=10
 monthly_remainder_scheduler_hour=18
 monthly_remainder_scheduler_min=5
 
-monthly_manager_reminder_scheduler_hour=17
-monthly_manager_reminder_scheduler_min=30
+monthly_manager_reminder_scheduler_hour=9
+monthly_manager_reminder_scheduler_min=48
