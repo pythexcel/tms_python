@@ -138,7 +138,7 @@ def monthly_remainder():
                 if role != 'Admin':
                     print("Not admin")
                     if today_date > join_date:
-                        monthly_mesg=mesg.replace("Slack_id", "<@" + slack_id + ">!")
+                        monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
                         slack_message(msg=monthly_mesg)
                         print('sended')
                     else:
@@ -486,10 +486,10 @@ def weekly_remainder():
                     week_day=[0,1]
                     last =[2,3]
                     if day in week_day:
-                        weekly_mesg1=mesg.replace("Slack_id", "<@" + slack_id + ">!")
+                        weekly_mesg1=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
                         slack_message(msg=weekly_mesg1)
                     elif day in last:
-                            weekly_mesg2=mesg1.replace("Slack_id", "<@" + slack_id + ">!")
+                            weekly_mesg2=mesg1.replace("Slack_id:", "<@" + slack_id + ">!")
                             slack_message(msg=weekly_mesg2)
                     else:
                         if day == 4:
@@ -648,8 +648,8 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    missed_chec_mesg=notification.replace("Slack_id", "<@" + slack_id + ">!")    
-                    mesgg=missed_chec_mesg.replace("Date",""+date+"")
+                    missed_chec_mesg=notification.replace("Slack_id:", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace("Date:",""+date+"")
                     slack_message(msg=mesgg)   
             else:
                 pass
@@ -697,7 +697,7 @@ def review_activity():
                                 }}}, upsert=True)                
         print(managers_name)
         for ids in managers_name:
-            review_act_mesg=review_activity_mesg.replace("Slack_id", "<@" + ids + ">!")    
+            review_act_mesg=review_activity_mesg.replace("Slack_id:", "<@" + ids + ">!")    
             slack_message(msg=review_act_mesg) 
 
  
@@ -771,5 +771,5 @@ def monthly_manager_reminder():
                             managers_name.append(slack)
         print(managers_name)
         for ids in managers_name:
-            manager_mesg=notification.replace("Slack_id", "<@" + ids + ">!")
+            manager_mesg=notification.replace("Slack_id:", "<@" + ids + ">!")
             slack_message(msg=manager_mesg)

@@ -648,7 +648,6 @@ def junior_chechkin():
 
 
 def load_manager(manager):
-
     ret = mongo.db.users.find_one({
         "_id": manager
     },{"profile": 0})
