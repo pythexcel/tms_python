@@ -99,7 +99,7 @@ def slack_schduler():
         ret = mongo.db.schdulers_msg.find({
         })
         ret = [serialize_doc(doc) for doc in ret]
-        return jsonify(default if not ret else ret)
+        return jsonify([default] if not ret else ret)
     if request.method == "PUT":
         monthly_remainder = request.json.get("monthly_remainder")
         weekly_remainder1 = request.json.get("weekly_remainder1")

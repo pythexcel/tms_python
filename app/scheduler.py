@@ -695,6 +695,7 @@ def review_activity():
                                 "priority": 1,
                                 "Message": "You have to review your Juniors weekly report"
                                 }}}, upsert=True)                
+        print(managers_name)
         for ids in managers_name:
             review_act_mesg=review_activity_mesg.replace("Slack_id", "<@" + ids + ">!")    
             slack_message(msg=review_act_mesg) 

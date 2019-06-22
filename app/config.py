@@ -1,14 +1,14 @@
 URL = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/API_HR/api.php'
 URL_details = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/sal_info/api.php'
 #secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
-default=[{
+default={
             "monthly_remainder":"Slack_id Please create your monthly report",
             "weekly_remainder1":"Slack_id you need to create your weekly",
             "weekly_remainder2":"Slack_id You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
             "review_activity":"Slack_id you have weekly report's pending to be reviewed",
             "monthly_manager_reminder":"Slack_id you have monthly report's pending to be reviewed",
             "missed_checkin":"Slack_id you have missed Date"
-            }]
+            }
 
 
 
@@ -21,14 +21,14 @@ overall_score_scheduler_min = 30
 reset_cron_scheduler_hour =18
 reset_cron_scheduler_min = 10
 
-missed_checkin_scheduler_hour =14
-missed_checkin_scheduler_min =48
+missed_checkin_scheduler_hour =11
+missed_checkin_scheduler_min =30
 
-weekly_remainder_scheduler_hour=14
-weekly_remainder_scheduler_min=54
+weekly_remainder_scheduler_hour=16
+weekly_remainder_scheduler_min=45
 
-review_activity_scheduler_hour =14
-review_activity_scheduler_min =46
+review_activity_scheduler_hour =11
+review_activity_scheduler_min =30
 
 disable_user_scheduler_hour=20
 disable_user_scheduler_min=30
@@ -39,5 +39,5 @@ monthly_score_scheduler_min=10
 monthly_remainder_scheduler_hour=18
 monthly_remainder_scheduler_min=5
 
-monthly_manager_reminder_scheduler_hour=14
-monthly_manager_reminder_scheduler_min=30
+monthly_manager_reminder_scheduler_hour=15
+monthly_manager_reminder_scheduler_min=35
