@@ -27,7 +27,7 @@ missed_checkin_scheduler_min =30
 weekly_remainder_scheduler_hour=16
 weekly_remainder_scheduler_min=45
 
-review_activity_scheduler_hour =11
+review_activity_scheduler_hour =12
 review_activity_scheduler_min =30
 
 disable_user_scheduler_hour=20
