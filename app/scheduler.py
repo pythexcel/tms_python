@@ -487,7 +487,7 @@ def weekly_remainder():
                     if day in week_day:
                         slack_message(msg= mesg + ' ' +"<@"+slack_id+">!")
                     elif day in last:
-                            slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' ' +mesg1)
+                            slack_message(msg=' ' +"<@"+slack_id+">!"+' ' +mesg1)
                     else:
                         if day == 4:
                             print("adding reportttttttttttttttttttttttttttt")
@@ -646,7 +646,7 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    slack_message(msg="Hi"+' ' +"<@"+slack_id+">!"+' '+notification+str(date)+"check-in")   
+                    slack_message(msg=' ' +"<@"+slack_id+">!"+' '+notification+str(date)+"check-in")   
             else:
                 pass
                 
@@ -693,7 +693,7 @@ def review_activity():
                                 "Message": "You have to review your Juniors weekly report"
                                 }}}, upsert=True)                
         for ids in managers_name:    
-            slack_message(msg= "Hi"+' ' +"<@"+ids+">!"+' ' +review_activity_mesg) 
+            slack_message(msg=' ' +"<@"+ids+">!"+' ' +review_activity_mesg) 
 
  
 def manager_update():
@@ -766,4 +766,4 @@ def monthly_manager_reminder():
                             managers_name.append(slack)
         print(managers_name)
         for ids in managers_name:
-            slack_message(msg="Hi" + ' ' + "<@" + ids + ">!" + ' ' + notification)
+            slack_message(msg=' ' + "<@" + ids + ">!" + ' ' + notification)
