@@ -443,7 +443,7 @@ def monthly_skip_review(monthly_id):
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
-
+#function for monthly details
 def load_monthly_details(data):
     user_data = data['user']
     user_data = (load_user(user_data))
@@ -457,7 +457,7 @@ def load_monthly_details(data):
             elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
     return data
 
-
+#Api for juniors can see manager reviews.
 @bp.route('/manager_monthly_response', methods=["GET"])
 @jwt_required
 def monthly_manager_response():
@@ -466,6 +466,7 @@ def monthly_manager_response():
         "user": str(current_user["_id"]),
         "type": "monthly",
     })
+    #here call a function for monthly details
     report = [load_monthly_details(serialize_doc(doc)) for doc in report]
     if not report:
         return jsonify({"msg": "no response"}),204
