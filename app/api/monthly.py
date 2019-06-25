@@ -443,3 +443,31 @@ def monthly_skip_review(monthly_id):
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
+
+def load_monthly_details(data):
+    user_data = data['user']
+    user_data = (load_user(user_data))
+    data['user'] = user_data
+    if 'review' in data:
+        review_detail = data['review']
+    else:
+        review_detail = None
+    if review_detail is not None:
+        for elem in review_detail:
+            elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    return data
+
+
+@bp.route('/manager_monthly_response', methods=["GET"])
+@jwt_required
+def monthly_manager_response():
+    current_user = get_current_user()
+    report = mongo.db.reports.find({
+        "user": str(current_user["_id"]),
+        "type": "monthly",
+    })
+    report = [load_monthly_details(serialize_doc(doc)) for doc in report]
+    if not report:
+        return jsonify({"msg": "no response"}),204
+    else:
+        return jsonify(report)
