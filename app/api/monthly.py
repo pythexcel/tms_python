@@ -443,7 +443,7 @@ def monthly_skip_review(monthly_id):
     else:
         return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
 
-#function for monthly details
+#function for return user and managers details
 def load_monthly_details(data):
     user_data = data['user']
     user_data = (load_user(user_data))
