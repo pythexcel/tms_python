@@ -679,9 +679,7 @@ def employee_feedback():
     current_user = get_current_user()
     user = str(current_user['_id'])
     if request.method == "GET":
-        rep = mongo.db.reports.find({print("initial report")
-434
-    print(docss)
+        rep = mongo.db.reports.find({
             "user": user,
             "type": "feedback",
         })
