@@ -397,6 +397,8 @@ def load_all_checkin(all_chekin):
     return ret
 
 def add_checkin_data(weekly_report):
+    print('report whose select_days is to be found")
+    print(weekly_report)
     select_days = weekly_report["select_days"]
     print("ID which arrived")
     print(select_days)
@@ -429,8 +431,6 @@ def get_manager_weekly_list_all():
             "$in": juniors
         }
     }).sort("created_at", 1)
-    print("initial report")
-    print(docss)
     docss = [add_checkin_data(serialize_doc(doc)) for doc in docss]
     print("final report")
     print(docss)
@@ -679,7 +679,9 @@ def employee_feedback():
     current_user = get_current_user()
     user = str(current_user['_id'])
     if request.method == "GET":
-        rep = mongo.db.reports.find({
+        rep = mongo.db.reports.find({print("initial report")
+434
+    print(docss)
             "user": user,
             "type": "feedback",
         })
