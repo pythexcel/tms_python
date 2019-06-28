@@ -397,7 +397,7 @@ def load_all_checkin(all_chekin):
     return ret
 
 def add_checkin_data(weekly_report):
-    print('report whose select_days is to be found")
+    print("report whose select_days is to be found")
     print(weekly_report)
     select_days = weekly_report["select_days"]
     print("ID which arrived")
