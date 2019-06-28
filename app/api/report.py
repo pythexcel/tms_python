@@ -429,7 +429,11 @@ def get_manager_weekly_list_all():
             "$in": juniors
         }
     }).sort("created_at", 1)
+    print("initial report")
+    print(docss)
     docss = [add_checkin_data(serialize_doc(doc)) for doc in docss]
+    print("final report")
+    print(docss)
     return jsonify(docss), 200
 
 
