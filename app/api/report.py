@@ -373,9 +373,12 @@ def delete_weekly(weekly_id):
     return jsonify(str(docs))
 
 def load_checkin(id):
+    print("load checkin id")
+    print(id)
     ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
     })
+    print(ret)
     return serialize_doc(ret)
 
 
@@ -395,7 +398,11 @@ def load_all_checkin(all_chekin):
 
 def add_checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
+    print("ID which arrived")
+    print(select_days)
     select_days = [load_checkin(day) for day in select_days]
+    print(select_days)
+    print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
