@@ -401,8 +401,12 @@ def add_checkin_data(weekly_report):
     print(weekly_report)
     select_days = weekly_report["select_days"]
     if select_days is None:
+        print("under None loop")
+        print("NONE LOOP")
         select_days = None
     else:
+        print("ID FOUND LOOP")
+        print("id found loop")
         select_days = [load_checkin(day) for day in select_days]
     print("data which is loaded")
     all_chekin = weekly_report['user']
