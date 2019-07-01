@@ -400,18 +400,16 @@ def add_checkin_data(weekly_report):
     print("report whose select_days is to be found")
     print(weekly_report)
     select_days = weekly_report["select_days"]
-    print("ID which arrived")
-    print(select_days)
-    select_days = [load_checkin(day) for day in select_days]
-    print(select_days)
+    if select_days is None:
+        select_days = None
+    else:
+        select_days = [load_checkin(day) for day in select_days]
     print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
     return weekly_report
-
-
 
 
 @bp.route("/manager_weekly_all", methods=["GET"])
