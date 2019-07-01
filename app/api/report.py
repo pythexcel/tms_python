@@ -302,7 +302,7 @@ def add_weekly_checkin():
     username = current_user['username']
     slack = current_user['slack_id']
  
-    if not k_highlight:
+    if not k_highlight,select_days:
         return jsonify({"msg": "Invalid Request"}), 400
     
     reviewed = False
