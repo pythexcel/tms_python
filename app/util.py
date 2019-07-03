@@ -52,6 +52,7 @@ def slack_message(msg):
     response = requests.post(
         webhook_url, json=slackmsg,
         headers={'Content-Type': 'application/json'})
+
 #function for find slack_token
 def load_token():
     token = mongo.db.slack_tokens.find_one({

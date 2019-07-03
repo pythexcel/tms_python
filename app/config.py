@@ -1,5 +1,5 @@
-URL = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/API_HR/api.php'
-URL_details = 'http://176.9.137.77/hr/ReactReduxHR/backend/attendance/sal_info/api.php'
+URL = 'http://176.9.137.77/dynamic_hr/ReactReduxHR/backend/attendance/API_HR/api.php'
+URL_details = 'http://176.9.137.77/dynamic_hr/ReactReduxHR/backend/attendance/sal_info/api.php'
 #secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
 default={
             "monthly_remainder":"Slack_id: Please create your monthly report",
