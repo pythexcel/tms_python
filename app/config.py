@@ -6,7 +6,9 @@ default={
             "weekly_remainder2":"Slack_id: You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
             "review_activity":"Slack_id: you have weekly report's pending to be reviewed",
             "monthly_manager_reminder":"Slack_id: you have monthly report's pending to be reviewed",
-            "missed_checkin":"Slack_id: you have missed Date: checkin"
+            "missed_checkin":"Slack_id: you have missed Date: checkin",
+            "monthly_report_mesg":"Slack_id:your monthly report is reviewed by:Manager_name",
+            "weekly_report_mesg":"Slack_id:your weekly report is reviewed by:Manager_name"
             }
 
 
