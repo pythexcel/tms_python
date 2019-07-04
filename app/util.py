@@ -120,6 +120,29 @@ def missed_checkin():
         checkin=default['missed_checkin']
         return checkin
 
+def load_monthly_report_mesg():
+    msg = mongo.db.schdulers_msg.find_one({
+        "monthly_report_mesg": {"$exists": True}
+    }, {"monthly_report_mesg": 1, '_id': 0})
+    if msg is not None:
+        review_msg = msg['monthly_report_mesg']
+        return review_msg
+    else:
+        rev_msg=default["monthly_report_mesg"]
+        return rev_msg
+
+
+def load_weekly_report_mesg():
+    msg = mongo.db.schdulers_msg.find_one({
+        "weekly_report_mesg": {"$exists": True}
+    }, {"weekly_report_mesg": 1, '_id': 0})
+    if msg is not None:
+        review_msg = msg['weekly_report_mesg']
+        return review_msg
+    else:
+        rev_msg=default["weekly_report_mesg"]
+        return rev_msg
+
 
 
 #function for find review_activity mesg from db
@@ -133,6 +156,7 @@ def load_review_activity():
     else:
         rev_msg=default["review_activity"]
         return rev_msg
+
 #function for find first two days weekly remienderr mesg
 def load_weekly1():
     msg = mongo.db.schdulers_msg.find_one({
@@ -144,6 +168,7 @@ def load_weekly1():
     else:
         week_mesg=default["weekly_remainder1"]
         return week_mesg
+
 #function for find first two days weekly remienderr mesg
 def load_weekly2():
     msg = mongo.db.schdulers_msg.find_one({

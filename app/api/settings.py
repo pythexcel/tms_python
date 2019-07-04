@@ -107,6 +107,8 @@ def slack_schduler():
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
         missed_checkin = request.json.get("missed_checkin")
+        weekly_report_mesg=request.json.get("weekly_report_mesg")
+        monthly_report_mesg=request.json.get("monthly_report_mesg")
         ret = mongo.db.schdulers_msg.update({
         }, {
             "$set": {
@@ -115,7 +117,9 @@ def slack_schduler():
                 "weekly_remainder2":weekly_remainder2,
                 "review_activity":review_activity,
                 "monthly_manager_reminder":monthly_manager_reminder,
-                "missed_checkin":missed_checkin
+                "missed_checkin":missed_checkin,
+                "weekly_report_mesg":weekly_report_mesg,
+                "monthly_report_mesg":monthly_report_mesg
             }
         },upsert=True)
         return jsonify(str(ret))

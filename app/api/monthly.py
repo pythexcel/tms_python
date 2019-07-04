@@ -9,7 +9,7 @@ import json
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
-from app.util import slack_message, slack_msg
+from app.util import slack_message, slack_msg,load_monthly_report_mesg
 from slackclient import SlackClient
 import datetime
 from flask_jwt_extended import (
@@ -250,6 +250,7 @@ def get_manager_monthly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_monthly_list(monthly_id):
+    mesg=load_monthly_report_mesg()
     current_user = get_current_user()
     manager_name = current_user['username']
     if not request.json:
@@ -306,8 +307,10 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
+                mesgg=mesg.replace("Slack_id:", "<@" + slack + ">!")
+                messag=mesgg.replace(":Manager_name", " " + manager_name)
                 slack_message(
-                    msg="Hi" + ' ' + "<@" + slack + ">!" + ' ' + "your report is reviewed by" + ' ' + manager_name)
+                    msg=messag)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400

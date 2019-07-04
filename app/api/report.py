@@ -12,7 +12,7 @@ import requests
 
 
 from app.util import get_manager_juniors
-from app.util import load_token
+from app.util import load_token,load_weekly_report_mesg
 import datetime
 
 
@@ -444,6 +444,7 @@ def get_manager_weekly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_weekly_list(weekly_id=None):
+    mesg=load_weekly_report_mesg()
     current_user = get_current_user()
     manager_name = current_user['username']
     if request.method == "GET":
@@ -538,7 +539,9 @@ def get_manager_weekly_list(weekly_id=None):
                                         "priority": 0,
                                         "Message": "Your weekly report has been reviewed by "" " + manager_name
                                     }}}, upsert=True)
-                            slack_message(msg="Hi"+' '+"<@"+slack+">!"+' ' + "your report is reviewed by" + ' ' + manager_name)
+                            mesgg=mesg.replace("Slack_id:", "<@" + slack + ">!")
+                            messag=mesgg.replace(":Manager_name", " " + manager_name)
+                            slack_message(msg=messag)
                             return jsonify(str(ret)), 200
                         else:
                             return jsonify(msg="Already reviewed this report"), 400
