@@ -15,7 +15,7 @@ default={
 
 
 
-checkin_score_scheduler_seconds = 900000
+checkin_score_scheduler_seconds = 90
 
 overall_score_scheduler_hour = 16
 overall_score_scheduler_min = 30
@@ -23,8 +23,8 @@ overall_score_scheduler_min = 30
 reset_cron_scheduler_hour =18
 reset_cron_scheduler_min = 10
 
-missed_checkin_scheduler_hour =12
-missed_checkin_scheduler_min =22
+missed_checkin_scheduler_hour =11
+missed_checkin_scheduler_min =30
 
 weekly_remainder_scheduler_hour=16
 weekly_remainder_scheduler_min=45
