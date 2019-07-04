@@ -302,7 +302,7 @@ def add_weekly_checkin():
     username = current_user['username']
     slack = current_user['slack_id']
  
-    if not k_highlight:
+    if not k_highlight and select_days:
         return jsonify({"msg": "Invalid Request"}), 400
     
     reviewed = False
@@ -373,9 +373,12 @@ def delete_weekly(weekly_id):
     return jsonify(str(docs))
 
 def load_checkin(id):
+    print("load checkin id")
+    print(id)
     ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
     })
+    print(ret)
     return serialize_doc(ret)
 
 
@@ -394,15 +397,23 @@ def load_all_checkin(all_chekin):
     return ret
 
 def add_checkin_data(weekly_report):
+    print("report whose select_days is to be found")
+    print(weekly_report)
     select_days = weekly_report["select_days"]
-    select_days = [load_checkin(day) for day in select_days]
+    if select_days is None:
+        print("under None loop")
+        print("NONE LOOP")
+        select_days = None
+    else:
+        print("ID FOUND LOOP")
+        print("id found loop")
+        select_days = [load_checkin(day) for day in select_days]
+    print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
     return weekly_report
-
-
 
 
 @bp.route("/manager_weekly_all", methods=["GET"])
@@ -423,6 +434,8 @@ def get_manager_weekly_list_all():
         }
     }).sort("created_at", 1)
     docss = [add_checkin_data(serialize_doc(doc)) for doc in docss]
+    print("final report")
+    print(docss)
     return jsonify(docss), 200
 
 
