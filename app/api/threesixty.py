@@ -159,3 +159,88 @@ def update_seen(id):
     )
     return jsonify(str(ret))
 
+#Api for check if review_mandatory is on or user have submited his 360 review to manager.
+@bp.route("/360_review_mandatory", methods=["GET"])
+@jwt_required
+def review_mandatory():
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    current_user = get_current_user()
+    state = mongo.db.schdulers_setting.find_one({
+        "revew_360_setting": {"$exists": True}
+    }, {"revew_360_setting": 1, '_id': 0})
+    status = state['revew_360_setting']
+    if status==1:
+        reviews = mongo.db.reviews_360.find_one({
+        "username":current_user["username"],
+        "month":month
+        })
+        if not reviews:
+            return jsonify({"is_reviwed":False})
+        else:
+            return jsonify({"is_reviwed":True})
+    else:
+        return jsonify({"is_reviwed":True})
+
+
+
+#Api for find same KPI members
+@bp.route("/Same_kpi_members", methods=["GET"])
+@jwt_required
+def Same_kpi_members():
+    current_user = get_current_user()
+    kpi_id=current_user["kpi_id"]
+    _id=current_user["_id"]
+    revie = mongo.db.users.find({
+        "kpi_id":kpi_id,
+        })
+    revie = [serialize_doc(doc) for doc in revie]    
+    return jsonify(revie)
+
+
+#Api for submit review against same kpi members or get review from same kpi members.
+@bp.route("/Same_kpi_reviews", methods=["POST","GET"])
+@jwt_required
+def Same_kpi_reviews():
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+    
+    if request.method == "GET":
+        rev = mongo.db.peer_to_peer.find({
+        "user_id":str(current_user["_id"]),
+        "month":month
+        })
+        rev = [serialize_doc(doc) for doc in rev]
+        return jsonify(rev)
+
+    if request.method == "POST":
+        comment = request.json.get("comment", None)
+        user_id = request.json.get("user_id", None)
+        ret = mongo.db.peer_to_peer.insert_one({
+            "comment":comment,
+            "month":month,
+            "kpi_id":current_user['kpi_id'],
+            "reviewer_id":str(current_user['_id']),
+            "user_id":user_id
+        }).inserted_id
+        return jsonify(str(ret))
+
+
+
+#Api for get review which current user submit to others
+@bp.route("/Same_kpi_self_reviews", methods=["GET"])
+@jwt_required
+def Same_kpi_self_reviews():
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    month = today.strftime("%B")
+
+    rev = mongo.db.peer_to_peer.find({
+        "reviewer_id":str(current_user["_id"]),
+        "month":month
+        })
+    rev = [serialize_doc(doc) for doc in rev]
+    return jsonify(rev)
+
+
