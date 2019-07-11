@@ -177,50 +177,95 @@ def add_monthly_checkin():
         #checking if join date is less than 7 or not if not subtract 7 from it
         if datee > 7:
             join_date = datee - 7
+            allow=join_date+10
         else:
             join_date = datee
+            allow = join_date+10
 
         print(join_date)
         today_date = int(today.strftime("%d"))
         print(today_date)
         #check if today date is greater than join date allow user to create monthly report
+        today1 = datetime.datetime.utcnow()
+        formatted_date = today1.strftime("%d-%B-%Y")
         if today_date > join_date:
             # check if len of find reports is more than or equal to 3 allow user to make report else not 
             if len(rep) >= 3:
-                if not request.json:
-                    abort(500)
-                report = request.json.get("report", [])
-                reviewed = False
-                users = mongo.db.users.find({
-                    "_id": ObjectId(current_user["_id"])
-                })
-                users = [serialize_doc(doc) for doc in users]
-                managers_data = []
-                # get all data of managers from current user
-                for data in users:
-                    for mData in data['managers']:
-                        mData['reviewed'] = reviewed
-                        managers_data.append(mData)
+                if formatted_date>"21-July-2019":
+                    if today_date < allow:
+                        if not request.json:
+                            abort(500)
+                        report = request.json.get("report", [])
+                        reviewed = False
+                        users = mongo.db.users.find({
+                            "_id": ObjectId(current_user["_id"])
+                        })
+                        users = [serialize_doc(doc) for doc in users]
+                        managers_data = []
+                        # get all data of managers from current user
+                        for data in users:
+                            for mData in data['managers']:
+                                mData['reviewed'] = reviewed
+                                managers_data.append(mData)
 
-                # check if report already exist don't allow user to make a new one for current month        
-                rep = mongo.db.reports.find_one({
-                    "user": str(current_user["_id"]),
-                    "type": "monthly",
-                    "month": month,
-                })
-                if rep is not None:
-                    return jsonify({"msg": "You have already submitted your monthly report"}), 409
+                        # check if report already exist don't allow user to make a new one for current month        
+                        rep = mongo.db.reports.find_one({
+                            "user": str(current_user["_id"]),
+                            "type": "monthly",
+                            "month": month,
+                        })
+                        if rep is not None:
+                            return jsonify({"msg": "You have already submitted your monthly report"}), 409
+                        else:
+                            ret = mongo.db.reports.insert_one({
+                                "user": str(current_user["_id"]),
+                                "created_at": datetime.datetime.utcnow(),
+                                "type": "monthly",
+                                "is_reviewed": managers_data,
+                                "report": report,
+                                "month": month
+                            }).inserted_id
+                            slack_message(msg="<@" + slack + ">!" + ' ''have created monthly report')
+                            return jsonify(str(ret)), 200
+                    else:
+                        return jsonify({"msg": " you can submit your monthly report till " + str(join_date+10) +
+                                    "th of this month"}), 405
+
                 else:
-                    ret = mongo.db.reports.insert_one({
+                    if not request.json:
+                        abort(500)
+                    report = request.json.get("report", [])
+                    reviewed = False
+                    users = mongo.db.users.find({
+                        "_id": ObjectId(current_user["_id"])
+                    })
+                    users = [serialize_doc(doc) for doc in users]
+                    managers_data = []
+                    # get all data of managers from current user
+                    for data in users:
+                        for mData in data['managers']:
+                            mData['reviewed'] = reviewed
+                            managers_data.append(mData)
+
+                    # check if report already exist don't allow user to make a new one for current month        
+                    rep = mongo.db.reports.find_one({
                         "user": str(current_user["_id"]),
-                        "created_at": datetime.datetime.utcnow(),
                         "type": "monthly",
-                        "is_reviewed": managers_data,
-                        "report": report,
-                        "month": month
-                    }).inserted_id
-                    slack_message(msg="<@" + slack + ">!" + ' ''have created monthly report')
-                    return jsonify(str(ret)), 200
+                        "month": month,
+                    })
+                    if rep is not None:
+                        return jsonify({"msg": "You have already submitted your monthly report"}), 409
+                    else:
+                        ret = mongo.db.reports.insert_one({
+                            "user": str(current_user["_id"]),
+                            "created_at": datetime.datetime.utcnow(),
+                            "type": "monthly",
+                            "is_reviewed": managers_data,
+                            "report": report,
+                            "month": month
+                        }).inserted_id
+                        slack_message(msg="<@" + slack + ">!" + ' ''have created monthly report')
+                        return jsonify(str(ret)), 200
             else:
                 return jsonify({"msg": "You must have atleast 3 weekly report to create a monthly report"}), 405       
         else:
@@ -228,6 +273,7 @@ def add_monthly_checkin():
                                    " you can submit your monthly report after " + str(join_date) +
                                    "th of this month"}), 405
 
+        
 #manager to find all their juniors monthly report
 @bp.route("/manager_monthly_all", methods=["GET"])
 @jwt_required
