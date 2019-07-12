@@ -138,12 +138,13 @@ def monthly_remainder():
                 print(today_date)
                 print("joining date")
                 print(join_date)
-                #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
+                #first we make a allowdate by addding 10 in user joining date..
+                #checking if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
                 if today_date<allow_date:
                     print("ifffff")
                     if role != 'Admin':
                         print("Not admin")
-                        # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
+                        # checking of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
                         if today_date > join_date:
                             monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
                             mesg=monthly_mesg.replace(":Date",""+str(allow_date)+"")
@@ -155,22 +156,25 @@ def monthly_remainder():
                 else:
                     print("adding report")
                     reviewed = False
-                    #Finding kpi id of current user for getting assign kpi or era details which we use in default report creation
+                    #Finding kpi id of current user for getting assign kpi or era details because every user have diffrent kpi or era assign. we use these kpis in default report creation
                     kpis = mongo.db.kpi.find_one({
                         "_id": ObjectId(kpi_id)
                     })
                     kpi_json = kpis['kpi_json']
                     era_json = kpis['era_json']
+                    #deleting 0th index of kpi array or era array because this object have extra details we don't need this.
                     del kpi_json[0]
                     del era_json[0]
+                    #define a blank list
                     kpi_j=[]
-                    #adding default comment or rating 
+                    #adding default comment or rating in array 
                     for kpi in kpi_json:
                         kpi["comment"]="you have not done your monthly report"
                         kpi['rating']=0
                         kpi_j.append(kpi)
-                    
+                    #define a blank list
                     era_j=[]
+                    #adding default comment or rating in array
                     for era in era_json:
                         era["comment"]="you have not done your monthly report"
                         era['rating']=0
@@ -179,7 +183,7 @@ def monthly_remainder():
                     print(kpi_j)
                     print(era_j)
 
-                    #finding managers details
+                    #finding user assign managers details
                     users = mongo.db.users.find({
                         "_id": ObjectId(ID_)
                     })
@@ -203,7 +207,7 @@ def monthly_remainder():
                         "monthly_cron": True
                     }).inserted_id
                     
-                    #finding automated created monthly reports for review by assign managers
+                    #finding automated created monthly reports by mothly cron true value(we added this field for only find reports) for review by assign managers
                     users = mongo.db.reports.find({"monthly_cron": True},{"_id": 1,"is_reviewed":1})
                     users = [serialize_doc(doc) for doc in users]
 
@@ -234,7 +238,7 @@ def monthly_remainder():
                                     "$set": {
                                         "is_reviewed.$.reviewed": True
                                     }})
-
+                            #updating cron value false
                             cron = mongo.db.reports.update({
                                 "_id": ObjectId(monthly)
                                     }, {
