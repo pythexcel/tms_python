@@ -424,6 +424,7 @@ def get_manager_weekly_list_all():
     last_monday = today - datetime.timedelta(days=today.weekday())
     current_user = get_current_user()
     juniors = get_manager_juniors(current_user['_id'])
+    repo=[]
     docss = mongo.db.reports.find({
         "type": "weekly",
         "created_at": {
@@ -434,9 +435,20 @@ def get_manager_weekly_list_all():
         }
     }).sort("created_at", 1)
     docss = [add_checkin_data(serialize_doc(doc)) for doc in docss]
-    print("final report")
-    print(docss)
-    return jsonify(docss), 200
+    for a in docss:
+        repo.append(a)
+    docs = mongo.db.reports.find({
+        "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+        "user": {
+            "$in": juniors
+        }
+    }).sort("created_at", 1)
+    docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
+    for b in docs:
+        if b not in repo:
+            repo.append(b)
+    return jsonify(repo), 200
 
 
 @bp.route("/manager_weekly", methods=["GET"])
