@@ -854,9 +854,12 @@ def delete_manager_response(weekly_id):
 @token.manager_required
 def skip_review(weekly_id):
     current_user = get_current_user()
+    name = current_user['username']
     #findng current user date of joining.
     doj = current_user['dateofjoining']
     #finding report by report id
+    reason = request.json.get("reason",None)
+    selected = request.json.get("selected",None)
     reports = mongo.db.reports.find({
         "_id": ObjectId(weekly_id),
         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
@@ -866,11 +869,33 @@ def skip_review(weekly_id):
     #finding all managers review status. is manager have done his review or not.
     review_check=[]
     for check in reports:
+        user=check['user']
         reviewed_array = check['is_reviewed']
         for review in reviewed_array:
             review_check.append(review['reviewed'])
+    
+    users = mongo.db.users.find({
+        "_id": ObjectId(user)
+        })
+    users = [serialize_doc(doc) for doc in users]
+    for user_info in users:
+        slack_id = user_info['slack_id']
     #checking if a single manager have done his review then allow the user to skip his review.
+    print("resonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+    print(reason)
+    if selected=="b" or selected=="a":
+        msg = "Weekly report is skipped by"+ ' '+name
+    else:
+        msg = "Weekly report is skipped by"+' '+name+' '+"because"+' '+reason
+    
     if 1 in review_check:
+        rep = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id)
+                }, {
+                "$push": {
+                    "skip_reason":msg }
+                }, upsert=False)
+    
         rep = mongo.db.reports.update({
                 "_id": ObjectId(weekly_id),
                 "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
@@ -878,7 +903,9 @@ def skip_review(weekly_id):
                 "$pull": {
                     "is_reviewed": {"_id": str(current_user["_id"])}
                 }}, upsert=False)
-        return jsonify(str(rep))
+        
+        slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by" +' '+name)
+        return jsonify({"status":"success"})
     else:
         #finding all assign managers_id
         manager_id = []
@@ -913,13 +940,22 @@ def skip_review(weekly_id):
                 oldest = min(join_date)
                 if doj == oldest:
                     rep = mongo.db.reports.update({
+                    "_id": ObjectId(weekly_id)
+                    }, {
+                    "$push": {
+                        "skip_reason":msg }
+                    }, upsert=False)    
+                    
+                    rep = mongo.db.reports.update({
                         "_id": ObjectId(weekly_id),
                         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
                     }, {
                         "$pull": {
                             "is_reviewed": {"_id": str(current_user["_id"])}
                         }}, upsert=False)
-                    return jsonify(str(rep))
+
+                    slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by"+' '+name)
+                    return jsonify({"status":"success"})
                 else:
                     return jsonify({"msg": "You cannot skip this report review"}), 400
             else:
@@ -932,13 +968,22 @@ def skip_review(weekly_id):
                 #if current manager weight is max then he can skip his review
                 if current_m_weight == max_weight:
                     rep = mongo.db.reports.update({
+                    "_id": ObjectId(weekly_id)
+                    }, {
+                    "$push": {
+                        "skip_reason":msg }
+                    }, upsert=False)
+                    
+                    rep = mongo.db.reports.update({
                         "_id": ObjectId(weekly_id),
                         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
                     }, {
                         "$pull": {
                             "is_reviewed": {"_id": str(current_user["_id"])}
                         }}, upsert=False)
-                    return jsonify(str(rep))
+                    
+                    slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by"+' '+name)
+                    return jsonify({"status":"success"})
                 else:
                     return jsonify({"msg": "You cannot skip this report review"}), 400
             else:
