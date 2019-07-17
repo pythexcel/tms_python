@@ -148,9 +148,8 @@ def monthly_remainder():
                         # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
                         if today_date > join_date:
                             monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
-                            mesg=monthly_mesg.replace(":Date",""+str(allow_date)+"")
-                            print(mesg)
-                            slack_message(msg=mesg)
+                            msg=monthly_mesg.replace(":Date",""+str(allow_date)+"")
+                            slack_message(msg=msg)
                             print('sended')
                         else:
                             print('wait')
