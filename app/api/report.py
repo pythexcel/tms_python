@@ -1,6 +1,6 @@
 from app import token
 from app import mongo
-from app.util import serialize_doc, get_manager_profile
+from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
@@ -846,12 +846,15 @@ def delete_manager_response(weekly_id):
         return jsonify(str(docs)), 200
     else:
         return jsonify({"msg": "You can no longer delete your submitted report"}), 400
-    
+
+
+
 @bp.route('/skip_review/<string:weekly_id>', methods=['POST'])
 @jwt_required
 @token.manager_required
 def skip_review(weekly_id):
     current_user = get_current_user()
+    message=load_weekly_notes()
     name = current_user['username']
     #findng current user date of joining.
     doj = current_user['dateofjoining']
@@ -902,7 +905,9 @@ def skip_review(weekly_id):
                     "is_reviewed": {"_id": str(current_user["_id"])}
                 }}, upsert=False)
         
-        slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by" +' '+name)
+        missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+        mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+        slack_message(msg=mesgg)
         return jsonify({"status":"success"})
     else:
         #finding all assign managers_id
@@ -951,11 +956,12 @@ def skip_review(weekly_id):
                         "$pull": {
                             "is_reviewed": {"_id": str(current_user["_id"])}
                         }}, upsert=False)
-
-                    slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by"+' '+name)
+                    missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+                    slack_message(msg=mesgg)
                     return jsonify({"status":"success"})
                 else:
-                    return jsonify({"msg": "You cannot skip this report review"}), 400
+                    return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
             else:
                 return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
         else:
@@ -979,11 +985,12 @@ def skip_review(weekly_id):
                         "$pull": {
                             "is_reviewed": {"_id": str(current_user["_id"])}
                         }}, upsert=False)
-                    
-                    slack_message(msg="Hi" + ' ' + "<@" + slack_id + ">!" + ' ' +"your weekly report is skiped by"+' '+name)
+                    missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+                    slack_message(msg=mesgg)
                     return jsonify({"status":"success"})
                 else:
-                    return jsonify({"msg": "You cannot skip this report review"}), 400
+                    return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
             else:
                 return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400        
 
