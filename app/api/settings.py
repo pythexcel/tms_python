@@ -79,6 +79,7 @@ def schdulers_setings():
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
         revew_360_setting=request.json.get("revew_360_setting",True)
+        missed_reviewed=request.json.get("missed_reviewed",True)
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
@@ -87,7 +88,8 @@ def schdulers_setings():
                 "recent_activity": recent_activity,
                 "review_activity": review_activity,
                 "monthly_manager_reminder": monthly_manager_reminder,
-                "revew_360_setting":revew_360_setting
+                "revew_360_setting":revew_360_setting,
+                "missed_reviewed":missed_reviewed
             }}, upsert=True)
         return jsonify(str(ret))
 
@@ -111,6 +113,7 @@ def slack_schduler():
         missed_checkin = request.json.get("missed_checkin")
         weekly_report_mesg=request.json.get("weekly_report_mesg")
         monthly_report_mesg=request.json.get("monthly_report_mesg")
+        missed_review_msg = request.json.get("missed_review_msg")
         ret = mongo.db.schdulers_msg.update({
         }, {
             "$set": {
@@ -121,7 +124,8 @@ def slack_schduler():
                 "monthly_manager_reminder":monthly_manager_reminder,
                 "missed_checkin":missed_checkin,
                 "weekly_report_mesg":weekly_report_mesg,
-                "monthly_report_mesg":monthly_report_mesg
+                "monthly_report_mesg":monthly_report_mesg,
+                "missed_review_msg":missed_review_msg
             }
         },upsert=True)
         return jsonify(str(ret))
