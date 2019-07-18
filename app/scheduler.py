@@ -341,7 +341,6 @@ def overall_reviewes():
                     for review in detail['review']:
                         if 'manager_weight' in review:
                             all_sum.append(review['rating'])
-                            p_difficulty.append(review['difficulty'])
                             all_weight.append(review['manager_weight'])
                         else:
                             pass
@@ -350,22 +349,6 @@ def overall_reviewes():
 
             print(all_sum)
             print(all_weight)
-            print("got all sum list")
-            difficulty_len = len(p_difficulty)
-            p_sum = sum(p_difficulty)
-            if difficulty_len and p_sum != 0:
-                project_difficulty = (p_sum / difficulty_len)
-                print(project_difficulty)
-                ret = mongo.db.users.update({
-                    "_id": ObjectId(id)
-                }, {
-                    "$set": {
-                        "project_difficulty": project_difficulty
-                    }
-                })
-                print(ret)
-            else:
-                pass
             Abc = len(all_sum)
             xyz = len(all_weight)
             print(Abc)

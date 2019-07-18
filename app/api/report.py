@@ -475,7 +475,6 @@ def get_manager_weekly_list(weekly_id=None):
         if not request.json:
             abort(500)
 
-        difficulty = request.json.get("difficulty", 0)
         rating = request.json.get("rating", 0)
         comment = request.json.get("comment", None)
 
@@ -518,7 +517,6 @@ def get_manager_weekly_list(weekly_id=None):
                             }, {
                                 "$push": {
                                     "review": {
-                                        "difficulty": difficulty,
                                         "rating": rating,
                                         "created_at": datetime.datetime.utcnow(),
                                         "comment": comment,
