@@ -333,7 +333,6 @@ def overall_reviewes():
         docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
         docs = [serialize_doc(doc) for doc in docs]
         if docs:
-            p_difficulty = []
             all_sum = []
             all_weight = []
             for detail in docs:
