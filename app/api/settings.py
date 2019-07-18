@@ -79,6 +79,7 @@ def schdulers_setings():
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
         revew_360_setting=request.json.get("revew_360_setting",True)
+        skip_review_setting=request.json.get("managerSkip",True)
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
@@ -87,7 +88,8 @@ def schdulers_setings():
                 "recent_activity": recent_activity,
                 "review_activity": review_activity,
                 "monthly_manager_reminder": monthly_manager_reminder,
-                "revew_360_setting":revew_360_setting
+                "revew_360_setting":revew_360_setting,
+                "skip_review":skip_review_setting
             }}, upsert=True)
         return jsonify(str(ret))
 
