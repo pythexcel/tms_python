@@ -109,6 +109,18 @@ def load_monthly_remainder():
         return monthly_remainder
 
 
+def load_missed_review():
+    msg = mongo.db.schdulers_msg.find_one({
+        "missed_review_msg": {"$exists": True}
+    }, {"missed_review_msg": 1, '_id': 0})
+    if msg is not None:
+        manager_reminder = msg['missed_review_msg']
+        return manager_reminder
+    else:
+        reminder=default['missed_review_msg']
+        return reminder
+
+
 def missed_checkin():
     msg = mongo.db.schdulers_msg.find_one({
         "missed_checkin": {"$exists": True}

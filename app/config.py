@@ -9,7 +9,8 @@ default={
             "monthly_manager_reminder":"Slack_id: you have monthly report's pending to be reviewed",
             "missed_checkin":"Slack_id: you have missed Date: checkin",
             "monthly_report_mesg":"Slack_id: your monthly report is reviewed by :Manager_name",
-            "weekly_report_mesg":"Slack_id: your weekly report is reviewed by :Manager_name"
+            "weekly_report_mesg":"Slack_id: your weekly report is reviewed by :Manager_name",
+            "missed_review_msg":"Slack_id: you have weekly report's pending to be reviewed of Date: this week"
             }
 
 
@@ -43,3 +44,6 @@ monthly_remainder_scheduler_min=45
 
 monthly_manager_reminder_scheduler_hour=14
 monthly_manager_reminder_scheduler_min=30
+
+missed_review_activity_scheduler_hour=15
+missed_review_activity_scheduler_min=28

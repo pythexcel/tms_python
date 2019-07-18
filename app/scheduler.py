@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import URL
 from bson.objectid import ObjectId
-from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review
 from app import mongo
 import numpy as np
 from app.util import slack_message,secret_key
@@ -699,6 +699,50 @@ def review_activity():
         for ids in managers_name:
             review_act_mesg=review_activity_mesg.replace("Slack_id:", "<@" + ids + ">!")    
             slack_message(msg=review_act_mesg) 
+
+
+def missed_review_activity(): 
+    print("running")
+    state = mongo.db.schdulers_setting.find_one({
+        "missed_reviewed": {"$exists": True}
+    }, {"missed_reviewed": 1, '_id': 0})
+    status = state['missed_reviewed']
+    if status == 1:
+        missed_review_mesg=load_missed_review()
+        today = datetime.datetime.utcnow()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        reports = mongo.db.reports.find({"cron_review_activity": False,
+                                        "is_reviewed": {'$elemMatch': {"reviewed": False}},
+                                        "type": "weekly",
+                                        "created_at": {
+                    "$lt": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+                }})
+        reports = [serialize_doc(doc) for doc in reports]
+        managers_name = []
+        for detail in reports:
+            for data in detail['is_reviewed']:
+                if data['reviewed'] is False:   
+                    slack_id = data['_id']
+                    print(slack_id)
+                    created = detail['created_at']
+                    date = created.strftime("%Y-%m-%d")
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                    use = [serialize_doc(doc) for doc in use]
+                    for data in use:
+                        slack = data['slack_id']
+                        mang_id = data['_id']
+                        if slack not in managers_name:
+                            managers_name.append(slack)
+        for ids in managers_name:
+            review_act_mesg=missed_review_mesg.replace("Slack_id:", "<@" + ids + ">!")    
+            mesgg=review_act_mesg.replace("Date:",""+date+"")
+            slack_message(msg=mesgg) 
+
+
+
+
+
+
 
  
 def manager_update():
