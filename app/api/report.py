@@ -1034,6 +1034,7 @@ def review_note():
     return jsonify({"status":"success"})
                         
 
+#Api for get notes which add on junior report. 
 @bp.route('/review_note/get_review', methods=['GET'])
 @jwt_required
 @token.manager_required
@@ -1049,6 +1050,7 @@ def review_note_get():
         })
     rev = [serialize_doc(doc) for doc in rev]
     return jsonify(rev)
+
 
 
 #Api for delete or update notes
