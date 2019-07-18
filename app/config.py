@@ -10,7 +10,7 @@ default={
             "missed_checkin":"Slack_id: you have missed Date: checkin",
             "monthly_report_mesg":"Slack_id: your monthly report is reviewed by :Manager_name",
             "weekly_report_mesg":"Slack_id: your weekly report is reviewed by :Manager_name",
-            "missed_review_msg":"Slack_id: you have weekly report's pending to be reviewed of Date: this week"
+            "missed_reviewed_mesg":"Slack_id: you have weekly report's pending to be reviewed of Date: this week"
             }
 
 
