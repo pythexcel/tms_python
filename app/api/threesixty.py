@@ -220,6 +220,7 @@ def Same_kpi_reviews():
         ret = mongo.db.peer_to_peer.insert_one({
             "comment":comment,
             "month":month,
+            "created_at": today,
             "kpi_id":current_user['kpi_id'],
             "reviewer_id":str(current_user['_id']),
             "user_id":user_id
@@ -242,5 +243,28 @@ def Same_kpi_self_reviews():
         })
     rev = [serialize_doc(doc) for doc in rev]
     return jsonify(rev)
+
+
+@bp.route('/delete_peer_report/<string:report_id>', methods=['DELETE'])
+@jwt_required
+def delete_peer_report(report_id):
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_day = datetime.datetime.utcnow() - datetime.timedelta(minutes=30)
+    print(last_day)
+    print(today)
+    report = mongo.db.peer_to_peer.find_one({
+        "_id": ObjectId(report_id),
+        "created_at": {"$gte": last_day}
+            })
+
+    if report:
+        docs = mongo.db.peer_to_peer.remove({
+            "_id": ObjectId(report_id),
+            "reviewer_id": str(current_user['_id']),
+        })
+        return jsonify(str(docs)), 200
+    else:
+        return jsonify({"msg": "You can not delete review after 30 minutes"}),403
 
 

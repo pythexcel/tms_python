@@ -1,6 +1,6 @@
 from app import token
 from app import mongo
-from app.util import serialize_doc, get_manager_profile
+from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
@@ -396,6 +396,31 @@ def load_all_checkin(all_chekin):
     ret = [serialize_doc(doc) for doc in ret]
     return ret
 
+
+def notes(selectdays):
+    for id in selectdays:
+        ret = mongo.db.reports.find_one({
+        "_id": ObjectId(id)
+        })
+        today = ret['created_at']
+        current_user = get_current_user()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        coming_monday = today + datetime.timedelta(days=-today.weekday(), weeks=1)
+        print(last_monday)
+        print(coming_monday)
+        user = ret['user']
+        print(user)
+        ret = mongo.db.weekly_notes.find({
+            "junior_id": user,
+            "manager_id": str(current_user['_id']),
+            "created_at": {
+                "$gte": last_monday,
+                "$lt": coming_monday}
+        })
+        ret = [serialize_doc(doc) for doc in ret]
+        return ret
+
+
 def add_checkin_data(weekly_report):
     print("report whose select_days is to be found")
     print(weekly_report)
@@ -407,12 +432,14 @@ def add_checkin_data(weekly_report):
     else:
         print("ID FOUND LOOP")
         print("id found loop")
+        note =(notes(select_days))
         select_days = [load_checkin(day) for day in select_days]
     print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
+    weekly_report['note'] = note
     return weekly_report
 
 
@@ -424,6 +451,7 @@ def get_manager_weekly_list_all():
     last_monday = today - datetime.timedelta(days=today.weekday())
     current_user = get_current_user()
     juniors = get_manager_juniors(current_user['_id'])
+    repo=[]
     docss = mongo.db.reports.find({
         "type": "weekly",
         "created_at": {
@@ -434,9 +462,20 @@ def get_manager_weekly_list_all():
         }
     }).sort("created_at", 1)
     docss = [add_checkin_data(serialize_doc(doc)) for doc in docss]
-    print("final report")
-    print(docss)
-    return jsonify(docss), 200
+    for a in docss:
+        repo.append(a)
+    docs = mongo.db.reports.find({
+        "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+        "user": {
+            "$in": juniors
+        }
+    }).sort("created_at", 1)
+    docs = [add_checkin_data(serialize_doc(doc)) for doc in docs]
+    for b in docs:
+        if b not in repo:
+            repo.append(b)
+    return jsonify(repo), 200
 
 
 @bp.route("/manager_weekly", methods=["GET"])
@@ -463,7 +502,6 @@ def get_manager_weekly_list(weekly_id=None):
         if not request.json:
             abort(500)
 
-        difficulty = request.json.get("difficulty", 0)
         rating = request.json.get("rating", 0)
         comment = request.json.get("comment", None)
 
@@ -506,7 +544,6 @@ def get_manager_weekly_list(weekly_id=None):
                             }, {
                                 "$push": {
                                     "review": {
-                                        "difficulty": difficulty,
                                         "rating": rating,
                                         "created_at": datetime.datetime.utcnow(),
                                         "comment": comment,
@@ -834,45 +871,217 @@ def delete_manager_response(weekly_id):
         return jsonify(str(docs)), 200
     else:
         return jsonify({"msg": "You can no longer delete your submitted report"}), 400
-    
+
+
 @bp.route('/skip_review/<string:weekly_id>', methods=['POST'])
 @jwt_required
 @token.manager_required
 def skip_review(weekly_id):
     current_user = get_current_user()
+    message=load_weekly_notes()
+    name = current_user['username']
+    #findng current user date of joining.
     doj = current_user['dateofjoining']
-    print(doj)
+    #finding report by report id
+    reason = request.json.get("reason",None)
+    selected = request.json.get("selected",None)
     reports = mongo.db.reports.find({
         "_id": ObjectId(weekly_id),
         "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
         }
     })
     reports = [serialize_doc(doc) for doc in reports]
-    manager_id = []
-    for data in reports:
-        for elem in data['is_reviewed']:
-            manager_id.append(ObjectId(elem['_id']))
-    managers = mongo.db.users.find({
-        "_id": {"$in": manager_id}
-    })
-    managers = [serialize_doc(doc) for doc in managers]
-    join_date = []
-    for dates in managers:
-        join_date.append(dates['dateofjoining'])
-    if len(join_date) > 1:
-        oldest = min(join_date)
-        if doj == oldest:
-            rep = mongo.db.reports.update({
+    #finding all managers review status. is manager have done his review or not.
+    review_check=[]
+    for check in reports:
+        user=check['user']
+        reviewed_array = check['is_reviewed']
+        for review in reviewed_array:
+            review_check.append(review['reviewed'])
+    
+    users = mongo.db.users.find({
+        "_id": ObjectId(user)
+        })
+    users = [serialize_doc(doc) for doc in users]
+    for user_info in users:
+        slack_id = user_info['slack_id']
+    #checking if a single manager have done his review then allow the user to skip his review.
+    print(reason)
+    if selected=="b" or selected=="a":
+        msg = "Weekly report is skipped by"+ ' '+name
+    else:
+        msg = "Weekly report is skipped by"+' '+name+' '+"because"+' '+reason
+    
+    if 1 in review_check:
+        rep = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id)
+                }, {
+                "$push": {
+                    "skip_reason":msg }
+                }, upsert=False)
+    
+        rep = mongo.db.reports.update({
                 "_id": ObjectId(weekly_id),
                 "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
             }, {
                 "$pull": {
                     "is_reviewed": {"_id": str(current_user["_id"])}
                 }}, upsert=False)
-            return jsonify(str(rep))
-        else:
-            return jsonify({"msg": "You cannot skip this report review"}), 400
+        
+        missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+        mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+        slack_message(msg=mesgg)
+        return jsonify({"status":"success"})
     else:
-        return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
+        #finding all assign managers_id
+        manager_id = []
+        for data in reports:
+            for elem in data['is_reviewed']:
+                manager_id.append(ObjectId(elem['_id']))
+        #finding all assign managers weights and current_manager weights
+        manager_weight = []
+        current_manag_weight=[]
+        for manager_data in reports:
+            for elem in manager_data['is_reviewed']:
+                manager_weight.append(elem['weight'])
+                if elem['_id'] == str(current_user["_id"]):
+                    current_manag_weight.append(elem['weight'])
+        #finding all mangers by id
+        managers = mongo.db.users.find({
+            "_id": {"$in": manager_id}
+        })
+        managers = [serialize_doc(doc) for doc in managers]
+        #finding managers join date.
+        join_date = []
+        for dates in managers:
+            join_date.append(dates['dateofjoining'])
+    
+        for weig in current_manag_weight:
+            current_m_weight = weig
+        no_of_time = manager_weight.count(current_m_weight)
+        #checking if two managers have same weights.
+        if no_of_time > 1:
+            #checking that assign manager is greater then one or not if a single manager left then he can not skip report
+            if len(join_date) > 1:
+                oldest = min(join_date)
+                if doj == oldest:
+                    rep = mongo.db.reports.update({
+                    "_id": ObjectId(weekly_id)
+                    }, {
+                    "$push": {
+                        "skip_reason":msg }
+                    }, upsert=False)    
+                    
+                    rep = mongo.db.reports.update({
+                        "_id": ObjectId(weekly_id),
+                        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+                    }, {
+                        "$pull": {
+                            "is_reviewed": {"_id": str(current_user["_id"])}
+                        }}, upsert=False)
+
+                    missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+                    slack_message(msg=mesgg)
+                    return jsonify({"status":"success"})
+                else:
+                    return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
+            else:
+                return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
+        else:
+            #checking that assign manager is greater then one or not if a single manager left then he can not skip report
+            if len(manager_weight)>1:
+                #finding max weight in weight list
+                max_weight = max(manager_weight)
+                #if current manager weight is max then he can skip his review
+                if current_m_weight == max_weight:
+                    rep = mongo.db.reports.update({
+                    "_id": ObjectId(weekly_id)
+                    }, {
+                    "$push": {
+                        "skip_reason":msg }
+                    }, upsert=False)
+                    
+                    rep = mongo.db.reports.update({
+                        "_id": ObjectId(weekly_id),
+                        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+                    }, {
+                        "$pull": {
+                            "is_reviewed": {"_id": str(current_user["_id"])}
+                        }}, upsert=False)
+                    
+                    missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
+                    mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
+                    slack_message(msg=mesgg)
+                    return jsonify({"status":"success"})
+                else:
+                    return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
+            else:
+                return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400        
 
 
+
+#Api for add note in weekly
+@bp.route('/review_note', methods=['POST'])
+@jwt_required
+@token.manager_required
+def review_note():
+    current_user = get_current_user()
+    comment = request.json.get("comment",None)
+    junior_id = request.json.get("junior_id",None)
+    ret = mongo.db.weekly_notes.insert_one({
+                "comment":comment,
+                "manager_id":str(current_user['_id']),
+                "junior_id":junior_id,
+                "created_at":datetime.datetime.utcnow(),
+                "type":"weekly_note"
+            }).inserted_id
+    return jsonify({"status":"success"})
+                        
+
+#Api for get notes which add on junior report. 
+@bp.route('/review_note/get_review', methods=['GET'])
+@jwt_required
+@token.manager_required
+def review_note_get():
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
+    rev = mongo.db.weekly_notes.find({
+        "manager_id":str(current_user["_id"]),
+        "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+                }
+        })
+    rev = [serialize_doc(doc) for doc in rev]
+    return jsonify(rev)
+
+
+
+#Api for delete or update notes
+@bp.route('/review_note/delete_review/<string:note_id>', methods=['DELETE','PUT'])
+@jwt_required
+@token.manager_required
+def review_note_update(note_id):
+    current_user = get_current_user()
+    if request.method == "DELETE":    
+        docs = mongo.db.weekly_notes.remove({
+            "_id": ObjectId(note_id),
+            "manager_id": str(current_user['_id']),
+        })
+        return jsonify({"status":"success"}), 200    
+    if request.method == "PUT":
+        comment = request.json.get("comment",None)
+        junior_id = request.json.get("junior_id",None)
+        rep = mongo.db.weekly_notes.update({
+                "_id":ObjectId(note_id),
+                    }, {
+                    "$set": {
+                        "comment":comment,
+                        "manager_id":str(current_user['_id']),
+                        "junior_id":junior_id,
+                        "updated_at":datetime.datetime.utcnow(),
+                        "type":"weekly_note"
+                         }
+                    },upsert=True)
+        return jsonify({"status":"success"}), 200
