@@ -95,7 +95,20 @@ def load_monthly_manager_reminder():
         reminder=default['monthly_manager_reminder']
         return reminder
 
-
+def load_weekly_notes():
+    msg = mongo.db.schdulers_msg.find_one({
+        "weekly_report_notes": {"$exists": True}
+    }, {"weekly_report_notes": 1, '_id': 0})
+    if msg is not None:
+        manager_reminder = msg['weekly_report_notes']
+        return manager_reminder
+    else:
+        reminder=default['weekly_report_notes']
+        return reminder
+    
+    
+    
+    
 #function for find monthly_reminder mesg from db
 def load_monthly_remainder():
     msg = mongo.db.schdulers_msg.find_one({
