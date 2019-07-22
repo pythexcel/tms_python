@@ -396,6 +396,31 @@ def load_all_checkin(all_chekin):
     ret = [serialize_doc(doc) for doc in ret]
     return ret
 
+
+def notes(selectdays):
+    for id in selectdays:
+        ret = mongo.db.reports.find_one({
+        "_id": ObjectId(id)
+        })
+        today = ret['created_at']
+        current_user = get_current_user()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        coming_monday = today + datetime.timedelta(days=-today.weekday(), weeks=1)
+        print(last_monday)
+        print(coming_monday)
+        user = ret['user']
+        print(user)
+        ret = mongo.db.weekly_notes.find({
+            "junior_id": user,
+            "manager_id": str(current_user['_id']),
+            "created_at": {
+                "$gte": last_monday,
+                "$lt": coming_monday}
+        })
+        ret = [serialize_doc(doc) for doc in ret]
+        return ret
+
+
 def add_checkin_data(weekly_report):
     print("report whose select_days is to be found")
     print(weekly_report)
@@ -407,12 +432,14 @@ def add_checkin_data(weekly_report):
     else:
         print("ID FOUND LOOP")
         print("id found loop")
+        note =(notes(select_days))
         select_days = [load_checkin(day) for day in select_days]
     print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
+    weekly_report['note'] = note
     return weekly_report
 
 
@@ -846,7 +873,8 @@ def delete_manager_response(weekly_id):
         return jsonify(str(docs)), 200
     else:
         return jsonify({"msg": "You can no longer delete your submitted report"}), 400
-    
+
+
 @bp.route('/skip_review/<string:weekly_id>', methods=['POST'])
 @jwt_required
 @token.manager_required
@@ -879,7 +907,6 @@ def skip_review(weekly_id):
     for user_info in users:
         slack_id = user_info['slack_id']
     #checking if a single manager have done his review then allow the user to skip his review.
-    print("resonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
     print(reason)
     if selected=="b" or selected=="a":
         msg = "Weekly report is skipped by"+ ' '+name
@@ -988,3 +1015,68 @@ def skip_review(weekly_id):
                 return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400        
 
 
+
+#Api for add note in weekly
+@bp.route('/review_note', methods=['POST'])
+@jwt_required
+@token.manager_required
+def review_note():
+    current_user = get_current_user()
+    comment = request.json.get("comment",None)
+    junior_id = request.json.get("junior_id",None)
+    ret = mongo.db.weekly_notes.insert_one({
+                "comment":comment,
+                "manager_id":str(current_user['_id']),
+                "junior_id":junior_id,
+                "created_at":datetime.datetime.utcnow(),
+                "type":"weekly_note"
+            }).inserted_id
+    return jsonify({"status":"success"})
+                        
+
+#Api for get notes which add on junior report. 
+@bp.route('/review_note/get_review', methods=['GET'])
+@jwt_required
+@token.manager_required
+def review_note_get():
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
+    rev = mongo.db.weekly_notes.find({
+        "manager_id":str(current_user["_id"]),
+        "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+                }
+        })
+    rev = [serialize_doc(doc) for doc in rev]
+    return jsonify(rev)
+
+
+
+#Api for delete or update notes
+@bp.route('/review_note/delete_review/<string:note_id>', methods=['DELETE','PUT'])
+@jwt_required
+@token.manager_required
+def review_note_update(note_id):
+    current_user = get_current_user()
+    if request.method == "DELETE":    
+        docs = mongo.db.weekly_notes.remove({
+            "_id": ObjectId(note_id),
+            "manager_id": str(current_user['_id']),
+        })
+        return jsonify({"status":"success"}), 200    
+    if request.method == "PUT":
+        comment = request.json.get("comment",None)
+        junior_id = request.json.get("junior_id",None)
+        rep = mongo.db.weekly_notes.update({
+                "_id":ObjectId(note_id),
+                    }, {
+                    "$set": {
+                        "comment":comment,
+                        "manager_id":str(current_user['_id']),
+                        "junior_id":junior_id,
+                        "updated_at":datetime.datetime.utcnow(),
+                        "type":"weekly_note"
+                         }
+                    },upsert=True)
+        return jsonify({"status":"success"}), 200
