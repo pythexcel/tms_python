@@ -10,7 +10,7 @@ default={
             "monthly_report_mesg":"Slack_id: your monthly report is reviewed by :Manager_name",
             "weekly_report_mesg":"Slack_id: your weekly report is reviewed by :Manager_name",
             "weekly_report_notes":"Slack_id: your weekly report is skipped by :Manager_name",
-            "missed_reviewed_mesg":"Slack_id: you have weekly report's pending to be reviewed of Date: this week"
+            "missed_reviewed_mesg":"Slack_id: you have Reports: weekly report's pending to be reviewed before current week"
             }
 
 

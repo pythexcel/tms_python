@@ -701,23 +701,25 @@ def missed_review_activity():
                 }})
         reports = [serialize_doc(doc) for doc in reports]
         managers_name = []
+        all_ids = []
         for detail in reports:
             for data in detail['is_reviewed']:
                 if data['reviewed'] is False:   
                     slack_id = data['_id']
                     print(slack_id)
-                    created = detail['created_at']
-                    date = created.strftime("%Y-%m-%d")
                     use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
                     use = [serialize_doc(doc) for doc in use]
                     for data in use:
                         slack = data['slack_id']
                         mang_id = data['_id']
+                        all_ids.append(slack)
                         if slack not in managers_name:
                             managers_name.append(slack)
+
         for ids in managers_name:
+            coun = all_ids.count(ids)
             review_act_mesg=missed_review_mesg.replace("Slack_id:", "<@" + ids + ">!")    
-            mesgg=review_act_mesg.replace("Date:",""+date+"")
+            mesgg=review_act_mesg.replace("Reports:",""+str(coun)+"")
             slack_message(msg=mesgg) 
 
 
