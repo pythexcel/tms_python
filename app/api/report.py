@@ -454,6 +454,7 @@ def get_manager_weekly_list_all():
     repo=[]
     docss = mongo.db.reports.find({
         "type": "weekly",
+        "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
         "created_at": {
             "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
         },
