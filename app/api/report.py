@@ -336,7 +336,6 @@ def add_weekly_checkin():
         "extra": extra,
         "select_days": select_days,
         "user": str(current_user["_id"]),
-        #"username": username,
         "created_at": datetime.datetime.utcnow(),
         "type": "weekly",
         "is_reviewed": managers_data,
@@ -360,6 +359,79 @@ def add_weekly_checkin():
 
     slack_message(msg="<@"+slack+">!"+' ''have created weekly report at' + ' ' + str(formated_date))
     return jsonify(str(ret)), 200
+
+
+@bp.route('/weekly_automated', methods=["POST"])
+@jwt_required
+def add_weekly_automated():
+    current_user = get_current_user()
+    today = datetime.datetime.utcnow()
+    slack = current_user['slack_id']
+    formated_date = today.strftime("%d-%B-%Y")
+    reviewed = False
+    users = mongo.db.users.find({
+        "_id": ObjectId(current_user["_id"])
+    })
+    users = [serialize_doc(doc) for doc in users]
+    managers_data = []
+    for data in users:
+        for mData in data['managers']:
+            mData['reviewed'] = reviewed
+            managers_data.append(mData)
+
+    if 'kpi_id' in users:
+        kpi_doc = mongo.db.kpi.find_one({
+            "_id": ObjectId(current_user['kpi_id'])
+        })
+        kpi_name = kpi_doc['kpi_json']
+        era_name = kpi_doc['era_json']
+    else:
+        kpi_name = ""
+        era_name = ""
+        
+    managers_name = []
+    for elem in managers_data:
+        managers_name.append({"Id":elem['_id']})
+    
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
+    last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
+    ret = mongo.db.reports.find_one({
+        "user": str(current_user["_id"]),
+        "type": "daily",
+        "created_at": {
+            "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day),
+            "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)}
+    })
+    select_days = ret['_id']
+    ret = mongo.db.reports.insert_one({
+        "k_highlight": [],
+        "extra": "",
+        "select_days":str(select_days),
+        "user": str(current_user["_id"]),
+        "created_at": datetime.datetime.utcnow(),
+        "type": "weekly",
+        "is_reviewed": managers_data,
+        "cron_checkin": True,
+        "cron_review_activity": False,      
+        "kpi_json": kpi_name,
+        "era_json": era_name,
+        "difficulty": 0
+    }).inserted_id
+    slack_message(msg="<@"+slack+">!"+' ''have created weekly report at' + ' ' + str(formated_date))
+    return jsonify(str(ret)), 200
+
+
+
+
+
+
+
+
+
+
+
+
 
 @bp.route('/delete_weekly/<string:weekly_id>', methods=['DELETE'])
 @jwt_required

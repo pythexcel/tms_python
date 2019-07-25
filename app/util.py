@@ -53,6 +53,26 @@ def slack_message(msg):
         webhook_url, json=slackmsg,
         headers={'Content-Type': 'application/json'})
 
+def slack_attach(msg):
+    slackmsg = {"text": msg,
+                "attachments": [
+        {
+            "fallback": "Please add report manually",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "submit weekly ",
+                    "url": "https://t-m-s.herokuapp.com/#/app/week/WeeklyReport"
+                }
+            ]
+        }
+    ]
+    }
+    webhook_url = load_hook()
+    response = requests.post(
+        webhook_url, json=slackmsg,
+        headers={'Content-Type': 'application/json'})
+
 #function for find slack_token
 def load_token():
     token = mongo.db.slack_tokens.find_one({
