@@ -471,7 +471,7 @@ def weekly_remainder():
 
                 if role != 'Admin':
                     day = datetime.datetime.today().weekday()
-                    week_day=[4]
+                    week_day=[0,1]
                     last =[2,3]
                     if day in week_day:
                         weekly_mesg1=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
