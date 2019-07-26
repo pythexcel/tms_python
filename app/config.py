@@ -28,8 +28,8 @@ reset_cron_scheduler_min = 10
 missed_checkin_scheduler_hour =11
 missed_checkin_scheduler_min =30
 
-weekly_remainder_scheduler_hour=14
-weekly_remainder_scheduler_min=32
+weekly_remainder_scheduler_hour=13
+weekly_remainder_scheduler_min=2
 
 review_activity_scheduler_hour =12
 review_activity_scheduler_min =30

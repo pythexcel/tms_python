@@ -10,7 +10,6 @@ def serialize_doc(doc):
 
 
 def get_manager_profile(manager):
-
     ret = mongo.db.users.find_one({
         "_id": ObjectId(manager["_id"]),
         "status": "Enabled"
@@ -37,7 +36,6 @@ def secret_key():
     return secret_key
 
 
-
 #Function for find webhook_url
 def load_hook():
     url = mongo.db.slack_tokens.find_one({
@@ -62,7 +60,7 @@ def slack_attach(msg):
                 {
                     "type": "button",
                     "text": "submit weekly ",
-                    "url": "https://t-m-s.herokuapp.com/#/app/week/WeeklyReport"
+                    "url": "https://t-m-s.herokuapp.com/#/app/profile"
                 }
             ]
         }
