@@ -392,8 +392,6 @@ def add_weekly_automated():
     managers_name = []
     for elem in managers_data:
         managers_name.append({"Id":elem['_id']})
-    
-    today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
     last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
     ret = mongo.db.reports.find_one({
