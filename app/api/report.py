@@ -888,6 +888,8 @@ def skip_review(weekly_id):
         name = current_user['username']
         #findng current user date of joining.
         doj = current_user['dateofjoining']
+        today = datetime.datetime.utcnow()
+        month = today.strftime("%B")
         #finding report by report id
         reason = request.json.get("reason",None)
         selected = request.json.get("selected",None)
@@ -916,6 +918,23 @@ def skip_review(weekly_id):
         print(reason)
         if selected=="b" or selected=="a":
             msg = "Weekly report is skipped by"+ ' '+name
+        
+        elif selected=="c":
+            rep = mongo.db.reports.find_one({
+            "user": str(current_user["_id"]),
+            "type": "feedback",
+            "month": month,
+            })
+            if rep is not None:
+                return jsonify({"msg": "You have already submitted feedback for this month"}), 409
+            else:
+                report = mongo.db.reports.insert_one({
+                    "feedback": reason,
+                    "user": str(current_user["_id"]),
+                    "month": month,
+                    "type": "feedback",
+                }).inserted_id
+                msg = "Weekly report is skipped by"+ ' '+name
         else:
             msg = "Weekly report is skipped by"+' '+name+' '+"because"+' '+reason
         
