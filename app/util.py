@@ -60,7 +60,7 @@ def slack_attach(msg):
                 {
                     "type": "button",
                     "text": "submit weekly ",
-                    "url": "https://t-m-s.herokuapp.com/#/app/profile"
+                    "url": "https://t-m-s.herokuapp.com/#/app/automateWeekly"
                 }
             ]
         }
