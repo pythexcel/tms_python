@@ -913,28 +913,21 @@ def skip_review(weekly_id):
         users = [serialize_doc(doc) for doc in users]
         for user_info in users:
             slack_id = user_info['slack_id']
+            junior_name = user_info['username']
         #checking if a single manager have done his review then allow the user to skip his review.
         print("resonnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
         print(reason)
         if selected=="b" or selected=="a":
             msg = "Weekly report is skipped by"+ ' '+name
         
-        elif selected=="c":
-            rep = mongo.db.reports.find_one({
-            "user": str(current_user["_id"]),
-            "type": "feedback",
-            "month": month,
-            })
-            if rep is not None:
-                return jsonify({"msg": "You have already submitted feedback for this month"}), 409
-            else:
-                report = mongo.db.reports.insert_one({
-                    "feedback": reason,
-                    "user": str(current_user["_id"]),
-                    "month": month,
-                    "type": "feedback",
-                }).inserted_id
-                msg = "Weekly report is skipped by"+ ' '+name
+        elif selected=="d":
+            report = mongo.db.reports.insert_one({
+                "feedback": "I am no longer associated in any project with "+ junior_name,
+                "user": str(current_user["_id"]),
+                "month": month,
+                "type": "feedback",
+            }).inserted_id
+            msg = "Weekly report is skipped by"+ ' '+name
         else:
             msg = "Weekly report is skipped by"+' '+name+' '+"because"+' '+reason
         
