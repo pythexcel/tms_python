@@ -10,7 +10,6 @@ def serialize_doc(doc):
 
 
 def get_manager_profile(manager):
-
     ret = mongo.db.users.find_one({
         "_id": ObjectId(manager["_id"]),
         "status": "Enabled"
@@ -37,7 +36,6 @@ def secret_key():
     return secret_key
 
 
-
 #Function for find webhook_url
 def load_hook():
     url = mongo.db.slack_tokens.find_one({
@@ -48,6 +46,26 @@ def load_hook():
 #function for send mesg 
 def slack_message(msg):
     slackmsg = {"text": msg}
+    webhook_url = load_hook()
+    response = requests.post(
+        webhook_url, json=slackmsg,
+        headers={'Content-Type': 'application/json'})
+
+def slack_attach(msg):
+    slackmsg = {"text": msg,
+                "attachments": [
+        {
+            "fallback": "Please add report manually",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "Submit Automatic Weekly",
+                    "url": "http://tms.excellencetechnologies.in/#/app/automateWeekly"
+                }
+            ]
+        }
+    ]
+    }
     webhook_url = load_hook()
     response = requests.post(
         webhook_url, json=slackmsg,
