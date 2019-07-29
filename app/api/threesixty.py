@@ -41,7 +41,7 @@ def reviews_360():
         docs = mongo.db.reviews_360.find({
             "user": str(current_user["_id"]),
             "anon": False
-        })
+        }).sort("month", 1)
         docs = [serialize_doc(doc) for doc in docs]
         for s_doc in docs:
             review.append(s_doc)
@@ -49,7 +49,7 @@ def reviews_360():
         doc = mongo.db.reviews_360.find({
             "user": str(current_user["_id"]),
             "anon": True
-        },{"username":0,"user":0,"profileImage":0})
+        },{"username":0,"user":0,"profileImage":0}).sort("month", 1)
         doc = [serialize_doc(doc) for doc in doc]
         for single_d in doc:
             review.append(single_d)
@@ -105,14 +105,14 @@ def get_reviews():
     reviewss = [ ]
     review = mongo.db.reviews_360.find({
         "anon": False
-        })
+        }).sort("month", 1)
     review = [serialize_doc(doc) for doc in review]
     for doc in review:
         reviewss.append(doc)
 
     docss = mongo.db.reviews_360.find({
         "anon": True
-    },{"username":0,"user":0,"profileImage":0})
+    },{"username":0,"user":0,"profileImage":0}).sort("month", 1)
     docss=[serialize_doc(doc) for doc in docss]
     for dc in docss:
         reviewss.append(dc)
