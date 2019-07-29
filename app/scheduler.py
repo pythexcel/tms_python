@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import URL
 from bson.objectid import ObjectId
-from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review,slack_attach
 from app import mongo
 import numpy as np
 from app.util import slack_message,secret_key
@@ -406,7 +406,14 @@ def weekly_remainder():
         mesg1 = load_weekly2()
         mesg = load_weekly1()
         ID = []
-
+        state = mongo.db.schdulers_setting.find_one({
+        "weekly_automated": {"$exists": True}
+        }, {"weekly_automated": 1, '_id': 0})
+        status = state['weekly_automated']
+        if status == 1:
+            slack_function = slack_attach
+        else:
+            slack_function = slack_message
         for data in users:
             ID.append(data['_id'])
         reports = mongo.db.reports.find({
@@ -446,7 +453,6 @@ def weekly_remainder():
             }
             })
             repp = [serialize_doc(doc) for doc in repp]
-            print(len(repp))
             if repp:
                 name = doc['name']
                 profileimage = doc['profileImage']
@@ -469,10 +475,10 @@ def weekly_remainder():
                     last =[2,3]
                     if day in week_day:
                         weekly_mesg1=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
-                        slack_message(msg=weekly_mesg1)
+                        slack_function(msg=weekly_mesg1)
                     elif day in last:
                             weekly_mesg2=mesg1.replace("Slack_id:", "<@" + slack_id + ">!")
-                            slack_message(msg=weekly_mesg2)
+                            slack_function(msg=weekly_mesg2)
                     else:
                         if day == 4:
                             print("adding reportttttttttttttttttttttttttttt")
