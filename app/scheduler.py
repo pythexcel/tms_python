@@ -67,10 +67,10 @@ def monthly_remainder():
     }, {"monthly_remainder": 1, '_id': 0})
     status = state['monthly_remainder']
     if status == 1:
-        print("running")
         today = datetime.datetime.utcnow()
-        month = today.strftime("%B")
-        # find all the users
+        first = today.replace(day=1)
+        lastMonth = first - datetime.timedelta(days=1)
+        month = lastMonth.strftime("%B")
         users = mongo.db.users.find({"status": "Enabled"})
         users = [serialize_doc(user) for user in users]
     
@@ -108,7 +108,6 @@ def monthly_remainder():
             else:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
                                     "role": details['role']})
-        print("monthy or data doj")
     
         for doc in monthly_id:
             if "dateofjoining" and "kpi_id" in doc:
@@ -121,38 +120,16 @@ def monthly_remainder():
                 kpi_id = doc['kpi_id']
                 slack_id = doc['slack_id']
                 
-                doj = str(doc['dateofjoining'])
-                date = datetime.datetime.strptime(doj, "%Y-%m-%d %H:%M:%S")
-                datee = date.day
-                # check if joining date is less than 3 or not if not subtract 3 from it
-                print("date")
-                
-                if datee > 10:
-                    join_date = datee - 10
-                    allow_date = join_date + 10
-                else:
-                    join_date = datee
-                    allow_date = join_date + 10
-
                 today_date = int(today.strftime("%d"))
-                print(allow_date)
-                print("today_date")
-                print(today_date)
-                print("joining date")
-                print(join_date)
                 #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
-                if today_date<allow_date:
-                    print("ifffff")
+                if today_date<11:
                     if role != 'Admin':
-                        print("Not admin")
-                        # check of date of joinging of the user if today's date is just 3 days befor the user join date send him reminder else no reminder
-                        if today_date > join_date:
-                            monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
-                            msg=monthly_mesg.replace(":Date",""+str(allow_date)+"")
-                            slack_message(msg=msg)
-                            print('sended')
-                        else:
-                            print('wait')
+                        monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
+                        msg=monthly_mesg.replace(":Month",""+str(month)+"")
+                        slack_message(msg=msg)
+                        print('sended')
+                    else:
+                        print('wait')
                 else:
                     print("adding report")
                     reviewed = False
