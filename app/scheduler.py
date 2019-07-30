@@ -104,13 +104,13 @@ def monthly_remainder():
         for details in repp:
             if 'slack_id' and 'role' and "dateofjoining" and "kpi_id" in details:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'], "role": details['role'],
-                                                    "dateofjoining": details['dateofjoining'],"kpi_id":details['kpi_id']})
+                                                    "kpi_id":details['kpi_id']})
             else:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
                                     "role": details['role']})
     
         for doc in monthly_id:
-            if "dateofjoining" and "kpi_id" in doc:
+            if "kpi_id" in doc:
                 ID_ = doc['ID_']
                 mesg = load_monthly_remainder()
                 print(doc['name'])
