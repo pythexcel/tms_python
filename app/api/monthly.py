@@ -174,9 +174,9 @@ def add_monthly_checkin():
             "type": "weekly"
         })
         rep = [serialize_doc(doc) for doc in rep]
-        #checking if join date is less than 7 or not if not subtract 7 from it
-        if datee > 7:
-            join_date = datee - 7
+        #checking if join date is less than 10 or not if not subtract 10 from it
+        if datee > 10:
+            join_date = datee - 10
         else:
             join_date = datee
 
@@ -184,7 +184,7 @@ def add_monthly_checkin():
         today_date = int(today.strftime("%d"))
         print(today_date)
         #check if today date is greater than join date allow user to create monthly report
-        if today_date > join_date:
+        if today_date >= join_date:
             # check if len of find reports is more than or equal to 3 allow user to make report else not 
             if len(rep) >= 3:
                 if not request.json:
