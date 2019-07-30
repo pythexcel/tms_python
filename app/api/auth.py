@@ -10,7 +10,7 @@ import re
 from bson.objectid import ObjectId
 import requests
 import datetime
-from app.util import serialize_doc
+from app.util import serialize_doc,add_user_data,load_user
 from app.config import URL,URL_details
 from app import mongo
 from app import token
@@ -265,20 +265,6 @@ def profile():
         }
     })
     return jsonify(str(ret)), 200
-
-def load_user(user):
-    ret = mongo.db.users.find_one({
-        "_id": ObjectId(user)
-    },{"profile": 0})
-    return serialize_doc(ret)
-
-
-def add_user_data(user):
-    user_data = user['user']
-    user_data = (load_user(user_data))
-    user['user'] = user_data
-    return user
-
 
 @bp.route('/dashboard_profile/<string:id>', methods=['GET'])
 @jwt_required

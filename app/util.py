@@ -36,6 +36,18 @@ def secret_key():
     secret_key = msg['secret_key']
     return secret_key
 
+def load_user(user):
+    ret = mongo.db.users.find_one({
+        "_id": ObjectId(user)
+    },{"profile": 0})
+    return serialize_doc(ret)
+
+
+def add_user_data(user):
+    user_data = user['user']
+    user_data = (load_user(user_data))
+    user['user'] = user_data
+    return user
 
 
 #Function for find webhook_url
