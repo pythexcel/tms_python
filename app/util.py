@@ -59,7 +59,7 @@ def slack_attach(msg):
             "actions": [
                 {
                     "type": "button",
-                    "text": "Submit Automatic Weekly",
+                    "text": "Submit an automatic weekly report",
                     "url": "http://tms.excellencetechnologies.in/#/app/automateWeekly"
                 }
             ]
