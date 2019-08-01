@@ -1,7 +1,7 @@
 URL = 'https://hr.excellencetechnologies.in/backend/attendance/API_HR/api.php'
 URL_details = 'https://hr.excellencetechnologies.in/backend/attendance/sal_info/api.php'
 default={
-            "monthly_remainder":"Slack_id: Please create your monthly report",
+            "monthly_remainder":"Slack_id: Please create your monthly report of :Month till 10th of this month. Failing to do so will automatically set your monthly review to 0.",
             "weekly_remainder1":"Slack_id: you need to create your weekly",
             "weekly_remainder2":"Slack_id: You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
             "review_activity":"Slack_id: you have weekly report's pending to be reviewed",
