@@ -29,7 +29,6 @@ bp = Blueprint('report', __name__, url_prefix='/')
 def slack():
    current_user = get_current_user()
    slack = current_user['slack_id']
-   print(slack)
    token = load_token()
    sc = SlackClient(token)
    data = sc.api_call(
