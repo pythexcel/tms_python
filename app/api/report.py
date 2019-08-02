@@ -32,13 +32,14 @@ def slack():
    token = load_token()
    sc = SlackClient(token)
    data = sc.api_call(
-       "groups.list"
+       "users.conversations",
+       types = "private_channel",
+       user = slack
    )
-   element = data['groups']
    channels = []
+   element = data['channels']
    for ret in element:
-       if slack in ret['members']:
-           channels.append({'value': ret['id'], 'text': ret['name']})
+        channels.append({'value': ret['id'], 'text': ret['name']})
    return jsonify(channels)
 
 @bp.route('/checkin', methods=["POST"])
