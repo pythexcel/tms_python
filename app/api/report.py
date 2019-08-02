@@ -24,23 +24,47 @@ from flask_jwt_extended import (
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
+
+
+
 @bp.route('/slack', methods=["GET"])
 @jwt_required
 def slack():
-   current_user = get_current_user()
-   slack = current_user['slack_id']
-   token = load_token()
-   sc = SlackClient(token)
-   data = sc.api_call(
-       "users.conversations",
-       types = "private_channel",
-       user = slack
-   )
-   channels = []
-   element = data['channels']
-   for ret in element:
-        channels.append({'value': ret['id'], 'text': ret['name']})
-   return jsonify(channels)
+    current_user = get_current_user()
+    slack = current_user['slack_id']
+    token = load_token()
+    sc = SlackClient(token)
+    data = sc.api_call(
+        "users.conversations",
+        types = "private_channel",
+        user = slack
+    )
+    data_list = sc.api_call(
+       "groups.list"
+    )
+    channel = []
+    detail = data_list['groups']
+
+    for ret in detail:
+        if slack in ret['members']:
+               channel.append({'value': ret['id'], 'text': ret['name']})
+       
+    element = data['channels']
+    inner =[]
+    for dab in element:
+        inner.append({'value': dab['id'], 'text': dab['name']})
+           
+    total = inner + channel
+    result = []
+
+    for elem in total:
+        notSame = True
+        for dec in result:
+            if ((elem["text"] == dec["text"]) and (elem["value"] == dec["value"])):
+                notSame =False
+        if (notSame):
+            result.append(elem)
+    return jsonify(result)
 
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
