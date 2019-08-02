@@ -420,7 +420,7 @@ def add_weekly_automated():
                 ret = mongo.db.reports.insert_one({
                     "k_highlight": [{"KpiEra": "NA", "description": "NA"}],
                     "extra": "NA",
-                    "select_days":str(select_days),
+                    "select_days":[str(select_days)],
                     "user": str(current_user["_id"]),
                     "created_at": datetime.datetime.utcnow(),
                     "type": "weekly",
@@ -516,6 +516,14 @@ def add_checkin_data(weekly_report):
     print("report whose select_days is to be found")
     print(weekly_report)
     select_days = weekly_report["select_days"]
+    typ = type(select_days)
+    if typ==str:
+        print("lenn")
+        select_days = [select_days]
+    else: 
+        select_days = select_days
+    
+    print(select_days)
     if select_days is None:
         print("under None loop")
         print("NONE LOOP")
