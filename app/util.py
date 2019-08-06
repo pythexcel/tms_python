@@ -86,7 +86,8 @@ def slack_msg(channel, msg):
         sc.api_call(
             "chat.postMessage",
             channel=data,
-            text=msg
+            text=msg,
+            username = "TMS"
         )
 
 # function for getting all the juniors of managers
