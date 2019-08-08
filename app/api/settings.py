@@ -68,9 +68,11 @@ def slack_setings():
 def remove_months_checkin():
     six_months = datetime.datetime.today() + relativedelta(months=-6)
     print(six_months)
+    # find report greater than last 6 month date
     ret = mongo.db.reports.find({"type":"daily","created_at":{"$lte":six_months}
     })
     docs = [serialize_doc(doc) for doc in ret]
+    # find the reports and store in diffrent collection
     for data_id in docs:
         if "cron_checkin" in data_id:
             cron_checkin = data_id['cron_checkin']
@@ -93,6 +95,7 @@ def remove_months_checkin():
                 })
         else:
             pass        
+    # delete the reports from report collection    
     user_id = []
     for elem in docs:
         user_id.append(ObjectId(elem["_id"]))
