@@ -37,23 +37,28 @@ def slack():
     data = sc.api_call(
         "users.conversations",
         types = "private_channel",
-        user = slack
+        user = slack,
+        exclude_archived=True
     )
     data_list = sc.api_call(
-       "groups.list"
+       "groups.list",
+       exclude_archived=True
     )
     channel = []
+    
+        
     detail = data_list['groups']
 
     for ret in detail:
         if slack in ret['members']:
-               channel.append({'value': ret['id'], 'text': ret['name']})
-       
+            channel.append({'value': ret['id'], 'text': ret['name']})
+    inner =[]            
+        
     element = data['channels']
-    inner =[]
+    
     for dab in element:
         inner.append({'value': dab['id'], 'text': dab['name']})
-           
+        
     total = inner + channel
     result = []
 
