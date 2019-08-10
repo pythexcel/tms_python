@@ -499,8 +499,13 @@ def load_checkin(id):
     ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
     })
-    print(ret)
-    return serialize_doc(ret)
+    if not ret:
+        sap = mongo.db.archive_report.find_one({
+            "_id": id
+        })
+        return serialize_doc(sap)
+    else:
+        return serialize_doc(ret)
 
 
 def load_all_checkin(all_chekin):
@@ -523,13 +528,20 @@ def notes(selectdays):
         ret = mongo.db.reports.find_one({
         "_id": ObjectId(id)
         })
-        today = ret['created_at']
+        if not ret:
+            sap = mongo.db.archive_report.find_one({
+                "_id": id
+            }) 
+            user = sap['user']
+            today = sap['created_at']
+        else:
+            user = ret['user']
+            today = ret['created_at']
         current_user = get_current_user()
         last_monday = today - datetime.timedelta(days=today.weekday())
         coming_monday = today + datetime.timedelta(days=-today.weekday(), weeks=1)
         print(last_monday)
         print(coming_monday)
-        user = ret['user']
         print(user)
         ret = mongo.db.weekly_notes.find({
             "junior_id": user,
@@ -540,6 +552,7 @@ def notes(selectdays):
         })
         ret = [serialize_doc(doc) for doc in ret]
         return ret
+
 
 
 def add_checkin_data(weekly_report):
