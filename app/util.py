@@ -93,6 +93,7 @@ def slack_msg(channel, msg):
 # function for getting all the juniors of managers
 def get_manager_juniors(id):
     users = mongo.db.users.find({
+        "status":"Enabled",
         "managers": {
             "$elemMatch": {"_id": str(id)}
         }

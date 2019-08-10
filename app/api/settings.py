@@ -8,6 +8,8 @@ from app import token
 from bson import ObjectId
 from app.util import serialize_doc
 from app.config import default
+import datetime
+from dateutil.relativedelta import relativedelta
 
 
 bp = Blueprint('system', __name__, url_prefix='/system')
@@ -60,6 +62,51 @@ def slack_setings():
             }
         },upsert=True)
         return jsonify(str(ret))
+
+
+@bp.route('/remove_previous_checkin', methods=['DELETE'])
+@jwt_required
+@token.admin_required
+def remove_months_checkin():
+    six_months = datetime.datetime.today() + relativedelta(months=-6)
+    print(six_months)
+    # find report greater than last 6 month date
+    ret = mongo.db.reports.find({"type":"daily","created_at":{"$lte":six_months}
+    })
+    docs = [serialize_doc(doc) for doc in ret]
+    # find the reports and store in diffrent collection
+    for data_id in docs:
+        if "cron_checkin" in data_id:
+            cron_checkin = data_id['cron_checkin']
+        else:
+            cron_checkin = ""
+        ser = mongo.db.archive_report.find_one({"_id":data_id['_id']})
+        if not ser:
+            ret = mongo.db.archive_report.insert({
+                "_id":data_id['_id'],
+                "created_at": data_id['created_at'],
+                "cron_checkin": cron_checkin,
+                "highlight":data_id['highlight'],
+                "highlight_task_reason":data_id['highlight_task_reason'],
+                "report":data_id['report'],
+                "task_completed":data_id['task_completed'],
+                "task_not_completed_reason":data_id['task_not_completed_reason'],
+                "type":data_id['type'],
+                "user":data_id['user'],
+                "username":data_id['username'],
+                })
+        else:
+            pass        
+    # delete the reports from report collection    
+    user_id = []
+    for elem in docs:
+        user_id.append(ObjectId(elem["_id"]))
+    nap = mongo.db.reports.remove({
+        "_id": {"$in":user_id}
+    })    
+    return jsonify(str({"msg":"Check-in archived","Date": datetime.datetime.utcnow()})), 200
+
+
 
 #Api for schdulers on off settings
 @bp.route('/schdulers_settings', methods=["GET","PUT"])
