@@ -112,114 +112,122 @@ def monthly_remainder():
         for doc in monthly_id:
             if "kpi_id" in doc:
                 ID_ = doc['ID_']
-                mesg = load_monthly_remainder()
-                print(doc['name'])
-                role = doc['role']
-                print(role)
-                
-                kpi_id = doc['kpi_id']
-                slack_id = doc['slack_id']
-                
-                today_date = int(today.strftime("%d"))
-                #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
-                if today_date<11:
-                    if role != 'Admin':
-                        monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
-                        msg=monthly_mesg.replace(":Month",""+str(month)+"")
-                        slack_message(msg=msg)
-                        print('sended')
+                rep = mongo.db.reports.find({"user":ID_,"type":"weekly"})
+                rwe = [serialize_doc(doc)for doc in rep]
+                print(len(rwe))
+                if len(rwe) >= 3:
+                    mesg = load_monthly_remainder()
+                    print(doc['name'])
+                    role = doc['role']
+                    print(role)
+                    
+                    kpi_id = doc['kpi_id']
+                    slack_id = doc['slack_id']
+                    
+                    today_date = int(today.strftime("%d"))
+                    #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
+                    if today_date<11:
+                        if role != 'Admin':
+                            monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
+                            msg=monthly_mesg.replace(":Month",""+str(month)+"")
+                            slack_message(msg=msg)
+                            print('sended')
+                        else:
+                            print('wait')
                     else:
-                        print('wait')
-                else:
-                    print("adding report")
-                    reviewed = False
-                    #Finding kpi id of current user for getting assign kpi or era details which we use in default report creation
-                    kpis = mongo.db.kpi.find_one({
-                        "_id": ObjectId(kpi_id)
-                    })
-                    kpi_json = kpis['kpi_json']
-                    era_json = kpis['era_json']
-                    del kpi_json[0]
-                    del era_json[0]
-                    kpi_j=[]
-                    #adding default comment or rating 
-                    for kpi in kpi_json:
-                        kpi["comment"]="you have not done your monthly report"
-                        kpi['rating']=0
-                        kpi_j.append(kpi)
-                    
-                    era_j=[]
-                    for era in era_json:
-                        era["comment"]="you have not done your monthly report"
-                        era['rating']=0
-                        era_j.append(kpi)
+                        print("adding report")
+                        reviewed = False
+                        #Finding kpi id of current user for getting assign kpi or era details which we use in default report creation
+                        kpis = mongo.db.kpi.find_one({
+                            "_id": ObjectId(kpi_id)
+                        })
+                        kpi_json = kpis['kpi_json']
+                        era_json = kpis['era_json']
+                        del kpi_json[0]
+                        del era_json[0]
+                        kpi_j=[]
+                        #adding default comment or rating 
+                        for kpi in kpi_json:
+                            kpi["comment"]="you have not done your monthly report"
+                            kpi['rating']=0
+                            kpi_j.append(kpi)
+                        
+                        era_j=[]
+                        for era in era_json:
+                            era["comment"]="you have not done your monthly report"
+                            era['rating']=0
+                            era_j.append(kpi)
 
-                    print(kpi_j)
-                    print(era_j)
+                        print(kpi_j)
+                        print(era_j)
 
-                    #finding managers details
-                    users = mongo.db.users.find({
-                        "_id": ObjectId(ID_)
-                    })
-                    users = [serialize_doc(doc) for doc in users]
-                    managers_data = []
-                    for data in users:
-                        if "managers" in data:
-                            for mData in data['managers']:
-                                manager_id = mData['_id']
-                                mData['reviewed'] = reviewed
-                                managers_data.append(mData)
-                    
-                    #inserting monthly report with default values.
-                    ret = mongo.db.reports.insert_one({
-                        "user": str(ID_),
-                        "created_at": datetime.datetime.utcnow(),
-                        "type": "monthly",
-                        "is_reviewed": managers_data,
-                        "month":month,
-                        "report":{"kpi": kpi_j,"era": era_j},
-                        "monthly_cron": True
-                    }).inserted_id
-                    
-                    #finding automated created monthly reports for review by assign managers
-                    users = mongo.db.reports.find({"monthly_cron": True},{"_id": 1,"is_reviewed":1})
-                    users = [serialize_doc(doc) for doc in users]
+                        #finding managers details
+                        users = mongo.db.users.find({
+                            "_id": ObjectId(ID_)
+                        })
+                        users = [serialize_doc(doc) for doc in users]
+                        managers_data = []
+                        for data in users:
+                            if "managers" in data:
+                                for mData in data['managers']:
+                                    manager_id = mData['_id']
+                                    mData['reviewed'] = reviewed
+                                    managers_data.append(mData)
+                        
+                        #inserting monthly report with default values.
+                        ret = mongo.db.reports.insert_one({
+                            "user": str(ID_),
+                            "created_at": datetime.datetime.utcnow(),
+                            "type": "monthly",
+                            "is_reviewed": managers_data,
+                            "month":month,
+                            "report":{"kpi": kpi_j,"era": era_j},
+                            "monthly_cron": True
+                        }).inserted_id
+                        
+                        #finding automated created monthly reports for review by assign managers
+                        users = mongo.db.reports.find({"monthly_cron": True},{"_id": 1,"is_reviewed":1})
+                        users = [serialize_doc(doc) for doc in users]
 
 
-                    for user in users:
-                        for deta in user['is_reviewed']:
-                            manager_id = deta['_id']
-                            manager_weights = deta['weight']
-                            monthly = user['_id']
+                        for user in users:
+                            for deta in user['is_reviewed']:
+                                manager_id = deta['_id']
+                                manager_weights = deta['weight']
+                                monthly = user['_id']
 
-                            #reviewing cron created monthly report by assign managers.
-                            ret = mongo.db.reports.update({
-                                        "_id": ObjectId(monthly)
-                                    }, {
-                                        "$push": {
-                                            "review": {
-                                                "created_at": datetime.datetime.utcnow(),
-                                                "comment":{"kpi": kpi_j,"era": era_j},
-                                                "manager_id":manager_id,
-                                                "manager_weight":manager_weights
+                                #reviewing cron created monthly report by assign managers.
+                                ret = mongo.db.reports.update({
+                                            "_id": ObjectId(monthly)
+                                        }, {
+                                            "$push": {
+                                                "review": {
+                                                    "created_at": datetime.datetime.utcnow(),
+                                                    "comment":{"kpi": kpi_j,"era": era_j},
+                                                    "manager_id":manager_id,
+                                                    "manager_weight":manager_weights
+                                                }
                                             }
-                                        }
-                                    })
-                            #updating isreviewed option true for managers
-                            docs = mongo.db.reports.update({
-                                    "_id": ObjectId(monthly),
-                                    "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
-                                }, {
-                                    "$set": {
-                                        "is_reviewed.$.reviewed": True
-                                    }})
-
-                            cron = mongo.db.reports.update({
-                                "_id": ObjectId(monthly)
+                                        })
+                                #updating isreviewed option true for managers
+                                docs = mongo.db.reports.update({
+                                        "_id": ObjectId(monthly),
+                                        "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                     }, {
-                                "$set": {
-                                    "monthly_cron": False
-                                    }})                    
+                                        "$set": {
+                                            "is_reviewed.$.reviewed": True
+                                        }})
+
+                                cron = mongo.db.reports.update({
+                                    "_id": ObjectId(monthly)
+                                        }, {
+                                    "$set": {
+                                        "monthly_cron": False
+                                        }})
+                                print("DONE")
+                else:
+                    print("NO REPORTS")
+                    pass                                            
             else:
                 pass
 
