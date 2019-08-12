@@ -107,6 +107,76 @@ def remove_months_checkin():
     return jsonify(str({"msg":"Check-in archived","Date": datetime.datetime.utcnow()})), 200
 
 
+@bp.route('/remove_disable_user', methods=['DELETE'])
+@jwt_required
+@token.admin_required
+def remove_disable_user():
+    ret = mongo.db.users.find({"status": "Disable"})
+    docs = [serialize_doc(doc) for doc in ret]
+    # find the reports and store in diffrent collection
+    for data_id in docs:
+        if "cron_checkin" in data_id:
+            cron_checkin = data_id['cron_checkin']
+        else:
+            cron_checkin = ""
+        if "missed_chechkin_crone" in data_id:
+            missed_chechkin_crone = data_id['missed_chechkin_crone']
+        else:
+            missed_chechkin_crone = ""
+        ser = mongo.db.disable_users.find_one({"_id": data_id['_id']})
+        if not ser:
+            ret = mongo.db.disable_users.insert({
+                "_id":
+                data_id['_id'],
+                "username":
+                data_id['username'],
+                "id":
+                data_id['id'],
+                "name":
+                data_id['name'],
+                "user_Id":
+                data_id['user_Id'],
+                "status":
+                data_id['status'],
+                "jobtitle":
+                data_id['jobtitle'],
+                "dob":
+                data_id['dob'],
+                "gender":
+                data_id['gender'],
+                "work_email":
+                data_id['work_email'],
+                "slack_id":
+                data_id['slack_id'],
+                "profileImage":
+                data_id['profileImage'],
+                "dateofjoining":
+                data_id['dateofjoining'],
+                "last_login":
+                data_id['last_login'],
+                "team":
+                data_id['team'],
+                "role":
+                data_id['role'],
+                "cron_checkin":
+                cron_checkin,
+                "missed_chechkin_crone":
+                missed_chechkin_crone,
+                "profile":
+                data_id['profile']
+            })
+        else:
+            pass
+    # delete the reports from report collection
+    user_id = []
+    for elem in docs:
+        user_id.append(ObjectId(elem["_id"]))
+    nap = mongo.db.users.remove({"_id": {"$in": user_id}})
+    return jsonify({
+        "msg": "Users Removed from User Collection",
+        "Date": datetime.datetime.utcnow()
+    }), 200    
+
 
 #Api for schdulers on off settings
 @bp.route('/schdulers_settings', methods=["GET","PUT"])

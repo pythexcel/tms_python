@@ -930,14 +930,15 @@ def load_details(data):
     user_data = data['user']
     user_data = (load_user(user_data))
     data['user'] = user_data
-    if data['review'] is None:
-        review_detail = None
-    else:
+    if 'review' in data:
         review_detail = data['review']
-    for elem in review_detail:
+    else:
+        review_detail = None
+    if review_detail is not None:
+        for elem in review_detail:
             elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
+    data['all_weekly'] = all_weekly
     return data
-
 
 def no_review(data):
     user_data = data['user']
@@ -1246,3 +1247,46 @@ def review_note_update(note_id):
                          }
                     },upsert=True)
         return jsonify({"status":"success"}), 200
+
+
+
+def dashboard_details(data):
+    user_data = data['user']
+    user_data = (load_user(user_data))
+    data['user'] = user_data
+    if 'review' in data:
+        review_detail = data['review']
+        for elem in review_detail:
+            elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))    
+    else:
+        review_detail = None
+    return data
+
+    
+@bp.route('/dashboard_profile/<string:id>', methods=['GET'])
+@jwt_required
+@token.admin_required
+def dashboard_profile(id):
+    ret = mongo.db.users.find_one({
+        "_id": ObjectId(id)
+    }, {"profile": 0})
+    ret["_id"] = str(ret["_id"])
+    if "kpi_id" in ret and ret["kpi_id"] is not None:
+        ret_kpi = mongo.db.kpi.find_one({
+            "_id": ObjectId(ret["kpi_id"])
+        })
+        ret_kpi["_id"] = str(ret_kpi['_id'])
+        ret['kpi'] = ret_kpi
+    else:
+        ret['kpi'] = {}
+    docs = mongo.db.reports.find({
+        "user": str(id),
+        "type": "weekly",
+    }).sort("created_at", 1)
+    docs = [serialize_doc(doc) for doc in docs]
+    report = mongo.db.reports.find({
+            "user": str(id),
+            "type": "monthly",
+        })
+    report = [dashboard_details(serialize_doc(doc)) for doc in report]
+    return jsonify({"profile":ret,"weekly":docs, "monthly":report})              

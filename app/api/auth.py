@@ -266,22 +266,6 @@ def profile():
     return jsonify(str(ret)), 200
 
 
-@bp.route('/dashboard_profile/<string:id>', methods=['GET'])
-@jwt_required
-@token.admin_required
-def dashboard_profile(id):
-    ret = mongo.db.users.find_one({
-        "_id": ObjectId(id)
-    }, {"profile": 0})
-    ret["_id"] = str(ret["_id"])
-    if "kpi_id" in ret and ret["kpi_id"] is not None:
-        ret_kpi = mongo.db.kpi.find_one({
-            "_id": ObjectId(ret["kpi_id"])
-        })
-        ret_kpi["_id"] = str(ret_kpi['_id'])
-        ret['kpi'] = ret_kpi
-    else:
-        ret['kpi'] = {}
-    return jsonify(ret)
+
 
 
