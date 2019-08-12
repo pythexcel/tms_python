@@ -732,8 +732,15 @@ def review_activity():
         today = datetime.datetime.utcnow()
         last_monday = today - datetime.timedelta(days=today.weekday())
         # First take date time where weekly report is to be dealt with
+        enb_user = []
+        user = mongo.db.users.find({"status":"Enabled"})
+        users = [serialize_doc(doc) for doc in user]
+        for dvn in users:
+            enb_user.append(dvn['_id'])
+
         reports = mongo.db.reports.find({"cron_review_activity": False,
                                         "type": "weekly",
+                                        "user":{"$in":enb_user},
                                         "created_at": {
                     "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
                 }})
@@ -745,7 +752,7 @@ def review_activity():
                 if data['reviewed'] is False:   
                     slack_id = data['_id']
                     print(slack_id)
-                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),,"status":"Enabled"})
                     use = [serialize_doc(doc) for doc in use]
                     for data in use:
                         slack = data['slack_id']
@@ -863,7 +870,10 @@ def monthly_manager_reminder():
         month = today.strftime("%B")
         # First take date time where weekly report is to be dealt with
         notification = load_monthly_manager_reminder()
-        reports = mongo.db.reports.find({"type": "monthly"})
+        enb_user = []
+        user = mongo.db.users.find({"status":"Enabled"})
+        users = [serialize_doc(doc) for doc in user]
+        reports = mongo.db.reports.find({"type": "monthly","user":{"$in":enb_user}})
         reports = [serialize_doc(doc) for doc in reports]
         managers_name = []
         print("for loop started")
@@ -872,7 +882,7 @@ def monthly_manager_reminder():
                 if data['reviewed'] is False:
                     print("if reviewed is false")
                     slack_id = data['_id']
-                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
                     use = [serialize_doc(doc) for doc in use]
                     for data in use:
                         slack = data['slack_id']
