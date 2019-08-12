@@ -752,7 +752,7 @@ def review_activity():
                 if data['reviewed'] is False:   
                     slack_id = data['_id']
                     print(slack_id)
-                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),,"status":"Enabled"})
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
                     use = [serialize_doc(doc) for doc in use]
                     for data in use:
                         slack = data['slack_id']
