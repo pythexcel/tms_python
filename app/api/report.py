@@ -937,7 +937,6 @@ def load_details(data):
     if review_detail is not None:
         for elem in review_detail:
             elem['manager_id'] = load_manager(ObjectId(elem['manager_id']))
-    data['all_weekly'] = all_weekly
     return data
 
 def no_review(data):
@@ -1283,7 +1282,7 @@ def dashboard_profile(id):
         "user": str(id),
         "type": "weekly",
     }).sort("created_at", 1)
-    docs = [serialize_doc(doc) for doc in docs]
+    docs = [load_details(serialize_doc(doc)) for doc in docs]
     report = mongo.db.reports.find({
             "user": str(id),
             "type": "monthly",
