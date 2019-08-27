@@ -84,7 +84,7 @@ def load_all_weekly(all_weekly):
 def load_user(user):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(user)
-    }, {"profile": 0})
+    })
     return serialize_doc(ret)
 
 # function to add user data
@@ -98,7 +98,7 @@ def add_user_data(user):
 def load_manager(manager):
     ret = mongo.db.users.find_one({
         "_id": manager
-    }, {"profile": 0})
+    })
     return serialize_doc(ret)
 
 # function for adding manager data
@@ -361,7 +361,7 @@ def junior_monthly_report():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
