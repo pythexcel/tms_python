@@ -3,10 +3,11 @@ import requests
 import dateutil.parser as parser
 from app.config import URL
 from bson.objectid import ObjectId
-from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review,slack_attach
+from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review
 from app import mongo
 import numpy as np
-from app.util import slack_message,secret_key
+from app.config import nt_URl
+from app.util import secret_key
 import uuid
 
 # schduler to caculate monthly score
@@ -104,10 +105,10 @@ def monthly_remainder():
         for details in repp:
             if 'slack_id' and 'role' and "dateofjoining" and "kpi_id" in details:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'], "role": details['role'],
-                                                    "kpi_id":details['kpi_id']})
+                                                    "kpi_id":details['kpi_id'],"email":details['work_email']})
             else:
                 monthly_id.append({"ID_": details['_id'], "name": details['username'], "slack_id": details['slack_id'],
-                                    "role": details['role']})
+                                    "role": details['role'],"email":details['work_email']})
     
         for doc in monthly_id:
             if "kpi_id" in doc:
@@ -123,14 +124,17 @@ def monthly_remainder():
                     
                     kpi_id = doc['kpi_id']
                     slack_id = doc['slack_id']
+                    email = doc['email']
+                    print(email)
+                    print(month)
                     
                     today_date = int(today.strftime("%d"))
                     #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
-                    if today_date<11:
+                    if today_date<27:
                         if role != 'Admin':
-                            monthly_mesg=mesg.replace("Slack_id:", "<@" + slack_id + ">!")
-                            msg=monthly_mesg.replace(":Month",""+str(month)+"")
-                            slack_message(msg=msg)
+                            monthly_reminder_payload = {"user":{"email":email},"data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
+                            slack_message = requests.post(url=nt_URl,json=monthly_reminder_payload)
+                            print(slack_message.text)
                             print('sended')
                         else:
                             print('wait')
@@ -682,6 +686,7 @@ def recent_activity():
             username = users['username']
             print(username)
             slack_id = users['slack_id']
+            email = users['work_email']
             role = users['role']
             ID_ = users['user_Id']
             if role != 'Admin':
@@ -721,9 +726,8 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    missed_chec_mesg=notification.replace("Slack_id:", "<@" + slack_id + ">!")    
-                    mesgg=missed_chec_mesg.replace("Date:",""+date+"")
-                    slack_message(msg=mesgg)   
+                    missed_checkin_payload = {"user":{"email":email},"data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
+                    slack_message = requests.post(url=nt_URl,json=missed_checkin_payload)  
             else:
                 pass
                 
@@ -765,8 +769,9 @@ def review_activity():
                     for data in use:
                         slack = data['slack_id']
                         mang_id = data['_id']
+                        email = data['work_email']
                         if slack not in managers_name:
-                            managers_name.append(slack)
+                            managers_name.append(email)
                             ret = mongo.db.recent_activity.update({
                                 "user": mang_id},
                                 {"$push": {
@@ -777,8 +782,8 @@ def review_activity():
                                 }}}, upsert=True)                
         print(managers_name)
         for ids in managers_name:
-            review_act_mesg=review_activity_mesg.replace("Slack_id:", "<@" + ids + ">!")    
-            slack_message(msg=review_act_mesg) 
+            manager_monthly_reminder = {"user":{"email":ids},"data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
+            slack_message = requests.post(url=nt_URl,json=manager_monthly_reminder)
 
 
 def missed_review_activity(): 
@@ -895,10 +900,11 @@ def monthly_manager_reminder():
                     for data in use:
                         slack = data['slack_id']
                         mang_id = data['_id']
+                        email = data['work_email']
                         if slack not in managers_name:
                             print("append")
-                            managers_name.append(slack)
+                            managers_name.append(email)
         print(managers_name)
         for ids in managers_name:
-            manager_mesg=notification.replace("Slack_id:", "<@" + ids + ">!")
-            slack_message(msg=manager_mesg)
+            manager_monthly_reminder = {"user":{"email":ids},"data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
+            slack_message = requests.post(url=nt_URl,json=manager_monthly_reminder)

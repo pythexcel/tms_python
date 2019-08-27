@@ -36,60 +36,6 @@ def secret_key():
     return secret_key
 
 
-#Function for find webhook_url
-def load_hook():
-    url = mongo.db.slack_tokens.find_one({
-        "webhook_url": {"$exists": True}
-    }, {"webhook_url": 1, '_id': 0})
-    web_url = url['webhook_url']
-    return web_url
-#function for send mesg 
-def slack_message(msg):
-    slackmsg = {"text": msg}
-    webhook_url = load_hook()
-    response = requests.post(
-        webhook_url, json=slackmsg,
-        headers={'Content-Type': 'application/json'})
-
-def slack_attach(msg):
-    slackmsg = {"text": msg,
-                "attachments": [
-        {
-            "fallback": "Please add report manually",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": "Submit an automatic weekly report",
-                    "url": "http://tms.excellencetechnologies.in/#/app/automateWeekly"
-                }
-            ]
-        }
-    ]
-    }
-    webhook_url = load_hook()
-    response = requests.post(
-        webhook_url, json=slackmsg,
-        headers={'Content-Type': 'application/json'})
-
-#function for find slack_token
-def load_token():
-    token = mongo.db.slack_tokens.find_one({
-        "slack_token": {"$exists": True}
-    }, {"slack_token": 1, '_id': 0})
-    sl_token = token['slack_token']
-    return sl_token
-
-def slack_msg(channel, msg):
-    slack_token = load_token()
-    sc = SlackClient(slack_token)
-    for data in channel:
-        sc.api_call(
-            "chat.postMessage",
-            channel=data,
-            text=msg,
-            username = "TMS"
-        )
-
 # function for getting all the juniors of managers
 def get_manager_juniors(id):
     users = mongo.db.users.find({
@@ -126,9 +72,7 @@ def load_weekly_notes():
         reminder=default['weekly_report_notes']
         return reminder
     
-    
-    
-    
+        
 #function for find monthly_reminder mesg from db
 def load_monthly_remainder():
     msg = mongo.db.schdulers_msg.find_one({

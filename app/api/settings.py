@@ -15,29 +15,6 @@ from dateutil.relativedelta import relativedelta
 bp = Blueprint('system', __name__, url_prefix='/system')
 
 
-@bp.route('/settings', methods=['POST'])
-@jwt_required
-def settings():
- user = get_current_user()
- if user["role"] == "Admin":   
-    if not request.json:
-        abort(500)
-    integrate_with_hr = request.json.get('integrate_with_hr', False)
-    if integrate_with_hr is True:
-        hr = mongo.db.hr.insert_one({
-            "integrate_with_hr": integrate_with_hr
-        }).inserted_id
-        return jsonify(str(hr))
-    else:
-        hr = mongo.db.hr.update({
-            "integrate_with_hr": True
-        }, {
-                "$unset": {
-                     "integrate_with_hr": integrate_with_hr
-                 }
-             })
-        return ("settings off")
-
    
 #Api for slack token settings   
 @bp.route('/slack_settings', methods=["PUT","GET"])
@@ -50,9 +27,7 @@ def slack_setings():
         return jsonify(users)
 
     if request.method == "PUT":
-        webhook_url = request.json.get("webhook_url")
         slack_token = request.json.get("slack_token")
-        secret_key =request.json.get("secret_key")
         ret = mongo.db.slack_tokens.update({
         }, {
             "$set": {

@@ -1,5 +1,6 @@
 URL = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/API_HR/api.php'
 URL_details = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/sal_info/api.php'
+nt_URl = 'https://still-plains-80981.herokuapp.com/notify/dispatch'
 #secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
 default={
             "monthly_remainder":"Slack_id: Please create your monthly report of :Month till 10th of this month. Failing to do so will automatically set your monthly review to 0.",
@@ -40,8 +41,8 @@ disable_user_scheduler_min=30
 monthly_score_scheduler_hour=13
 monthly_score_scheduler_min=10
 
-monthly_remainder_scheduler_hour=15
-monthly_remainder_scheduler_min=45
+monthly_remainder_scheduler_hour=19
+monthly_remainder_scheduler_min=34
 
 monthly_manager_reminder_scheduler_hour=14
 monthly_manager_reminder_scheduler_min=30

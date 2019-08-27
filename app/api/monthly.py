@@ -6,11 +6,11 @@ from flask import (
 )
 import requests
 import json
+from app.config import nt_URl
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
-from app.util import slack_message, slack_msg,load_monthly_report_mesg
-from slackclient import SlackClient
+from app.util import load_monthly_report_mesg
 import datetime
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -205,7 +205,8 @@ def add_monthly_checkin():
                     "report": report,
                     "month": month
                 }).inserted_id
-                slack_message(msg="<@" + slack + ">!" + ' ''have created monthly report')
+                monthly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
+                slack_message = requests.post(url=nt_URl,json=monthly_payload)
                 return jsonify(str(ret)), 200
         else:
             return jsonify({"msg": "You must have atleast 3 weekly report to create a monthly report"}), 405       
@@ -263,6 +264,7 @@ def get_manager_monthly_list(monthly_id):
         for dub in rap:
             junior_name = dub['username']
             slack = dub['slack_id']
+            email = dub['work_email']
             sap = mongo.db.reports.find({
                 "_id": ObjectId(monthly_id),
                 "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
@@ -290,10 +292,8 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                mesgg=mesg.replace("Slack_id:", "<@" + slack + ">!")
-                messag=mesgg.replace(":Manager_name", " " + manager_name)
-                slack_message(
-                    msg=messag)
+                monthly_reviewed_payload = {"user":{"email":email},"data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
+                slack_message = requests.post(url=nt_URl,json=monthly_reviewed_payload)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400

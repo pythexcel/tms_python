@@ -4,10 +4,9 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
+from app.config import nt_URl
 import dateutil.parser
 from bson.objectid import ObjectId
-from app.util import slack_message, slack_msg
-from slackclient import SlackClient
 import requests
 
 
@@ -25,51 +24,6 @@ from flask_jwt_extended import (
 bp = Blueprint('report', __name__, url_prefix='/')
 
 
-
-
-@bp.route('/slack', methods=["GET"])
-@jwt_required
-def slack():
-    current_user = get_current_user()
-    slack = current_user['slack_id']
-    token = load_token()
-    sc = SlackClient(token)
-    data = sc.api_call(
-        "users.conversations",
-        types = "private_channel",
-        user = slack,
-        exclude_archived=True
-    )
-    data_list = sc.api_call(
-       "groups.list",
-       exclude_archived=True
-    )
-    channel = []
-    
-        
-    detail = data_list['groups']
-
-    for ret in detail:
-        if slack in ret['members']:
-            channel.append({'value': ret['id'], 'text': ret['name']})
-    inner =[]            
-        
-    element = data['channels']
-    
-    for dab in element:
-        inner.append({'value': dab['id'], 'text': dab['name']})
-        
-    total = inner + channel
-    result = []
-
-    for elem in total:
-        notSame = True
-        for dec in result:
-            if ((elem["text"] == dec["text"]) and (elem["value"] == dec["value"])):
-                notSame =False
-        if (notSame):
-            result.append(elem)
-    return jsonify(result)
 
 @bp.route('/checkin', methods=["POST"])
 @jwt_required
@@ -130,12 +84,27 @@ def add_checkin():
                     "type": "daily"
                 }})
             if len(highlight) > 0:
-                slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "" + "\n"
-                              + "Highlight: " + highlight)
+                data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
+                check_in_payload = {
+                    "user": {
+                        "email": current_user['work_email']},
+                        "data": data,
+                        "message_type" : "simple_message",
+                        "message_key": "check-in"
+                    
+                }
+                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
             else:
-                slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "")
+                data = "Report: " + "\n" +slackReport
+                check_in_payload = {
+                    "user": {
+                        "email": current_user['work_email']},
+                        "data": data,
+                        "message_type" : "simple_message",
+                        "message_key": "check-in"
+                    
+                }
+                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
@@ -156,14 +125,36 @@ def add_checkin():
                     "priority": 0,
                     "Daily_chechkin_message": date_time
                 }}}, upsert=True)
-            slack_message(msg="<@" + slack + ">!" + ' ''have created daily chechk-in at' + ' ' + str(formatted_date))
+            check_in_notification_payload = {
+                    "user": {
+                        "email": current_user['work_email']},
+                        "data":None,
+                        "message_type" : "simple_message",
+                        "message_key": "check-in_notification"
+                    }
+            slack_msg = requests.post(url=nt_URl, json=check_in_notification_payload)
             if len(highlight) > 0:
-                slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "" + "\n"
-                              + "Highlight: " + highlight)
+                data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
+                check_in_payload = {
+                    "user": {
+                        "email": current_user['work_email']},
+                        "data": data,
+                        "message_type" : "simple_message",
+                        "message_key": "check-in"
+                
+                }
+                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
             else:
-                slack_msg(channel=slackChannels,
-                          msg="<@" + slack + ">!" + "\n" + "Report: " + "\n" + slackReport + "")
+                data = "Report: " + "\n" +slackReport
+                check_in_payload = {
+                    "user": {
+                        "email": current_user['work_email']},
+                        "data": data,
+                        "message_type" : "simple_message",
+                        "message_key": "check-in"
+                    
+                }
+                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -387,7 +378,8 @@ def add_weekly_checkin():
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
 
-    slack_message(msg="<@"+slack+">!"+' ''have created weekly report at' + ' ' + str(formated_date))
+    weekly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"weekly_notification","message_type":"simple_message"}
+    slack_message = requests.post(url=nt_URl,json=weekly_payload)
     return jsonify(str(ret)), 200
 
 
@@ -461,7 +453,8 @@ def add_weekly_automated():
                     "era_json": era_name,
                     "difficulty": 0
                 }).inserted_id
-                slack_message(msg="<@"+slack+">!"+' ''have created weekly report at' + ' ' + str(formated_date))
+                weekly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"weekly_notification","message_type":"simple_message"}
+                slack_message = requests.post(url=nt_URl,json=weekly_payload)
                 return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403
@@ -469,17 +462,6 @@ def add_weekly_automated():
             return jsonify({"msg": "You have already submitted weekly checkin for this week"}),403
     else:
         return jsonify({"msg": "This feature has been turned off by Admin"}),403
-
-
-
-
-
-
-
-
-
-
-
 
 
 @bp.route('/delete_weekly/<string:weekly_id>', methods=['DELETE'])
@@ -670,6 +652,7 @@ def get_manager_weekly_list(weekly_id=None):
             for dub in rap:
                 junior_name = dub['username']
                 slack = dub['slack_id']
+                email = dub['work_email']
                 print(slack)
                 manager = dub['managers']
                 for a in manager:
@@ -719,9 +702,9 @@ def get_manager_weekly_list(weekly_id=None):
                                         "priority": 0,
                                         "Message": "Your weekly report has been reviewed by "" " + manager_name
                                     }}}, upsert=True)
-                            mesgg=mesg.replace("Slack_id:", "<@" + slack + ">!")
-                            messag=mesgg.replace(":Manager_name", " " + manager_name)
-                            slack_message(msg=messag)
+                            weekly_reviewed_payload = {"user":{"email":email},"data":manager_name,
+                            "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
+                            slack_message = requests.post(url=nt_URl,json=weekly_reviewed_payload)
                             return jsonify(str(ret)), 200
                         else:
                             return jsonify(msg="Already reviewed this report"), 400
@@ -1089,9 +1072,10 @@ def skip_review(weekly_id):
                         "is_reviewed": {"_id": str(current_user["_id"])}
                     }}, upsert=False)
             
-            missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
-            mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
-            slack_message(msg=mesgg)
+            weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
+                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
+            slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
+            print(slack_message.json())
             return jsonify({"status":"success"})
         else:
             #finding all assign managers_id
@@ -1140,9 +1124,10 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
-                        mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
-                        slack_message(msg=mesgg)
+                        weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
+                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
+                        slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
+                        print(slack_message.json())
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
@@ -1169,9 +1154,10 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        missed_chec_mesg=message.replace("Slack_id:", "<@" + slack_id + ">!")    
-                        mesgg=missed_chec_mesg.replace(":Manager_name",""+name+"")
-                        slack_message(msg=mesgg)
+                        weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
+                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
+                        slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
+                        print(slack_message.json())       
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
