@@ -100,7 +100,7 @@ def memeber_kpi(kpi_id):
     users = mongo.db.users.find({
         "kpi_id": kpi_id,
         "status": "Enabled"
-    }, {"password": 0, "profile": 0})
+    }, {"password": 0})
     users = [serialize_doc(user) for user in users]
     return jsonify(users)
 
