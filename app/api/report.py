@@ -787,7 +787,7 @@ def manager_junior():
             "$elemMatch": {"_id": str(current_user['_id'])}
            
         }, "status": "Enabled"
-    }, {"profile": 0}).sort("created_at", 1)
+    }).sort("created_at", 1)
     users = [add_kpi_data(serialize_doc(ret)) for ret in users]
     return jsonify(users)
 
@@ -795,7 +795,7 @@ def manager_junior():
 def load_user(user):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(user)
-    },{"profile": 0})
+    })
     return serialize_doc(ret)
 
 
@@ -815,7 +815,7 @@ def junior_chechkin():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
@@ -832,7 +832,7 @@ def junior_chechkin():
 def load_manager(manager):
     ret = mongo.db.users.find_one({
         "_id": manager
-    },{"profile": 0})
+    })
     return serialize_doc(ret)
 
 
@@ -957,7 +957,7 @@ def junior_weekly_report():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
@@ -1268,7 +1268,7 @@ def dashboard_details(data):
 def dashboard_profile(id):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(id)
-    }, {"profile": 0})
+    })
     ret["_id"] = str(ret["_id"])
     if "kpi_id" in ret and ret["kpi_id"] is not None:
         ret_kpi = mongo.db.kpi.find_one({
