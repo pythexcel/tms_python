@@ -126,7 +126,7 @@ def login():
                         "dateofjoining": date_time,
                         "last_login": datetime.datetime.now(),
                         "team": team,
-                        "profile": result
+                        "profile": None
                     }})
             else:
                 if role_response["role"] == "Admin":
@@ -152,8 +152,7 @@ def login():
                         "team": team,
                         "role": role,
                         "cron_checkin": False,
-                        "missed_chechkin_crone":False,
-                        "profile": result
+                        "missed_chechkin_crone":False
                     }).inserted_id
                     
             role_response = jwt.decode(token['data']['token'], None, False)
@@ -196,7 +195,7 @@ def login():
                                     "work_email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
-                                    "profile": user
+                                    "profile": None
                                 }})
                         else:
                             mongo.db.users.insert_one({
@@ -213,8 +212,7 @@ def login():
                                 "team": team,
                                 "role": role,
                                 "cron_checkin": False,
-                                "missed_chechkin_crone": False,
-                                "profile": user
+                                "missed_chechkin_crone": False
                             }).inserted_id
             username1 = log_username
             print(username1)
