@@ -1,20 +1,7 @@
 URL = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/API_HR/api.php'
 URL_details = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/sal_info/api.php'
-nt_URl = 'https://still-plains-80981.herokuapp.com/notify/dispatch'
+notification_system_url = 'https://still-plains-80981.herokuapp.com/notify/dispatch'
 #secret_key = '3dd7fe8a6ea2ea9afb9a7366980253b7'
-default={
-            "monthly_remainder":"Slack_id: Please create your monthly report of :Month till 10th of this month. Failing to do so will automatically set your monthly review to 0.",
-            "weekly_remainder1":"Slack_id: you need to create your weekly",
-            "weekly_remainder2":"Slack_id: You are past due your date for weekly report, you need to do your weekly report before Thursday. Failing to do so will automatically set your weekly review to 0 which will effect your overall score.",
-            "review_activity":"Slack_id: you have weekly report's pending to be reviewed",
-            "monthly_manager_reminder":"Slack_id: you have monthly report's pending to be reviewed",
-            "missed_checkin":"Slack_id: you have missed Date: checkin",
-            "monthly_report_mesg":"Slack_id: your monthly report is reviewed by :Manager_name",
-            "weekly_report_mesg":"Slack_id: your weekly report is reviewed by :Manager_name",
-            "weekly_report_notes":"Slack_id: your weekly report is skipped by :Manager_name",
-            "missed_reviewed_mesg":"Slack_id: you have Reports: weekly report's pending to be reviewed before current week."
-            }
-
 
 
 

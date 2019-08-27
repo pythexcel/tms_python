@@ -6,7 +6,7 @@ from flask import (
 )
 import requests
 import json
-from app.config import nt_URl
+from app.config import notification_system_url
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
@@ -205,8 +205,8 @@ def add_monthly_checkin():
                     "report": report,
                     "month": month
                 }).inserted_id
-                monthly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
-                slack_message = requests.post(url=nt_URl,json=monthly_payload)
+                monthly_payload = {"user":{"email":current_user['work_email'],"emp_id":None,"name":current_user['username'],"Phone":None},"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
+                notification_message = requests.post(url=notification_system_url,json=monthly_payload)
                 return jsonify(str(ret)), 200
         else:
             return jsonify({"msg": "You must have atleast 3 weekly report to create a monthly report"}), 405       
@@ -292,8 +292,9 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                monthly_reviewed_payload = {"user":{"email":email},"data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
-                slack_message = requests.post(url=nt_URl,json=monthly_reviewed_payload)
+                monthly_reviewed_payload = {"user":{"email":email,"emp_id":None,"name":junior_name,"Phone":None},
+                "data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
+                notification_message = requests.post(url=notification_system_url,json=monthly_reviewed_payload)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400

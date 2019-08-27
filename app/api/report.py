@@ -4,17 +4,13 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import nt_URl
+from app.config import notification_system_url
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
-
-
 from app.util import get_manager_juniors
 from app.util import load_token,load_weekly_report_mesg
 import datetime
-
-
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
@@ -87,24 +83,24 @@ def add_checkin():
                 data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
                 check_in_payload = {
                     "user": {
-                        "email": current_user['work_email']},
+                        "email": "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
                 }
-                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
             else:
                 data = "Report: " + "\n" +slackReport
                 check_in_payload = {
                     "user": {
-                        "email": current_user['work_email']},
+                        "email": "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
                 }
-                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
@@ -127,34 +123,34 @@ def add_checkin():
                 }}}, upsert=True)
             check_in_notification_payload = {
                     "user": {
-                        "email": current_user['work_email']},
+                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
                         "data":None,
                         "message_type" : "simple_message",
                         "message_key": "check-in_notification"
                     }
-            slack_msg = requests.post(url=nt_URl, json=check_in_notification_payload)
+            notification_message = requests.post(url=notification_system_url, json=check_in_notification_payload)
             if len(highlight) > 0:
                 data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
                 check_in_payload = {
                     "user": {
-                        "email": current_user['work_email']},
+                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                 
                 }
-                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
             else:
                 data = "Report: " + "\n" +slackReport
                 check_in_payload = {
                     "user": {
-                        "email": current_user['work_email']},
+                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
                 }
-                slack_msg = requests.post(url=nt_URl, json=check_in_payload)
+               notification_message = requests.post(url=notification_system_url, json=check_in_payload)
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -378,8 +374,9 @@ def add_weekly_checkin():
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
 
-    weekly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-    slack_message = requests.post(url=nt_URl,json=weekly_payload)
+    weekly_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+    "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
+    notification_message = requests.post(url=notification_system_url,json=weekly_payload)
     return jsonify(str(ret)), 200
 
 
@@ -453,8 +450,9 @@ def add_weekly_automated():
                     "era_json": era_name,
                     "difficulty": 0
                 }).inserted_id
-                weekly_payload = {"user":{"email":current_user['work_email']},"data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-                slack_message = requests.post(url=nt_URl,json=weekly_payload)
+                weekly_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
+                notification_message = requests.post(url=notification_system_url,json=weekly_payload)
                 return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403
@@ -655,6 +653,8 @@ def get_manager_weekly_list(weekly_id=None):
                 email = dub['work_email']
                 print(slack)
                 manager = dub['managers']
+                name = dab['username']
+                emp_id = dab['id']
                 for a in manager:
                     if a['_id']==str(current_user["_id"]):
                         manager_weights=a['weight']
@@ -702,9 +702,9 @@ def get_manager_weekly_list(weekly_id=None):
                                         "priority": 0,
                                         "Message": "Your weekly report has been reviewed by "" " + manager_name
                                     }}}, upsert=True)
-                            weekly_reviewed_payload = {"user":{"email":email},"data":manager_name,
+                            weekly_reviewed_payload = {"user":{"email":email,"emp_id":emp_id,"name":name,"Phone":None},"data":manager_name,
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                            slack_message = requests.post(url=nt_URl,json=weekly_reviewed_payload)
+                            notification_message = requests.post(url=notification_system_url,json=weekly_reviewed_payload)
                             return jsonify(str(ret)), 200
                         else:
                             return jsonify(msg="Already reviewed this report"), 400
@@ -1072,10 +1072,9 @@ def skip_review(weekly_id):
                         "is_reviewed": {"_id": str(current_user["_id"])}
                     }}, upsert=False)
             
-            weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
-                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
-            slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
-            print(slack_message.json())
+            weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+            "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
             return jsonify({"status":"success"})
         else:
             #finding all assign managers_id
@@ -1124,10 +1123,9 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
-                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
-                        print(slack_message.json())
+                        weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                        "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
+                        notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
@@ -1154,10 +1152,9 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        weekly_skipped_payload = {"user":{"email":current_user['work_email']},"data":name,
-                            "message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        slack_message = requests.post(url=nt_URl,json=weekly_skipped_payload)
-                        print(slack_message.json())       
+                        weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                        "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
+                        notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400

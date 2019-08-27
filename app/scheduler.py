@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review
 from app import mongo
 import numpy as np
-from app.config import nt_URl
+from app.config import notification_system_url
 from app.util import secret_key
 import uuid
 
@@ -125,16 +125,18 @@ def monthly_remainder():
                     kpi_id = doc['kpi_id']
                     slack_id = doc['slack_id']
                     email = doc['email']
+                    name = doc['name']
+                    emp_id = doc['emp_id']
                     print(email)
                     print(month)
                     
                     today_date = int(today.strftime("%d"))
                     #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
-                    if today_date<27:
+                    if today_date<11:
                         if role != 'Admin':
-                            monthly_reminder_payload = {"user":{"email":email},"data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
-                            slack_message = requests.post(url=nt_URl,json=monthly_reminder_payload)
-                            print(slack_message.text)
+                            monthly_reminder_payload = {"user":{"email":email,"name":name,"emp_id":emp_id,"phone":None},
+                            "data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
+                            notification_message = requests.post(url=notification_system_url,json=monthly_reminder_payload)
                             print('sended')
                         else:
                             print('wait')
@@ -686,6 +688,7 @@ def recent_activity():
             username = users['username']
             print(username)
             slack_id = users['slack_id']
+            emp_id = users['id']
             email = users['work_email']
             role = users['role']
             ID_ = users['user_Id']
@@ -726,8 +729,9 @@ def recent_activity():
                             "priority": 1
 
                         }}}, upsert=True)
-                    missed_checkin_payload = {"user":{"email":email},"data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
-                    slack_message = requests.post(url=nt_URl,json=missed_checkin_payload)  
+                    missed_checkin_payload = {"user":{"email":email,"name":username,"emp_id":emp_id,"phone":None},
+                    "data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
+                    notification_message = requests.post(url=notification_system_url,json=missed_checkin_payload)  
             else:
                 pass
                 
@@ -770,8 +774,10 @@ def review_activity():
                         slack = data['slack_id']
                         mang_id = data['_id']
                         email = data['work_email']
+                        name = data['username']
+                        emp_id = data['id']
                         if slack not in managers_name:
-                            managers_name.append(email)
+                            managers_name.append({"email":email,"name":name,"emp_id":emp_id})
                             ret = mongo.db.recent_activity.update({
                                 "user": mang_id},
                                 {"$push": {
@@ -782,8 +788,10 @@ def review_activity():
                                 }}}, upsert=True)                
         print(managers_name)
         for ids in managers_name:
-            manager_monthly_reminder = {"user":{"email":ids},"data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
-            slack_message = requests.post(url=nt_URl,json=manager_monthly_reminder)
+            
+            manager_monthly_reminder = {"user":{"email":ids['email'],"name":ids['name'],"emp_id":ids['emp_id'],"phone":None},
+            "data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
 
 
 def missed_review_activity(): 
@@ -901,10 +909,13 @@ def monthly_manager_reminder():
                         slack = data['slack_id']
                         mang_id = data['_id']
                         email = data['work_email']
+                        name = data['username']
+                        emp_id = data['id']
                         if slack not in managers_name:
                             print("append")
-                            managers_name.append(email)
+                            managers_name.append({"email":email,"name":name,"emp_id":emp_id})
         print(managers_name)
         for ids in managers_name:
-            manager_monthly_reminder = {"user":{"email":ids},"data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
-            slack_message = requests.post(url=nt_URl,json=manager_monthly_reminder)
+            manager_monthly_reminder = {"user":{"email":ids['email'],"name":ids['name'],"emp_id":ids['emp_id'],"phone":None},
+            "data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
