@@ -82,7 +82,6 @@ def login():
             name = user_data['name']
             print(name)
             jobtitle = user_data["jobtitle"]
-            phone = user_data['mobile']
             user_Id = user_data["user_Id"]
             dob = user_data["dob"]
             gender = user_data["gender"]
@@ -128,7 +127,6 @@ def login():
                         "dateofjoining": date_time,
                         "last_login": datetime.datetime.now(),
                         "team": team,
-                        "phone":phone,
                         "profile": None
                     }})
             else:
@@ -154,7 +152,6 @@ def login():
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "role": role,
-                        "phone":phone,
                         "cron_checkin": False,
                         "missed_chechkin_crone":False
                     }).inserted_id
