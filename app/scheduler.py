@@ -902,3 +902,4 @@ def monthly_manager_reminder():
         for ids in managers_name:
             manager_mesg=notification.replace("Slack_id:", "<@" + ids + ">!")
             slack_message(msg=manager_mesg)
+
