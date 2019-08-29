@@ -9,13 +9,14 @@ import dateutil.parser
 from bson.objectid import ObjectId
 import requests
 from app.util import get_manager_juniors
-from app.util import load_token,load_weekly_report_mesg
 import datetime
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
     verify_jwt_in_request
 )
+import json
+from bson import json_util
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
@@ -79,28 +80,32 @@ def add_checkin():
                     "username": current_user['username'],
                     "type": "daily"
                 }})
+            current_user["_id"] = str(current_user["_id"])
+            user = json.loads(json.dumps(current_user,default=json_util.default))
             if len(highlight) > 0:
                 data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
                 check_in_payload = {
-                    "user": {
-                        "email": "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
+                    "user": user,
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
                 }
                 notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                print("NEECHE RESPONSE H")
+                print(notification_message.text)
             else:
                 data = "Report: " + "\n" +slackReport
                 check_in_payload = {
-                    "user": {
-                        "email": "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
+                    "user": user,
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
                 }
                 notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                print("NEECHE RESPONSE H")
+                print(notification_message.text)
         else:
             ret = mongo.db.reports.insert_one({
                 "report": report,
@@ -121,36 +126,42 @@ def add_checkin():
                     "priority": 0,
                     "Daily_chechkin_message": date_time
                 }}}, upsert=True)
+            current_user["_id"] = str(current_user["_id"])
+            user = json.loads(json.dumps(current_user,default=json_util.default))
+            print(user)
             check_in_notification_payload = {
-                    "user": {
-                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
+                    "user": user,
                         "data":None,
                         "message_type" : "simple_message",
                         "message_key": "check-in_notification"
                     }
             notification_message = requests.post(url=notification_system_url, json=check_in_notification_payload)
+            print("NEECHE RESPONSE H")
+            print(check_in_notification_payload)
+            print(notification_message.text)
             if len(highlight) > 0:
                 data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
                 check_in_payload = {
-                    "user": {
-                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
+                    "user": user,
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                 
                 }
                 notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                print("NEECHE RESPONSE H")
+                print(notification_message.text)
             else:
                 data = "Report: " + "\n" +slackReport
                 check_in_payload = {
-                    "user": {
-                        "email": current_user['work_email'],"emp_id":current_user['id'],"name":current_user['name'],"phone":None},
+                    "user": user,
                         "data": data,
                         "message_type" : "simple_message",
-                        "message_key": "check-in"
-                    
+                        "message_key": "check-in"    
                 }
-               notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                print("NEECHE RESPONSE H")
+                print(notification_message.text)
         return jsonify(str(ret))
     else:
         date_time = datetime.datetime.strptime(date, "%Y-%m-%d")
@@ -374,7 +385,9 @@ def add_weekly_checkin():
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
 
-    weekly_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+    current_user["_id"] = str(current_user["_id"])
+    user = json.loads(json.dumps(current_user,default=json_util.default))
+    weekly_payload = {"user":user,
     "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
     notification_message = requests.post(url=notification_system_url,json=weekly_payload)
     return jsonify(str(ret)), 200
@@ -450,7 +463,9 @@ def add_weekly_automated():
                     "era_json": era_name,
                     "difficulty": 0
                 }).inserted_id
-                weekly_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                current_user["_id"] = str(current_user["_id"])
+                user = json.loads(json.dumps(current_user,default=json_util.default))
+                weekly_payload = {"user":user,
                 "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
                 notification_message = requests.post(url=notification_system_url,json=weekly_payload)
                 return jsonify({"msg":"weekly report has been successfully submitted"}), 200
@@ -606,7 +621,6 @@ def get_manager_weekly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_weekly_list(weekly_id=None):
-    mesg=load_weekly_report_mesg()
     current_user = get_current_user()
     manager_name = current_user['username']
     if request.method == "GET":
@@ -624,14 +638,13 @@ def get_manager_weekly_list(weekly_id=None):
     else:
         if not request.json:
             abort(500)
-
         rating = request.json.get("rating", 0)
         comment = request.json.get("comment", None)
 
         if comment is None or weekly_id is None:
             return jsonify(msg="invalid request"), 500
         juniors = get_manager_juniors(current_user['_id'])
-
+        print(juniors)
         dab = mongo.db.reports.find({
             "_id": ObjectId(weekly_id),
             "type": "weekly",
@@ -641,21 +654,23 @@ def get_manager_weekly_list(weekly_id=None):
             }
         }).sort("created_at", 1)
         dab = [add_checkin_data(serialize_doc(doc)) for doc in dab]
+        print(dab)
         for data in dab:
             ID = data['user']
+            print(ID)
             rap = mongo.db.users.find({
                 "_id": ObjectId(str(ID))
             })
             rap = [serialize_doc(doc) for doc in rap]
             for dub in rap:
+                print(dub)
                 junior_name = dub['username']
                 slack = dub['slack_id']
                 email = dub['work_email']
                 print(slack)
                 manager = dub['managers']
-                name = dab['username']
-                emp_id = dab['id']
                 for a in manager:
+                    print("YHA pE")
                     if a['_id']==str(current_user["_id"]):
                         manager_weights=a['weight']
                         sap = mongo.db.reports.find({
@@ -702,9 +717,13 @@ def get_manager_weekly_list(weekly_id=None):
                                         "priority": 0,
                                         "Message": "Your weekly report has been reviewed by "" " + manager_name
                                     }}}, upsert=True)
-                            weekly_reviewed_payload = {"user":{"email":email,"emp_id":emp_id,"name":name,"Phone":None},"data":manager_name,
+                            user = json.loads(json.dumps(dub,default=json_util.default))
+                            print(user)
+                            print("YE MAIN H")
+                            weekly_reviewed_payload = {"user":user,"data":manager_name,
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                             notification_message = requests.post(url=notification_system_url,json=weekly_reviewed_payload)
+                            print(notification_message.text)
                             return jsonify(str(ret)), 200
                         else:
                             return jsonify(msg="Already reviewed this report"), 400
@@ -770,7 +789,7 @@ def manager_junior():
             "$elemMatch": {"_id": str(current_user['_id'])}
            
         }, "status": "Enabled"
-    }, {"profile": 0}).sort("created_at", 1)
+    }).sort("created_at", 1)
     users = [add_kpi_data(serialize_doc(ret)) for ret in users]
     return jsonify(users)
 
@@ -778,7 +797,7 @@ def manager_junior():
 def load_user(user):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(user)
-    },{"profile": 0})
+    })
     return serialize_doc(ret)
 
 
@@ -798,7 +817,7 @@ def junior_chechkin():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
@@ -815,7 +834,7 @@ def junior_chechkin():
 def load_manager(manager):
     ret = mongo.db.users.find_one({
         "_id": manager
-    },{"profile": 0})
+    })
     return serialize_doc(ret)
 
 
@@ -940,7 +959,7 @@ def junior_weekly_report():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
@@ -1071,8 +1090,8 @@ def skip_review(weekly_id):
                     "$pull": {
                         "is_reviewed": {"_id": str(current_user["_id"])}
                     }}, upsert=False)
-            
-            weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            weekly_skipped_payload = {"user":user,
             "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
             notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
             return jsonify({"status":"success"})
@@ -1123,7 +1142,8 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                        user = json.loads(json.dumps(user_info,default=json_util.default))
+                        weekly_skipped_payload = {"user":user,
                         "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
                         notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
@@ -1152,7 +1172,8 @@ def skip_review(weekly_id):
                             "$pull": {
                                 "is_reviewed": {"_id": str(current_user["_id"])}
                             }}, upsert=False)
-                        weekly_skipped_payload = {"user":{"email":current_user['work_email'],"emp_id":current_user['id'],"name":current_user['username'],"Phone":None},
+                        user = json.loads(json.dumps(user_info,default=json_util.default))
+                        weekly_skipped_payload = {"user":user,
                         "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
                         notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
@@ -1251,7 +1272,7 @@ def dashboard_details(data):
 def dashboard_profile(id):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(id)
-    }, {"profile": 0})
+    })
     ret["_id"] = str(ret["_id"])
     if "kpi_id" in ret and ret["kpi_id"] is not None:
         ret_kpi = mongo.db.kpi.find_one({
@@ -1272,3 +1293,54 @@ def dashboard_profile(id):
         })
     report = [dashboard_details(serialize_doc(doc)) for doc in report]
     return jsonify({"profile":ret,"weekly":docs, "monthly":report})              
+
+
+
+
+@bp.route('/test_messages/<string:message_type>/<string:message_key>', methods=['GET'])
+def test_message(message_type,message_key): 
+    user = {
+        "Checkin_rating":95.23809523809524,
+        "Monthly_rating":{"451ffec763be4b77998b4c51c16c7d6e":5.0,"461e82f521f54c19b5ffa31fb2c5ce0a":7.5,"5b57cd224ef945d5975d03e3e0c6f4b8":6.0,"88b36372ad534d5d8f200a8c6c6fd348":8.0,"9a0eda932b9f4eb2a25dd9935c7d2f91":3.5,"d253ef072c034a228d223cd99d4a616f":6.5,"eb547671f6d548fd9af77a3da0fc893e":7.0},
+        "Overall_rating":6.3076923076923075,
+        "_id":"5cdf9148daea4ba0e2ca80a0",
+        "cron_checkin":True,
+        "dateofjoining":"Thu, 07 Mar 2019 00:00:00 GMT",
+        "dob":"1997-09-11",
+        "gender":"Male",
+        "id":"462",
+        "job_title":"Jr. Python Developer",
+        "jobtitle":"Jr. Python Developer",
+        "kpi":{"_id":"5cdfa672917623516fdb7fea",
+        "era_json":[{"ID":"7942dbbc7996420b80daddb329f1f57f","addEra":False,"desc":"","edit":False,"title":""},
+        {"ID":"9a0eda932b9f4eb2a25dd9935c7d2f91","desc":"Able to start client project under supervision or on his own","edit":False,"title":"Client Project"},
+        {"ID":"88b36372ad534d5d8f200a8c6c6fd348","desc":"Able to start working on in house projects, but mainly able to suggest ideas, solve issues, communicate effectively show good resourcefulness in house projects. ","edit":False,"title":"Inhouse Project"},
+        {"ID":"451ffec763be4b77998b4c51c16c7d6e","desc":"Able to suggest ideas for team improvement in terms new tech improvements, paying attention to common issues basically overall contribute to team growth/effectiveness. ","edit":False,"title":"Team Contribution"},
+        {"ID":"76131e38ca6b41b5a2ab3a6b60395e5a","desc":"","edit":False,"title":""}],
+        "kpi_json":[{"ID":"970260b1b6a948a4b53be02e1e953772","addKpi":False,"desc":"","edit":False,"title":""},
+        {"ID":"5b57cd224ef945d5975d03e3e0c6f4b8","desc":"Able to learn/implement new things in the same technology stack. New modules/libraries which are not part of training module, its expected trainee is able to learn and implement those with minimum supervision","edit":False,"title":"Learning Curve"},
+        {"ID":"eb547671f6d548fd9af77a3da0fc893e","desc":"Able to quickly grasp and learn the technology assigned. Should be able to demonstrate good understanding and learning to senior/ mentor assigned.\nAble to solve basic problems and debug issues themselves. ","edit":False,"title":"Technology"},
+        {"ID":"461e82f521f54c19b5ffa31fb2c5ce0a","desc":"Able to communicate well over slack, with team members and seniors. Write proper standups, reports and overall able to communicate well over slack/email","edit":False,"title":"Communication"},
+        {"ID":"d253ef072c034a228d223cd99d4a616f","desc":"Understand hr system, company polices follow them properly. ","edit":False,"title":"Follow Company Policy HR System"}],"kpi_name":"Trainee"},
+        "kpi_id":"5cdfa672917623516fdb7fea","last_login":"Thu, 29 Aug 2019 13:49:42 GMT",
+        "managers":[{"_id":"5cdf9147daea4ba0e2ca807c","job_title":"CEO","profileImage":"https://secure.gravatar.com/avatar/770e9e63ec55f1a9c5915f1e37d8e66d.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0023-192.png","username":"manish","weight":10}],
+        "missed_chechkin_crone":False,"missed_checkin_dates":[{"created_at":"Fri, 28 Jun 2019 11:30:07 GMT","date":"2019-06-27"},
+        {"created_at":"Wed, 03 Jul 2019 11:30:15 GMT","date":"2019-07-02"}],
+        "name":"Aishwary Kaul","profile":None,"profileImage":"https://avatars.slack-edge.com/2019-05-04/628636263670_d8c7412e29ad9d1ff23b_192.jpg","project_difficulty":0.7142857142857143,"role":"Employee",
+        "slack_id":"UGRRJKCMB",
+        "status":"Enabled",
+        "team":"Python",
+        "user_Id":"481",
+        "username":"aishwary",
+        "work_email":"aishwary@excellencetechnologies.in",
+        "email":"aishwary@excellencetechnologies.in"}
+    
+    user_detail = json.loads(json.dumps(user,default=json_util.default))
+    payload = {
+        "message_key": message_key,
+        "message_type": message_type,
+        "data" : "data",
+        "user": user_detail
+        }    
+    notification_message_test = requests.post(url=notification_system_url,json=payload)
+    return  (notification_message_test.text)

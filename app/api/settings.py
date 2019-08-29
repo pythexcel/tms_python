@@ -7,7 +7,6 @@ from flask_jwt_extended import (
 from app import token
 from bson import ObjectId
 from app.util import serialize_doc
-from app.config import default
 import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -136,9 +135,7 @@ def remove_disable_user():
                 "cron_checkin":
                 cron_checkin,
                 "missed_chechkin_crone":
-                missed_chechkin_crone,
-                "profile":
-                data_id['profile']
+                missed_chechkin_crone
             })
         else:
             pass

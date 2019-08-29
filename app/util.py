@@ -2,7 +2,7 @@ from app import mongo
 from bson.objectid import ObjectId
 import requests
 from slackclient import SlackClient
-from app.config import default
+
 
 def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])

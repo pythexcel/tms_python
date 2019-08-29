@@ -17,7 +17,7 @@ from flask_jwt_extended import (
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
     verify_jwt_in_request
 )
-
+from bson import json_util
 
 bp = Blueprint('monthly', __name__, url_prefix='/')
 
@@ -84,7 +84,7 @@ def load_all_weekly(all_weekly):
 def load_user(user):
     ret = mongo.db.users.find_one({
         "_id": ObjectId(user)
-    }, {"profile": 0})
+    })
     return serialize_doc(ret)
 
 # function to add user data
@@ -98,7 +98,7 @@ def add_user_data(user):
 def load_manager(manager):
     ret = mongo.db.users.find_one({
         "_id": manager
-    }, {"profile": 0})
+    })
     return serialize_doc(ret)
 
 # function for adding manager data
@@ -205,8 +205,12 @@ def add_monthly_checkin():
                     "report": report,
                     "month": month
                 }).inserted_id
-                monthly_payload = {"user":{"email":current_user['work_email'],"emp_id":None,"name":current_user['username'],"Phone":None},"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
+                current_user["_id"] = str(current_user["_id"])
+                user = json.loads(json.dumps(current_user,default=json_util.default))
+                print(user)
+                monthly_payload = {"user":user,"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
                 notification_message = requests.post(url=notification_system_url,json=monthly_payload)
+                print(notification_message.text)
                 return jsonify(str(ret)), 200
         else:
             return jsonify({"msg": "You must have atleast 3 weekly report to create a monthly report"}), 405       
@@ -234,7 +238,6 @@ def get_manager_monthly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_monthly_list(monthly_id):
-    mesg=load_monthly_report_mesg()
     current_user = get_current_user()
     manager_name = current_user['username']
     if not request.json:
@@ -292,7 +295,8 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                monthly_reviewed_payload = {"user":{"email":email,"emp_id":None,"name":junior_name,"Phone":None},
+                user = json.loads(json.dumps(dub,default=json_util.default))
+                monthly_reviewed_payload = {"user":user,
                 "data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
                 notification_message = requests.post(url=notification_system_url,json=monthly_reviewed_payload)
                 return jsonify(str(ret)), 200
@@ -362,7 +366,8 @@ def junior_monthly_report():
         "managers": {
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
-    }, {"profile": 0})
+    })
+
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
