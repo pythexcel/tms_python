@@ -902,7 +902,6 @@ def review_activity():
     status = state['review_activity']
     if status == 1:
         print("running")
-        review_activity_mesg=load_review_activity()
         today = datetime.datetime.utcnow()
         last_monday = today - datetime.timedelta(days=today.weekday())
         # First take date time where weekly report is to be dealt with
@@ -1048,7 +1047,6 @@ def monthly_manager_reminder():
         today = datetime.datetime.utcnow()
         month = today.strftime("%B")
         # First take date time where weekly report is to be dealt with
-        notification = load_monthly_manager_reminder()
         enb_user = []
         user = mongo.db.users.find({"status":"Enabled"})
         users = [serialize_doc(doc) for doc in user]
