@@ -3,7 +3,7 @@ import requests
 import dateutil.parser as parser
 from app.config import URL
 from bson.objectid import ObjectId
-from app.util import serialize_doc,load_weekly1,load_weekly2,load_review_activity,load_monthly_manager_reminder,missed_checkin,load_monthly_remainder,load_missed_review
+from app.util import serialize_doc
 from app import mongo
 import numpy as np
 from app.config import notification_system_url
@@ -118,11 +118,9 @@ def monthly_remainder():
                 rwe = [serialize_doc(doc)for doc in rep]
                 print(len(rwe))
                 if len(rwe) >= 3:
-                    mesg = load_monthly_remainder()
                     print(doc['name'])
                     role = doc['role']
                     print(role)
-                    
                     kpi_id = doc['kpi_id']
                     slack_id = doc['slack_id']
                     email = doc['email']
@@ -130,7 +128,6 @@ def monthly_remainder():
                     emp_id = doc['emp_id']
                     print(email)
                     print(month)
-                    
                     today_date = int(today.strftime("%d"))
                     #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
                     if today_date<11:
@@ -973,16 +970,17 @@ def missed_review_activity():
         for detail in reports:
             for data in detail['is_reviewed']:
                 if data['reviewed'] is False:   
+                    user = data
                     slack_id = data['_id']
                     print(slack_id)
                     use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
                     use = [serialize_doc(doc) for doc in use]
-                    for data in use:
-                        slack = data['slack_id']
-                        mang_id = data['_id']
-                        all_ids.append(slack)
-                        if slack not in managers_name:
-                            managers_name.append(data)
+                    for details in use:
+                        slack = details['slack_id']
+                        mang_id = details['_id']
+                        all_ids.append(details)
+                        if mang_id not in managers_name:
+                            managers_name.append(details)
         for ids in managers_name:
             coun = all_ids.count(ids)
             user = json.loads(json.dumps(ids,default=json_util.default))

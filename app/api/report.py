@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url
+from app.config import notification_system_url,slack_user_channels_url
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -20,6 +20,15 @@ from bson import json_util
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
+
+@bp.route('/slack', methods=["GET"])
+@jwt_required
+def slack():
+    current_user = get_current_user()
+    slack = current_user['email']
+    mail_payload = {"email":slack}
+    slack_channels = requests.post(url=slack_user_channels_url,json=mail_payload).json()
+    return jsonify (slack_channels)
 
 
 @bp.route('/checkin', methods=["POST"])
@@ -87,6 +96,7 @@ def add_checkin():
                 check_in_payload = {
                     "user": user,
                         "data": data,
+                        "slack_channel":slackChannels,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
@@ -99,6 +109,7 @@ def add_checkin():
                 check_in_payload = {
                     "user": user,
                         "data": data,
+                        "slack_channel":slackChannels,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
                     
@@ -143,6 +154,7 @@ def add_checkin():
                 data = "Report: " + "\n" +slackReport + "" + "\n" + "Highlight: " + highlight
                 check_in_payload = {
                     "user": user,
+                    "slack_channel":slackChannels,
                         "data": data,
                         "message_type" : "simple_message",
                         "message_key": "check-in"
@@ -156,6 +168,7 @@ def add_checkin():
                 check_in_payload = {
                     "user": user,
                         "data": data,
+                        "slack_channel":slackChannels,
                         "message_type" : "simple_message",
                         "message_key": "check-in"    
                 }
