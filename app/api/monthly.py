@@ -367,7 +367,6 @@ def junior_monthly_report():
             "$elemMatch": {"_id": str(current_user['_id'])}
         }
     })
-
     users = [serialize_doc(ret) for ret in users]
     ID = []
     for data in users:
