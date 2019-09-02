@@ -1041,7 +1041,7 @@ def skip_review(weekly_id):
     status = state['skip_review']
     if status == 1:
         current_user = get_current_user()
-        message=load_weekly_notes()
+        # message=load_weekly_notes()
         name = current_user['username']
         #findng current user date of joining.
         doj = current_user['dateofjoining']
@@ -1050,23 +1050,22 @@ def skip_review(weekly_id):
         #finding report by report id
         reason = request.json.get("reason",None)
         selected = request.json.get("selected",None)
-        reports = mongo.db.reports.find({
+        reports = mongo.db.reports.find_one({
             "_id": ObjectId(weekly_id),
             "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}
             }
         })
-        reports = [serialize_doc(doc) for doc in reports]
         #finding all managers review status. is manager have done his review or not.
         review_check=[]
-        for check in reports:
-            user=check['user']
-            reviewed_array = check['is_reviewed']
-            for review in reviewed_array:
-                review_check.append(review['reviewed'])
-        
+        user=reports['user']
+        reviewed_array = check['is_reviewed']
+        for review in reviewed_array:
+            review_check.append(review['reviewed'])
+        print(user)
         users = mongo.db.users.find({
             "_id": ObjectId(user)
             })
+
         users = [serialize_doc(doc) for doc in users]
         for user_info in users:
             slack_id = user_info['slack_id']

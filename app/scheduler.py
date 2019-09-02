@@ -563,12 +563,11 @@ def weekly_remainder():
                             weekly_payload = {"user": user,
                                     "data": None,
                                     "message_type" : "button_message",
-                                    "message_key": "automated_weekly",
+                                    "message_key": "automated_weekly_less",
                                     "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
                                     "button_text":"Submit an automatic weekly report"
                                     }
-                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
-                            
+                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)          
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
                                 weekly_payload = {"user": user,
@@ -727,7 +726,7 @@ def weekly_remainder():
                                 weekly_payload = {"user": user,
                                     "data": None,
                                     "message_type" : "simple_message",
-                                    "message_key": "user_weekly_reminder"}
+                                    "message_key": "user_weekly_warning_reminder"}
                                 notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
                         else:
                             if day == 4:
