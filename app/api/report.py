@@ -1058,7 +1058,7 @@ def skip_review(weekly_id):
         #finding all managers review status. is manager have done his review or not.
         review_check=[]
         user=reports['user']
-        reviewed_array = check['is_reviewed']
+        # reviewed_array = check['is_reviewed']
         for review in reviewed_array:
             review_check.append(review['reviewed'])
         print(user)
