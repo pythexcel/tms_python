@@ -1057,8 +1057,8 @@ def skip_review(weekly_id):
         })
         #finding all managers review status. is manager have done his review or not.
         review_check=[]
-        user=reports['user']
-        # reviewed_array = check['is_reviewed']
+        user=reports['user']    
+        reviewed_array = reports['is_reviewed']
         for review in reviewed_array:
             review_check.append(review['reviewed'])
         print(user)
@@ -1110,17 +1110,15 @@ def skip_review(weekly_id):
         else:
             #finding all assign managers_id
             manager_id = []
-            for data in reports:
-                for elem in data['is_reviewed']:
-                    manager_id.append(ObjectId(elem['_id']))
+            for elem in reports['is_reviewed']:
+                manager_id.append(ObjectId(elem['_id']))
             #finding all assign managers weights and current_manager weights
             manager_weight = []
             current_manag_weight=[]
-            for manager_data in reports:
-                for elem in manager_data['is_reviewed']:
-                    manager_weight.append(elem['weight'])
-                    if elem['_id'] == str(current_user["_id"]):
-                        current_manag_weight.append(elem['weight'])
+            for elem in reports['is_reviewed']:
+                manager_weight.append(elem['weight'])
+                if elem['_id'] == str(current_user["_id"]):
+                    current_manag_weight.append(elem['weight'])
             #finding all mangers by id
             managers = mongo.db.users.find({
                 "_id": {"$in": manager_id}
