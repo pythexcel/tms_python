@@ -924,27 +924,15 @@ def review_activity():
                     print(slack_id)
                     use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
                     use = [serialize_doc(doc) for doc in use]
-                    for data in use:
-                        slack = data['slack_id']
-                        mang_id = data['_id']
-                        email = data['work_email']
-                        name = data['username']
-                        emp_id = data['id']
-                        if slack not in managers_name:
-                            managers_name.append(data)
-                            ret = mongo.db.recent_activity.update({
-                                "user": mang_id},
-                                {"$push": {
-                                "weekly_reviewed": {
-                                "created_at": datetime.datetime.utcnow(),
-                                "priority": 1,
-                                "Message": "You have to review your Juniors weekly report"
-                                }}}, upsert=True)                
+                    for details in use:
+                        if details not in managers_name:
+                            managers_name.append(details)
+                                 
         print(managers_name)
         for ids in managers_name:
             user = json.loads(json.dumps(ids,default=json_util.default))
             manager_monthly_reminder = {"user":user,
-            "data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
+            "data":None,"message_key":"weekly_manager_reminder","message_type":"simple_message"}
             notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
 
 
@@ -979,7 +967,7 @@ def missed_review_activity():
                         slack = details['slack_id']
                         mang_id = details['_id']
                         all_ids.append(details)
-                        if mang_id not in managers_name:
+                        if details not in managers_name:
                             managers_name.append(details)
         for ids in managers_name:
             coun = all_ids.count(ids)
