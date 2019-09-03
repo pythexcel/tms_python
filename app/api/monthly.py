@@ -6,18 +6,18 @@ from flask import (
 )
 import requests
 import json
+from app.config import notification_system_url
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
-from app.util import slack_message, slack_msg,load_monthly_report_mesg
-from slackclient import SlackClient
+from app.util import load_monthly_report_mesg
 import datetime
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
     verify_jwt_in_request
 )
-
+from bson import json_util
 
 bp = Blueprint('monthly', __name__, url_prefix='/')
 
@@ -205,7 +205,12 @@ def add_monthly_checkin():
                     "report": report,
                     "month": month
                 }).inserted_id
-                slack_message(msg="<@" + slack + ">!" + ' ''have created monthly report')
+                current_user["_id"] = str(current_user["_id"])
+                user = json.loads(json.dumps(current_user,default=json_util.default))
+                print(user)
+                monthly_payload = {"user":user,"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
+                notification_message = requests.post(url=notification_system_url,json=monthly_payload)
+                print(notification_message.text)
                 return jsonify(str(ret)), 200
         else:
             return jsonify({"msg": "You must have atleast 3 weekly report to create a monthly report"}), 405       
@@ -233,7 +238,6 @@ def get_manager_monthly_list_all():
 @jwt_required
 @token.manager_required
 def get_manager_monthly_list(monthly_id):
-    mesg=load_monthly_report_mesg()
     current_user = get_current_user()
     manager_name = current_user['username']
     if not request.json:
@@ -263,6 +267,7 @@ def get_manager_monthly_list(monthly_id):
         for dub in rap:
             junior_name = dub['username']
             slack = dub['slack_id']
+            email = dub['work_email']
             sap = mongo.db.reports.find({
                 "_id": ObjectId(monthly_id),
                 "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
@@ -290,10 +295,10 @@ def get_manager_monthly_list(monthly_id):
                     "$set": {
                         "is_reviewed.$.reviewed": True
                     }})
-                mesgg=mesg.replace("Slack_id:", "<@" + slack + ">!")
-                messag=mesgg.replace(":Manager_name", " " + manager_name)
-                slack_message(
-                    msg=messag)
+                user = json.loads(json.dumps(dub,default=json_util.default))
+                monthly_reviewed_payload = {"user":user,
+                "data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
+                notification_message = requests.post(url=notification_system_url,json=monthly_reviewed_payload)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400
