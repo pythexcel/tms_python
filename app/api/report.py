@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url,slack_user_channels_url
+from app.config import notification_system_url
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -27,7 +27,7 @@ def slack():
     current_user = get_current_user()
     slack = current_user['email']
     mail_payload = {"email":slack}
-    slack_channels = requests.post(url=slack_user_channels_url,json=mail_payload).json()
+    slack_channels = requests.post(url=notification_system_url+"slackchannels",json=mail_payload).json()
     return jsonify (slack_channels)
 
 
@@ -101,7 +101,7 @@ def add_checkin():
                         "message_key": "check-in"
                     
                 }
-                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
             else:
@@ -114,7 +114,7 @@ def add_checkin():
                         "message_key": "check-in"
                     
                 }
-                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
         else:
@@ -146,7 +146,7 @@ def add_checkin():
                         "message_type" : "simple_message",
                         "message_key": "check-in_notification"
                     }
-            notification_message = requests.post(url=notification_system_url, json=check_in_notification_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=check_in_notification_payload)
             print("NEECHE RESPONSE H")
             print(check_in_notification_payload)
             print(notification_message.text)
@@ -160,7 +160,7 @@ def add_checkin():
                         "message_key": "check-in"
                 
                 }
-                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
             else:
@@ -172,7 +172,7 @@ def add_checkin():
                         "message_type" : "simple_message",
                         "message_key": "check-in"    
                 }
-                notification_message = requests.post(url=notification_system_url, json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
         return jsonify(str(ret))
@@ -402,7 +402,7 @@ def add_weekly_checkin():
     user = json.loads(json.dumps(current_user,default=json_util.default))
     weekly_payload = {"user":user,
     "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-    notification_message = requests.post(url=notification_system_url,json=weekly_payload)
+    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
     return jsonify(str(ret)), 200
 
 
@@ -480,7 +480,7 @@ def add_weekly_automated():
                 user = json.loads(json.dumps(current_user,default=json_util.default))
                 weekly_payload = {"user":user,
                 "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-                notification_message = requests.post(url=notification_system_url,json=weekly_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
                 return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403
@@ -735,7 +735,7 @@ def get_manager_weekly_list(weekly_id=None):
                             print("YE MAIN H")
                             weekly_reviewed_payload = {"user":user,"data":manager_name,
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url,json=weekly_reviewed_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                             print(notification_message.text)
                             return jsonify(str(ret)), 200
                         else:
@@ -1105,7 +1105,7 @@ def skip_review(weekly_id):
             user = json.loads(json.dumps(user_info,default=json_util.default))
             weekly_skipped_payload = {"user":user,
             "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
             return jsonify({"status":"success"})
         else:
             #finding all assign managers_id
@@ -1155,7 +1155,7 @@ def skip_review(weekly_id):
                         user = json.loads(json.dumps(user_info,default=json_util.default))
                         weekly_skipped_payload = {"user":user,
                         "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
+                        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
@@ -1185,7 +1185,7 @@ def skip_review(weekly_id):
                         user = json.loads(json.dumps(user_info,default=json_util.default))
                         weekly_skipped_payload = {"user":user,
                         "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        notification_message = requests.post(url=notification_system_url,json=weekly_skipped_payload)
+                        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
                         return jsonify({"status":"success"})
                     else:
                         return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
@@ -1352,5 +1352,5 @@ def test_message(message_type,message_key):
         "data" : "data",
         "user": user_detail
         }    
-    notification_message_test = requests.post(url=notification_system_url,json=payload)
+    notification_message_test = requests.post(url=notification_system_url+"notify/dispatch",json=payload)
     return  (notification_message_test.text)

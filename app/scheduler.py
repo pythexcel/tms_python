@@ -135,7 +135,7 @@ def monthly_remainder():
                             user = json.loads(json.dumps(doc,default=json_util.default))
                             monthly_reminder_payload = {"user":user,
                             "data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url,json=monthly_reminder_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=monthly_reminder_payload)
                             print('sended')
                         else:
                             print('wait')
@@ -567,7 +567,7 @@ def weekly_remainder():
                                     "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
                                     "button_text":"Submit an automatic weekly report"
                                     }
-                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)          
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)          
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
                                 weekly_payload = {"user": user,
@@ -577,7 +577,7 @@ def weekly_remainder():
                                     "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
                                     "button_text":"Submit an automatic weekly report"
                                     }
-                                notification_message = requests.post(url=notification_system_url, json=weekly_payload)            
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)            
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -719,7 +719,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_reminder"}
-                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)        
                             
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
@@ -727,7 +727,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_warning_reminder"}
-                                notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)        
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -884,7 +884,7 @@ def recent_activity():
                     user = json.loads(json.dumps(users,default=json_util.default))
                     missed_checkin_payload = {"user":user,
                     "data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
-                    notification_message = requests.post(url=notification_system_url,json=missed_checkin_payload)  
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=missed_checkin_payload)  
                     print(notfication_message.text)
             else:
                 pass
@@ -932,7 +932,7 @@ def review_activity():
             user = json.loads(json.dumps(ids,default=json_util.default))
             manager_monthly_reminder = {"user":user,
             "data":None,"message_key":"weekly_manager_reminder","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=manager_monthly_reminder)
 
 
 def missed_review_activity(): 
@@ -978,7 +978,7 @@ def missed_review_activity():
                     "message_type" : "simple_message",
                     "message_key": "review_count_message"
             }
-            notification_message = requests.post(url=notification_system_url, json=review_count_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=review_count_payload)
             print(notification_message.text)
 
  

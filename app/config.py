@@ -1,7 +1,7 @@
 URL = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/API_HR/api.php'
 URL_details = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/attendance/sal_info/api.php'
-notification_system_url = 'http://5.9.144.226:8005/notify/dispatch'
-slack_user_channels_url = 'http://5.9.144.226:8005/slackchannels'
+notification_system_url = 'http://5.9.144.226:8005/'
+
 
 
 checkin_score_scheduler_seconds = 90
