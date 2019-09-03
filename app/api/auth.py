@@ -15,7 +15,8 @@ from app import mongo
 from app import token
 from app.util import get_manager_profile
 import dateutil.parser
-
+import json
+from bson import json_util
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -120,7 +121,7 @@ def login():
                         "jobtitle": jobtitle,
                         "dob": dob,
                         "gender": gender,
-                        "work_email": work_email,
+                        "email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
                         "dateofjoining": date_time,
@@ -144,7 +145,7 @@ def login():
                         "jobtitle": jobtitle,
                         "dob": dob,
                         "gender": gender,
-                        "work_email": work_email,
+                        "email": work_email,
                         "slack_id": slack_id,
                         "profileImage": prImage,
                         "dateofjoining": date_time,
@@ -158,7 +159,6 @@ def login():
             role_response = jwt.decode(token['data']['token'], None, False)
             print(role_response)
             print('role_response')
-
             if role_response["role"] == "Admin":
                 payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
                 response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
@@ -192,7 +192,7 @@ def login():
                                     "jobtitle": jobtitle,
                                     "dob": dob,
                                     "gender": gender,
-                                    "work_email": work_email,
+                                    "email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
                                     "profile": None
@@ -207,7 +207,7 @@ def login():
                                 "jobtitle": jobtitle,
                                 "dob": dob,
                                 "gender": gender,
-                                "work_email": work_email,
+                                "email": work_email,
                                 "slack_id": slack_id,
                                 "team": team,
                                 "role": role,
@@ -231,7 +231,9 @@ def login():
 def protected():
     # get_token()
     current_user = get_current_user()
-    return jsonify(logged_in_as=current_user["username"]), 200
+    current_user["_id"] = str(current_user["_id"])
+    user = json.dumps(current_user,default=json_util.default)
+    return user, 200
 
 
 @bp.route('/profile', methods=['PUT', 'GET'])
