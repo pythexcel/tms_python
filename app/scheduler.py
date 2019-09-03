@@ -118,15 +118,12 @@ def monthly_remainder():
                 rwe = [serialize_doc(doc)for doc in rep]
                 print(len(rwe))
                 if len(rwe) >= 3:
-                    print(doc['name'])
                     role = doc['role']
                     print(role)
                     kpi_id = doc['kpi_id']
                     slack_id = doc['slack_id']
                     email = doc['email']
                     name = doc['name']
-                    emp_id = doc['emp_id']
-                    print(email)
                     print(month)
                     today_date = int(today.strftime("%d"))
                     #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
@@ -298,7 +295,7 @@ def checkin_score():
         # passing parameters in payload to call the api
         payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                    "month": month, "year": year}
-        response = requests.post(url=URL, json=payload)
+        response = requests.post(url=URL+"attendance/API_HR/api.php", json=payload)
         data = response.json()
         attn_data = data['data']['attendance']
         print("Got response from hr Api")
@@ -380,7 +377,7 @@ def disable_user():
     secret_key1 = secret_key()
     print('Disable schduler running....')
     payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key1}
-    response_all_disabled_users_details = requests.post(url=URL, json=payload_all_disabled_users_details)
+    response_all_disabled_users_details = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_all_disabled_users_details)
     result_disabled = response_all_disabled_users_details.json()
     print('fetching the list of disable users')
     disabled_names = []
@@ -850,7 +847,7 @@ def recent_activity():
                 year = str(today.year)
                 payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                             "month": month, "year": year}
-                response = requests.post(url=URL, json=payload)
+                response = requests.post(url=URL+"attendance/API_HR/api.php", json=payload)
                 data = response.json()
                 attn_data = data['data']['attendance']
 

@@ -10,7 +10,7 @@ import re
 from bson.objectid import ObjectId
 import requests
 import datetime
-from app.config import URL,URL_details
+from app.config import URL
 from app import mongo
 from app import token
 from app.util import get_manager_profile
@@ -63,13 +63,13 @@ def login():
             return jsonify(msg="Missing password parameter"), 400
 
         payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
-        response_user_token = requests.post(url=URL, json=payload_user_login)
+        response_user_token = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_user_login)
         token = response_user_token.json()
         if token['data'] == {'message': 'Invalid Login'}:
             return jsonify(msg='invalid login'), 500
         else:
             payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
-            response_user_details = requests.post(url=URL_details, json=payload_user_details)
+            response_user_details = requests.post(url=URL+"attendance/sal_info/api.php", json=payload_user_details)
             result = response_user_details.json()
             user_data = result['data']['user_profile_detail']
             print("HR API RESPONSE")
@@ -161,7 +161,7 @@ def login():
             print('role_response')
             if role_response["role"] == "Admin":
                 payload_all_user_details = {"action": "get_enable_user", "token": token['data']['token']}
-                response_all_user_details = requests.post(url=URL, json=payload_all_user_details)
+                response_all_user_details = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_all_user_details)
                 result = response_all_user_details.json()
                 data = result['data']
                 for user in data:
