@@ -168,14 +168,24 @@ def monthly_remainder():
                             "_id": ObjectId(ID_)
                         })
                         users = [serialize_doc(doc) for doc in users]
+                        enb_managers = []
+                        managers = mongo.db.users.find({
+                            "role": "manager",
+                            "status": "Enabled"
+                        })
+                        managers = [serialize_doc(doc) for doc in managers]
+                        print(managers)
+                        for data in managers:
+                            enb_managers.append(data['_id'])
                         managers_data = []
                         for data in users:
                             if "managers" in data:
                                 for mData in data['managers']:
                                     manager_id = mData['_id']
                                     mData['reviewed'] = reviewed
-                                    managers_data.append(mData)
-                        
+                                    if manager_id in enb_managers:
+                                        managers_data.append(mData)
+
                         #inserting monthly report with default values.
                         ret = mongo.db.reports.insert_one({
                             "user": str(ID_),
@@ -583,13 +593,23 @@ def weekly_remainder():
                                     "_id": ObjectId(ID_)
                                 })
                                 users = [serialize_doc(doc) for doc in users]
+                                enb_managers = []
+                                managers = mongo.db.users.find({
+                                    "role": "manager",
+                                    "status": "Enabled"
+                                })
+                                managers = [serialize_doc(doc) for doc in managers]
+                                print(managers)
+                                for data in managers:
+                                    enb_managers.append(data['_id'])
                                 managers_data = []
                                 for data in users:
                                     if "managers" in data:
                                         for mData in data['managers']:
                                             manager_id = mData['_id']
                                             mData['reviewed'] = reviewed
-                                            managers_data.append(mData)
+                                            if manager_id in enb_managers:
+                                                managers_data.append(mData)
                                 ret = mongo.db.reports.insert_one({
                                     "k_highlight": [],
                                     "extra": "No comment",
