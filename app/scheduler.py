@@ -169,10 +169,8 @@ def monthly_remainder():
                         })
                         users = [serialize_doc(doc) for doc in users]
                         enb_managers = []
-                        managers = mongo.db.users.find({
-                            "role": "manager",
-                            "status": "Enabled"
-                        })
+                        managers = mongo.db.users.find({"$or":[{"role":"manager"},{"role":"Admin"}], "status": "Enabled"
+                                })
                         managers = [serialize_doc(doc) for doc in managers]
                         print(managers)
                         for data in managers:
@@ -594,9 +592,7 @@ def weekly_remainder():
                                 })
                                 users = [serialize_doc(doc) for doc in users]
                                 enb_managers = []
-                                managers = mongo.db.users.find({
-                                    "role": "manager",
-                                    "status": "Enabled"
+                                managers = mongo.db.users.find({"$or":[{"role":"manager"},{"role":"Admin"}], "status": "Enabled"
                                 })
                                 managers = [serialize_doc(doc) for doc in managers]
                                 print(managers)
