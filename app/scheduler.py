@@ -118,15 +118,12 @@ def monthly_remainder():
                 rwe = [serialize_doc(doc)for doc in rep]
                 print(len(rwe))
                 if len(rwe) >= 3:
-                    print(doc['name'])
                     role = doc['role']
                     print(role)
                     kpi_id = doc['kpi_id']
                     slack_id = doc['slack_id']
                     email = doc['email']
                     name = doc['name']
-                    emp_id = doc['emp_id']
-                    print(email)
                     print(month)
                     today_date = int(today.strftime("%d"))
                     #check if user allow date(joiningdate + 10) is greater then to today date then send normal slack msg else create a report with default ratings
@@ -135,7 +132,7 @@ def monthly_remainder():
                             user = json.loads(json.dumps(doc,default=json_util.default))
                             monthly_reminder_payload = {"user":user,
                             "data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url,json=monthly_reminder_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=monthly_reminder_payload)
                             print('sended')
                         else:
                             print('wait')
@@ -171,14 +168,24 @@ def monthly_remainder():
                             "_id": ObjectId(ID_)
                         })
                         users = [serialize_doc(doc) for doc in users]
+                        enb_managers = []
+                        managers = mongo.db.users.find({
+                            "role": "manager",
+                            "status": "Enabled"
+                        })
+                        managers = [serialize_doc(doc) for doc in managers]
+                        print(managers)
+                        for data in managers:
+                            enb_managers.append(data['_id'])
                         managers_data = []
                         for data in users:
                             if "managers" in data:
                                 for mData in data['managers']:
                                     manager_id = mData['_id']
                                     mData['reviewed'] = reviewed
-                                    managers_data.append(mData)
-                        
+                                    if manager_id in enb_managers:
+                                        managers_data.append(mData)
+
                         #inserting monthly report with default values.
                         ret = mongo.db.reports.insert_one({
                             "user": str(ID_),
@@ -298,7 +305,7 @@ def checkin_score():
         # passing parameters in payload to call the api
         payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                    "month": month, "year": year}
-        response = requests.post(url=URL, json=payload)
+        response = requests.post(url=URL+"attendance/API_HR/api.php", json=payload)
         data = response.json()
         attn_data = data['data']['attendance']
         print("Got response from hr Api")
@@ -380,7 +387,7 @@ def disable_user():
     secret_key1 = secret_key()
     print('Disable schduler running....')
     payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key1}
-    response_all_disabled_users_details = requests.post(url=URL, json=payload_all_disabled_users_details)
+    response_all_disabled_users_details = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_all_disabled_users_details)
     result_disabled = response_all_disabled_users_details.json()
     print('fetching the list of disable users')
     disabled_names = []
@@ -567,7 +574,7 @@ def weekly_remainder():
                                     "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
                                     "button_text":"Submit an automatic weekly report"
                                     }
-                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)          
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)          
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
                                 weekly_payload = {"user": user,
@@ -577,7 +584,7 @@ def weekly_remainder():
                                     "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
                                     "button_text":"Submit an automatic weekly report"
                                     }
-                                notification_message = requests.post(url=notification_system_url, json=weekly_payload)            
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)            
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -586,13 +593,23 @@ def weekly_remainder():
                                     "_id": ObjectId(ID_)
                                 })
                                 users = [serialize_doc(doc) for doc in users]
+                                enb_managers = []
+                                managers = mongo.db.users.find({
+                                    "role": "manager",
+                                    "status": "Enabled"
+                                })
+                                managers = [serialize_doc(doc) for doc in managers]
+                                print(managers)
+                                for data in managers:
+                                    enb_managers.append(data['_id'])
                                 managers_data = []
                                 for data in users:
                                     if "managers" in data:
                                         for mData in data['managers']:
                                             manager_id = mData['_id']
                                             mData['reviewed'] = reviewed
-                                            managers_data.append(mData)
+                                            if manager_id in enb_managers:
+                                                managers_data.append(mData)
                                 ret = mongo.db.reports.insert_one({
                                     "k_highlight": [],
                                     "extra": "No comment",
@@ -719,7 +736,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_reminder"}
-                            notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)        
                             
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
@@ -727,7 +744,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_warning_reminder"}
-                                notification_message = requests.post(url=notification_system_url, json=weekly_payload)        
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)        
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -850,7 +867,7 @@ def recent_activity():
                 year = str(today.year)
                 payload = {"action": "month_attendance", "userid": ID_, "secret_key": secret_key1,
                             "month": month, "year": year}
-                response = requests.post(url=URL, json=payload)
+                response = requests.post(url=URL+"attendance/API_HR/api.php", json=payload)
                 data = response.json()
                 attn_data = data['data']['attendance']
 
@@ -884,7 +901,7 @@ def recent_activity():
                     user = json.loads(json.dumps(users,default=json_util.default))
                     missed_checkin_payload = {"user":user,
                     "data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
-                    notification_message = requests.post(url=notification_system_url,json=missed_checkin_payload)  
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=missed_checkin_payload)  
                     print(notfication_message.text)
             else:
                 pass
@@ -932,7 +949,7 @@ def review_activity():
             user = json.loads(json.dumps(ids,default=json_util.default))
             manager_monthly_reminder = {"user":user,
             "data":None,"message_key":"weekly_manager_reminder","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=manager_monthly_reminder)
 
 
 def missed_review_activity(): 
@@ -978,7 +995,7 @@ def missed_review_activity():
                     "message_type" : "simple_message",
                     "message_key": "review_count_message"
             }
-            notification_message = requests.post(url=notification_system_url, json=review_count_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=review_count_payload)
             print(notification_message.text)
 
  

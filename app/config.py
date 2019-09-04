@@ -1,7 +1,5 @@
-URL = 'https://hr.excellencetechnologies.in/backend/attendance/API_HR/api.php'
-URL_details = 'https://hr.excellencetechnologies.in/backend/attendance/sal_info/api.php'
-notification_system_url = 'http://5.9.144.226:8005/notify/dispatch'
-slack_user_channels_url = 'http://5.9.144.226:8005/slackchannels'
+URL = 'https://hr.excellencetechnologies.in/backend/'
+notification_system_url = 'http://5.9.144.226:8005/'
 
 
 checkin_score_scheduler_seconds = 90
