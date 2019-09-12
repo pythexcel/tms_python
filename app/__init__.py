@@ -89,7 +89,7 @@ def create_app(test_config=None):
     weekly_remainder_scheduler.start()
     
     review_activity_scheduler = BackgroundScheduler()
-    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='mon-sat', hour=review_activity_scheduler_hour, minute=review_activity_scheduler_min)
+    review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='fri-sat', hour=review_activity_scheduler_hour, minute=review_activity_scheduler_min)
     review_activity_scheduler.start()
     
     disable_user_scheduler = BackgroundScheduler()
