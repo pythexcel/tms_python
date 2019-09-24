@@ -898,12 +898,9 @@ def recent_activity():
                     missed_checkin_payload = {"user":user,
                     "data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
                     notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=missed_checkin_payload)  
-                    print(notfication_message.text)
             else:
                 pass
-                
-                
-                
+                       
 def review_activity(): 
     state = mongo.db.schdulers_setting.find_one({
         "review_activity": {"$exists": True}
