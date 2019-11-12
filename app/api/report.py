@@ -733,14 +733,14 @@ def get_manager_weekly_list(weekly_id=None):
                             user = json.loads(json.dumps(dub,default=json_util.default))
                             print(user)
                             print("YE MAIN H")
-                            weekly_reviewed_payload = {"user":user,"data":manager_name,
+                            weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                             print(notification_message.text)
                             return jsonify(str(ret)), 200
                         else:
                             return jsonify(msg="Already reviewed this report"), 400
-        
+                        
 @bp.route('/week_reviewed_reports', methods=["GET"])
 @jwt_required
 def week_reviewed_reports():
