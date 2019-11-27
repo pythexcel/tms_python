@@ -125,6 +125,7 @@ def login():
                         "slack_id": slack_id,
                         "profileImage": prImage,
                         "dateofjoining": date_time,
+                        "work_email": work_email,
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "profile": None
@@ -149,6 +150,7 @@ def login():
                         "slack_id": slack_id,
                         "profileImage": prImage,
                         "dateofjoining": date_time,
+                        "work_email": work_email,
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "role": role,
@@ -193,6 +195,7 @@ def login():
                                     "dob": dob,
                                     "gender": gender,
                                     "email": work_email,
+                                    "work_email": work_email,
                                     "slack_id": slack_id,
                                     "team": team,
                                     "profile": None
@@ -204,6 +207,7 @@ def login():
                                 "name": name,
                                 "user_Id": user_Id,
                                 "status": status,
+                                "work_email": work_email,
                                 "jobtitle": jobtitle,
                                 "dob": dob,
                                 "gender": gender,
