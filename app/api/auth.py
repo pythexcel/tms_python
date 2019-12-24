@@ -126,6 +126,7 @@ def login():
                         "profileImage": prImage,
                         "work_email": work_email,
                         "dateofjoining": date_time,
+                        "work_email": work_email,
                         "last_login": datetime.datetime.now(),
                         "team": team,
                         "profile": None
@@ -207,6 +208,7 @@ def login():
                                 "name": name,
                                 "user_Id": user_Id,
                                 "status": status,
+                                "work_email": work_email,
                                 "jobtitle": jobtitle,
                                 "dob": dob,
                                 "gender": gender,
@@ -222,7 +224,7 @@ def login():
             print(username1)
             print('User token generated for user')
             expires = datetime.timedelta(days=1)
-            access_token = create_access_token(identity=username1, expires_delta=expires)
+            access_token = create_access_token(identity=username1, expires_delta=expires,user_claims=role_response)
             return jsonify(access_token=access_token), 200
 
 

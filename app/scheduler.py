@@ -569,9 +569,16 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "button_message",
                                     "message_key": "automated_weekly_less",
-                                    "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
-                                    "button_text":"Submit an automatic weekly report"
-                                    }
+                                    "button":{"action":
+                                    [
+                                        {
+                                                "type": "button",
+                                                "text": "Submit an automatic weekly report",
+                                                "url": "http://tms.excellencetechnologies.in/#/app/automateWeekly"
+                                        }
+                                    ]
+                                            }                                      
+                                             }
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)          
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
@@ -579,9 +586,16 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "button_message",
                                     "message_key": "automated_weekly",
-                                    "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
-                                    "button_text":"Submit an automatic weekly report"
-                                    }
+                                    "button":{"action":
+                                    [
+                                        {
+                                                "type": "button",
+                                                "text": "Submit an automatic weekly report",
+                                                "url": "http://tms.excellencetechnologies.in/#/app/automateWeekly"
+                                        }
+                                    ]
+                                            }                                      
+                                             }
                                 notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)            
                         else:
                             if day == 4:
