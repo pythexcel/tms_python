@@ -96,17 +96,17 @@ def create_app(test_config=None):
     disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=disable_user_scheduler_hour, minute=disable_user_scheduler_min)
     disable_user_scheduler.start()
     
-    monthly_score_scheduler = BackgroundScheduler()
-    monthly_score_scheduler.add_job(monthly_score, trigger='cron', day_of_week='mon-sat', hour=monthly_score_scheduler_hour, minute=monthly_score_scheduler_min)
-    monthly_score_scheduler.start()
+    #monthly_score_scheduler = BackgroundScheduler()
+    #monthly_score_scheduler.add_job(monthly_score, trigger='cron', day_of_week='mon-sat', hour=monthly_score_scheduler_hour, minute=monthly_score_scheduler_min)
+    #monthly_score_scheduler.start()
     
-    monthly_remainder_scheduler = BackgroundScheduler()
-    monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=monthly_remainder_scheduler_hour, minute=monthly_remainder_scheduler_min)
-    monthly_remainder_scheduler.start()
+    #monthly_remainder_scheduler = BackgroundScheduler()
+    #monthly_remainder_scheduler.add_job(monthly_remainder, trigger='cron', day_of_week='mon-sat', hour=monthly_remainder_scheduler_hour, minute=monthly_remainder_scheduler_min)
+    #monthly_remainder_scheduler.start()
     
-    monthly_manager_reminder_scheduler = BackgroundScheduler()
-    monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=monthly_manager_reminder_scheduler_hour,minute=monthly_manager_reminder_scheduler_min)
-    monthly_manager_reminder_scheduler.start()
+    #monthly_manager_reminder_scheduler = BackgroundScheduler()
+    #monthly_manager_reminder_scheduler.add_job(monthly_manager_reminder, trigger='cron', day_of_week='mon-sat', hour=monthly_manager_reminder_scheduler_hour,minute=monthly_manager_reminder_scheduler_min)
+    #monthly_manager_reminder_scheduler.start()
 
     missed_review_activity_scheduler = BackgroundScheduler()
     missed_review_activity_scheduler.add_job(missed_review_activity, trigger='cron', day_of_week='mon-sat', hour=missed_review_activity_scheduler_hour,minute=missed_review_activity_scheduler_min)
@@ -124,9 +124,9 @@ def create_app(test_config=None):
         recent_activity_scheduler.shutdown()
         review_activity_scheduler.shutdown()
         disable_user_scheduler.shutdown()
-        monthly_score_scheduler.shutdown()
-        monthly_remainder_scheduler.shutdown()
-        monthly_manager_reminder_scheduler.shutdown()
+        #monthly_score_scheduler.shutdown()
+        #monthly_remainder_scheduler.shutdown()
+        #monthly_manager_reminder_scheduler.shutdown()
         missed_review_activity_scheduler.shutdown()
     
         
