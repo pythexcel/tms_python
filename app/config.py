@@ -2,6 +2,12 @@ URL = 'http://dynamic.hr.excellencetechnologies.in/'
 notification_system_url = 'http://5.9.144.225:8008/'
 
 
+default_skip_settings = {
+    "skip_review":True,
+    "only_manager_skip":True
+}
+
+
 
 checkin_score_scheduler_seconds = 90
 

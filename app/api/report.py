@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url
+from app.config import notification_system_url,default_skip_settings
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -1043,8 +1043,12 @@ def skip_review(weekly_id):
         "skip_review": {"$exists": True},
         "only_manager_skip": {"$exists": True}
     }, {"skip_review": 1,"only_manager_skip":1, '_id': 0})
-    status = state['skip_review']
-    only_manager_skip = state['only_manager_skip']
+    if state is not None:
+        status = state['skip_review']
+        only_manager_skip = state['only_manager_skip']
+    else:
+        status = default_skip_settings['skip_review']
+        only_manager_skip = default_skip_settings['only_manager_skip']
 
     if status == 1:
         current_user = get_current_user()
