@@ -14,7 +14,45 @@ from dateutil.relativedelta import relativedelta
 bp = Blueprint('system', __name__, url_prefix='/system')
 
 
-   
+#Api for weekly and monthly settings.
+@bp.route('put/reports_settings', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def reports_settings():
+
+    if request.method == "PUT":
+        weekly_status = request.json.get("weekly_status",True)
+        monthly_status = request.json.get("monthly_status",True)
+
+        ret = mongo.db.reports_settings.update({
+        }, {
+            "$set": {
+                "weekly_status": weekly_status,
+                "monthly_status": monthly_status
+            }
+        },upsert=True)
+
+        ret = mongo.db.schdulers_setting.update({
+            },{
+                "$set":{
+                    "monthly_remainder": monthly_status,
+                    "monthly_manager_reminder": monthly_status,
+                    "weekly_remainder": weekly_status,
+                    "review_activity": weekly_status
+            }}, upsert=True)
+        return jsonify(str(ret))
+
+
+@bp.route('get/reports_settings', methods=["GET"])
+@jwt_required
+def report_settings():
+    if request.method == "GET":
+        settings = mongo.db.reports_settings.find({})
+        settings = [serialize_doc(doc) for doc in settings]
+        return jsonify(settings)
+
+
+
 #Api for slack token settings   
 @bp.route('/slack_settings', methods=["PUT","GET"])
 @jwt_required
