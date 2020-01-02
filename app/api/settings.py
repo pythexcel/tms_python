@@ -14,6 +14,25 @@ from dateutil.relativedelta import relativedelta
 bp = Blueprint('system', __name__, url_prefix='/system')
 
 
+
+
+#Api for reset person overall rating    
+@bp.route('/rating_reset/<string:user_id>', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def rating_reset(user_id):
+    if request.method == "PUT":
+        ret = mongo.db.users.update({
+            "_id": ObjectId(user_id)
+        }, {
+            "$set": {
+                "Overall_rating": 0,
+                "rating_reset_time":datetime.datetime.utcnow()
+            }
+        },upsert=True)
+        return jsonify(str(ret))
+
+
    
 #Api for slack token settings   
 @bp.route('/slack_settings', methods=["PUT","GET"])

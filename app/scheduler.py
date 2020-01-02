@@ -425,7 +425,25 @@ def overall_reviewes():
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['_id']
-        docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
+        state = mongo.db.users.find_one({
+            "_id": ObjectId(id),
+            "rating_reset_time": {"$exists": True}
+            }, {"rating_reset_time": 1, '_id': 0})
+        if state is not None:
+            reset_time = state['rating_reset_time']
+            docs = mongo.db.reports.find({
+                "user": str(id), 
+                "type": "weekly",
+                "created_at": {
+                    "$gte":reset_time
+                }
+            })
+        else:
+            docs = mongo.db.reports.find({
+                "user": str(id), 
+                "type": "weekly"
+            })
+        
         docs = [serialize_doc(doc) for doc in docs]
         if docs:
             all_sum = []
