@@ -1058,11 +1058,8 @@ def skip_review(weekly_id):
             }
         })
         #finding all managers review status. is manager have done his review or not.
-        review_check=[]
         user=reports['user']    
         reviewed_array = reports['is_reviewed']
-        for review in reviewed_array:
-            review_check.append(review['reviewed'])
         print(user)
         users = mongo.db.users.find({
             "_id": ObjectId(user)
@@ -1089,110 +1086,26 @@ def skip_review(weekly_id):
         else:
             msg = "Weekly report is skipped by"+' '+name+' '+"because"+' '+reason
         
-        if 1 in review_check:
-            rep = mongo.db.reports.update({
-                    "_id": ObjectId(weekly_id)
-                    }, {
-                    "$push": {
-                        "skip_reason":msg }
-                    }, upsert=False)
-        
-            rep = mongo.db.reports.update({
-                    "_id": ObjectId(weekly_id),
-                    "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+
+        rep = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id)
                 }, {
-                    "$pull": {
-                        "is_reviewed": {"_id": str(current_user["_id"])}
-                    }}, upsert=False)
-            user = json.loads(json.dumps(user_info,default=json_util.default))
-            weekly_skipped_payload = {"user":user,
-            "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
-            return jsonify({"status":"success"})
-        else:
-            #finding all assign managers_id
-            manager_id = []
-            for elem in reports['is_reviewed']:
-                manager_id.append(ObjectId(elem['_id']))
-            #finding all assign managers weights and current_manager weights
-            manager_weight = []
-            current_manag_weight=[]
-            for elem in reports['is_reviewed']:
-                manager_weight.append(elem['weight'])
-                if elem['_id'] == str(current_user["_id"]):
-                    current_manag_weight.append(elem['weight'])
-            #finding all mangers by id
-            managers = mongo.db.users.find({
-                "_id": {"$in": manager_id}
-            })
-            managers = [serialize_doc(doc) for doc in managers]
-            #finding managers join date.
-            join_date = []
-            for dates in managers:
-                join_date.append(dates['dateofjoining'])
-        
-            for weig in current_manag_weight:
-                current_m_weight = weig
-            no_of_time = manager_weight.count(current_m_weight)
-            #checking if two managers have same weights.
-            if no_of_time > 1:
-                #checking that assign manager is greater then one or not if a single manager left then he can not skip report
-                if len(join_date) > 1:
-                    oldest = min(join_date)
-                    if doj == oldest:
-                        rep = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                        }, {
-                        "$push": {
-                            "skip_reason":msg }
-                        }, upsert=False)    
-                        
-                        rep = mongo.db.reports.update({
-                            "_id": ObjectId(weekly_id),
-                            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-                        }, {
-                            "$pull": {
-                                "is_reviewed": {"_id": str(current_user["_id"])}
-                            }}, upsert=False)
-                        user = json.loads(json.dumps(user_info,default=json_util.default))
-                        weekly_skipped_payload = {"user":user,
-                        "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
-                        return jsonify({"status":"success"})
-                    else:
-                        return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
-                else:
-                    return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400
-            else:
-                #checking that assign manager is greater then one or not if a single manager left then he can not skip report
-                if len(manager_weight)>1:
-                    #finding max weight in weight list
-                    max_weight = max(manager_weight)
-                    #if current manager weight is max then he can skip his review
-                    if current_m_weight == max_weight:
-                        rep = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                        }, {
-                        "$push": {
-                            "skip_reason":msg }
-                        }, upsert=False)
-                        
-                        rep = mongo.db.reports.update({
-                            "_id": ObjectId(weekly_id),
-                            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
-                        }, {
-                            "$pull": {
-                                "is_reviewed": {"_id": str(current_user["_id"])}
-                            }}, upsert=False)
-                        user = json.loads(json.dumps(user_info,default=json_util.default))
-                        weekly_skipped_payload = {"user":user,
-                        "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
-                        return jsonify({"status":"success"})
-                    else:
-                        return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
-                else:
-                    return jsonify({"msg": "You cannot skip this report review as you are the only manager"}), 400        
+                "$push": {
+                    "skip_reason":msg }
+                }, upsert=False)
+    
+        rep = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id),
+                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"])}},
+            }, {
+                "$pull": {
+                    "is_reviewed": {"_id": str(current_user["_id"])}
+                }}, upsert=False)
+        user = json.loads(json.dumps(user_info,default=json_util.default))
+        weekly_skipped_payload = {"user":user,
+        "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
+        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_skipped_payload)
+        return jsonify({"status":"success"})
     else:
         return jsonify({"msg": "Admin not allow to skip review"}), 400
 
