@@ -1,4 +1,4 @@
-URL = 'http://176.9.137.77/hr_tms/ReactReduxHR/backend/'
+URL = 'http://dynamic.hr.excellencetechnologies.in/attendance/API_HR/api.php'
 notification_system_url = 'http://5.9.144.226:8005/'
 
 
