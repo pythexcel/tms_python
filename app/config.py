@@ -1,4 +1,4 @@
-URL = 'https://hr.excellencetechnologies.in/backend/'
+URL = 'https://apistaginghr.excellencetechnologies.in/'
 notification_system_url = 'http://5.9.144.226:8005/'
 
 
