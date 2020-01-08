@@ -379,8 +379,8 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-        
-        
+    
+    
 def disable_user():
     secret_key1 = secret_key()
     print('Disable schduler running....')

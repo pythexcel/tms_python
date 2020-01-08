@@ -400,6 +400,8 @@ def add_weekly_checkin():
 
     current_user["_id"] = str(current_user["_id"])
     user = json.loads(json.dumps(current_user,default=json_util.default))
+    
+    
     weekly_payload = {"user":user,
     "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
     notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)

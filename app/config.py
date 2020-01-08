@@ -1,9 +1,9 @@
-URL = 'http://dynamic.hr.excellencetechnologies.in/attendance/API_HR/api.php'
-notification_system_url = 'http://5.9.144.226:8005/'
+URL = 'http://dynamic.hr.excellencetechnologies.in/'
+notification_system_url = 'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
 
 
 
-checkin_score_scheduler_seconds = 90
+checkin_score_scheduler_seconds = 900000
 
 overall_score_scheduler_hour = 16
 overall_score_scheduler_min = 30
@@ -34,3 +34,13 @@ monthly_manager_reminder_scheduler_min=30
 
 missed_review_activity_scheduler_hour=12
 missed_review_activity_scheduler_min=56
+
+
+'''
+{
+	"k_highlight":"show_disabled_users", 
+	"select_days":[],
+	"difficulty":2,
+	"extra":"sadafasfasf"
+}
+'''
