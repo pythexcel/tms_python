@@ -975,26 +975,30 @@ def missed_review_activity():
         if reports:
             for detail in reports:
                 for data in detail['is_reviewed']:
-                    if data['reviewed'] is False:   
-                        user = data
+                    if data['reviewed'] is False:
+                        user = detail['user']
                         slack_id = data['_id']
-                        print(slack_id)
-                        use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
-                        use = [serialize_doc(doc) for doc in use]
-                        if use:
-                            for details in use:
-                                slack = details['slack_id']
-                                mang_id = details['_id']
-                                all_ids.append(details)
-                                if details not in managers_name:
-                                    managers_name.append(details)
+                        checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                        if checking is not None:
+                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
+                            use = [serialize_doc(doc) for doc in use]
+                            if use:
+                                for details in use:
+                                    slack = details['slack_id']
+                                    mang_id = details['_id']
+                                    all_ids.append(details)
+                                    if details not in managers_name:
+                                        managers_name.append(details)
+                            else:
+                                pass
                         else:
                             pass
+            print("all_ids",len(all_ids))
+            print("manager_name",len(managers_name))
             if managers_name:
                 for ids in managers_name:
                     coun = all_ids.count(ids)
                     user = json.loads(json.dumps(ids,default=json_util.default))
-                    print(user)
                     review_count_payload = {
                         "user": user,
                             "data": str(coun),
@@ -1007,7 +1011,7 @@ def missed_review_activity():
                 pass
         else:
             pass
-    
+                        
 def manager_update():
     print("running")
     users = mongo.db.users.find()

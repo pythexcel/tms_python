@@ -1,5 +1,5 @@
-URL = 'http://dynamic.hr.excellencetechnologies.in/attendance/API_HR/api.php'
-notification_system_url = 'http://5.9.144.226:8005/'
+URL = 'http://dynamic.hr.excellencetechnologies.in/'
+notification_system_url = 'http://127.0.0.1:8000/'
 
 
 
