@@ -1,6 +1,6 @@
+
 URL = 'https://apistaginghr.excellencetechnologies.in/'
 notification_system_url = 'http://5.9.144.226:8005/'
-
 
 checkin_score_scheduler_seconds = 90
 
