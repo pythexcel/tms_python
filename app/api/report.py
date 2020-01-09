@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url
+from app.config import notification_system_url,button
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -337,7 +337,7 @@ def add_weekly_checkin():
         abort(500)
 
     k_highlight = request.json.get("k_highlight", None)
-    extra = request.json.get("extra", "")
+    extra = request.json.get("extra","")
     select_days = request.json.get("select_days", [])
     difficulty = request.json.get("difficulty", 0)
     username = current_user['username']
@@ -397,14 +397,18 @@ def add_weekly_checkin():
                     "priority": 1,
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
-
-    current_user["_id"] = str(current_user["_id"])
-    user = json.loads(json.dumps(current_user,default=json_util.default))
-    
-    
-    weekly_payload = {"user":user,
-    "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+    print("managers_name",managers_name)
+    for manger_id in managers_name:
+        mang_id = manger_id['Id']
+        manager_profile = mongo.db.users.find_one({
+            "_id": ObjectId(str(mang_id))
+                })
+        manager_profile["_id"] = str(manager_profile["_id"])
+        user = json.loads(json.dumps(manager_profile,default=json_util.default))    
+        
+        weekly_payload = {"user":user,
+        "data":{"junior":username, "report":k_highlight},"message_key":"weekly_notification","message_type":"button_message","button":button}
+        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
     return jsonify(str(ret)), 200
 
 

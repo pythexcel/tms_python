@@ -1,6 +1,37 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
 notification_system_url = 'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
 
+button={"actions": [
+                {
+                    "name": "rating",
+                    "text": "3",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "chess"
+                },
+                {
+                    "name": "rating",
+                    "text": "5",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "maze"
+                },
+                {
+                    "name": "rating",
+                    "text": "7",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "war"
+                },
+                {
+                    "name": "rating",
+                    "text": "9",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "war"
+                }
+            ]
+    }
 
 
 checkin_score_scheduler_seconds = 900000
