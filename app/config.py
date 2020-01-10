@@ -1,6 +1,6 @@
-URL = 'http://dynamic.hr.excellencetechnologies.in/' #'http://176.9.137.77/hr_tms/ReactReduxHR/backend/'
-notification_system_url =  'http://127.0.0.1:5000/' #'http://5.9.144.226:8005/'
 
+URL = 'http://dynamic.hr.excellencetechnologies.in/'
+notification_system_url = 'http://127.0.0.1:8000/'
 
 
 checkin_score_scheduler_seconds = 90
