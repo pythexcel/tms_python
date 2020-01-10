@@ -1,5 +1,5 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
-notification_system_url = 'http://176.9.137.77:8007' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
+notification_system_url = 'http://127.0.0.1:5000/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
 
 button={"actions": [
                 {
@@ -7,28 +7,28 @@ button={"actions": [
                     "text": "3",
                     "type": "button",
                     "style": "danger",
-                    "value": "chess"
+                    "value": "rating"
                 },
                 {
                     "name": "rating",
                     "text": "5",
                     "type": "button",
                     "style": "danger",
-                    "value": "maze"
+                    "value": "rating"
                 },
                 {
                     "name": "rating",
                     "text": "7",
                     "type": "button",
                     "style": "danger",
-                    "value": "war"
+                    "value": "rating"
                 },
                 {
                     "name": "rating",
                     "text": "9",
                     "type": "button",
                     "style": "danger",
-                    "value": "war"
+                    "value": "rating"
                 }
             ]
     }
@@ -66,12 +66,3 @@ monthly_manager_reminder_scheduler_min=30
 missed_review_activity_scheduler_hour=12
 missed_review_activity_scheduler_min=56
 
-
-'''
-{
-	"k_highlight":"show_disabled_users", 
-	"select_days":[],
-	"difficulty":2,
-	"extra":"sadafasfasf"
-}
-'''

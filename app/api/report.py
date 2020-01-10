@@ -9,6 +9,7 @@ import dateutil.parser
 from bson.objectid import ObjectId
 import requests
 from app.util import get_manager_juniors
+from datetime import timedelta
 import datetime
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -33,147 +34,135 @@ def slack():
 
 
 
-@bp.route('/testing', methods=["GET"])
-def testing():
-    '''
-    ret = mongo.db.testing.insert_one({
-        "report": "asdasddad"
-    }).inserted_id
-    '''
+@bp.route('/slack_report_review', methods=["GET"])
+def slack_report_review():
     rating = request.args.get('rating',default=0, type=int)
-    comment = request.args.get('comment',default=None, type=str)
+    comment = request.args.get('comment',default="", type=str)
     weekly_id = request.args.get('weekly_id',default=None, type=str)
     manager_id = request.args.get('manager_id',default=None, type=str)
-    print(rating)
-    print(comment)
-    print(weekly_id)
-    print(manager_id)
-    '''
-    rating = "5"
-    comment = None
-    weekly_id = "5d6e326547273c9c96624fb3"
-    manager_id = "5d4d4172eb7cb8073742b582"
-    '''
     
     juniors = get_manager_juniors(manager_id)
-    print(juniors)
-    dab = mongo.db.reports.find({
+    expire_checking = mongo.db.reports.find_one({
         "_id": ObjectId(weekly_id),
         "type": "weekly",
-        #"is_reviewed": {'$elemMatch': {"_id": manager_id, "reviewed": False}},
-        "is_reviewed": {'$elemMatch': {"_id": manager_id}},
         "user": {
             "$in": juniors
-        }
-    }).sort("created_at", 1)
+        },
+        "is_reviewed": {'$elemMatch': {"_id": manager_id}},
+        }, { "is_reviewed": 1,"_id": 0 })
+    if expire_checking is not None:
+        managers_matching = expire_checking['is_reviewed']
+        for manager_matching in managers_matching:
+            manager_detail = manager_matching['_id']
+            if manager_detail == manager_id:
+                expire_time = manager_matching['expire_time']
+        
+        if expire_time > datetime.datetime.now():
+            dab = mongo.db.reports.find({
+                "_id": ObjectId(weekly_id),
+                "type": "weekly",
+                "is_reviewed": {'$elemMatch': {"_id": manager_id}},
+                "user": {
+                    "$in": juniors
+                }
+            }).sort("created_at", 1)
+            dab = [checkin_data(serialize_doc(doc)) for doc in dab]
+            for data in dab:
+                ID = data['user']
+                rap = mongo.db.users.find({
+                    "_id": ObjectId(str(ID))
+                })
+                rap = [serialize_doc(doc) for doc in rap]
+                for dub in rap:
+                    junior_name = dub['username']
+                    slack = dub['slack_id']
+                    email = dub['work_email']
+                    manager = dub['managers']
+                    for a in manager:
+                        if a['_id']==str(manager_id):
+                            manager_weights=a['weight']
+                            manager_name = a['username']
+                            ret = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                            }, {
+                                "$pull": {
+                                    "review": {
+                                        "manager_id": str(manager_id)
+                                    }
+                                }
+                            })
+                            ret = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                            }, {
+                                "$push": {
+                                    "review": {
+                                        "rating": rating,
+                                        "created_at": datetime.datetime.utcnow(),
+                                        "comment": comment,
+                                        "manager_id": str(manager_id),
+                                        "manager_weight":manager_weights
+                                    }
+                                }
+                            })
 
-    dab = [testing_add_checkin_data(serialize_doc(doc)) for doc in dab]
-    print(dab)
-    for data in dab:
-        ID = data['user']
-        print(ID)
-        rap = mongo.db.users.find({
-            "_id": ObjectId(str(ID))
-        })
-        rap = [serialize_doc(doc) for doc in rap]
-        for dub in rap:
-            print(dub)
-            junior_name = dub['username']
-            slack = dub['slack_id']
-            email = dub['work_email']
-            print(slack)
-            manager = dub['managers']
-            for a in manager:
-                print("YHA pE")
-                if a['_id']==str(manager_id):
-                    manager_weights=a['weight']
-                    print(weekly_id)
-                    print(manager_id)
-                    '''
-                    sap = mongo.db.reports.find({
-                        "_id": ObjectId(weekly_id),
-                        "review": {'$elemMatch': {"manager_id": str(manager_id)}
-                    }
+                            cron = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                                }, {
+                                "$set": {
+                                    "cron_checkin": True
+                                }})
+
+                            docs = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id),
+                                "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
+                            }, {
+                                "$set": {
+                                    "is_reviewed.$.reviewed": True
+                                }})                        
+                            user = json.loads(json.dumps(dub,default=json_util.default))
+                            weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
+                            "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
+                            print(notification_message.text)
+                            return "Done"
+        else:
+            manager_profile = mongo.db.users.find_one({
+                "_id": ObjectId(str(manager_id))
                     })
-                    sap = [serialize_doc(saps) for saps in sap]
-                    print(sap)
-                    if not sap:
-                    '''
-                    ret = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
+            manager_profile["_id"] = str(manager_profile["_id"])
+            actions = button['actions']
+            docs = mongo.db.reports.update({
+                "_id": ObjectId(weekly_id),
+                "is_reviewed": {'$elemMatch': {"_id": str(manager_id)}},
                     }, {
-                        "$pull": {
-                            "review": {
-                                "manager_id": str(manager_id)
-                            }
-                        }
-                    })
-                    ret = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                    }, {
-                        "$push": {
-                            "review": {
-                                "rating": rating,
-                                "created_at": datetime.datetime.utcnow(),
-                                "comment": comment,
-                                "manager_id": str(manager_id),
-                                "manager_weight":manager_weights
-                            }
-                        }
-                    })
+                "$set": {
+                    "is_reviewed.$.expire_time":datetime.datetime.now() + datetime.timedelta(minutes=15)
+                }})
+            for action in actions:
+                rating = action['text']
+                api_url = "http://127.0.0.1:8000/slack_report_review?rating="+rating+"&comment="+comment+"&weekly_id="+weekly_id+"&manager_id="+manager_id+""
+                action["url"] = api_url
 
-                    cron = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id)
-                        }, {
-                        "$set": {
-                            "cron_checkin": True
-                        }})
+            user = json.loads(json.dumps(manager_profile,default=json_util.default))
+            weekly_payload = {"user":user,
+            "data":None,"message_key":"expire_weekly_notification","message_type":"button_message","button":button}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+            return "you link expired.check your slackbot we just sended you new link for same report"
+    return "Not a valid report"                                
 
-                    docs = mongo.db.reports.update({
-                        "_id": ObjectId(weekly_id),
-                        "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
-                    }, {
-                        "$set": {
-                            "is_reviewed.$.reviewed": True
-                        }})                        
-                    '''
-                    user = json.loads(json.dumps(dub,default=json_util.default))
-                    print(user)
-                    print("YE MAIN H")
-                    print("user",user,"manager",manager_name,"rating",rating,"comment",comment)
-                    weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
-                    "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
-                    print("notification status====>")
-                    print(notification_message.text)
-                    '''
-                    return "Done"
-                    '''
-                    else:
-                        return "Not done"
-                    '''
 
-def testing_add_checkin_data(weekly_report):
-    print("report whose select_days is to be found")
-    print(weekly_report)
+def checkin_data(weekly_report):
     select_days = weekly_report["select_days"]
     typ = type(select_days)
     if typ==str:
-        print("lenn")
         select_days = [select_days]
     else: 
         select_days = select_days
     
-    print(select_days)
     if select_days is None:
-        print("under None loop")
-        print("NONE LOOP")
         select_days = None
     else:
-        print("ID FOUND LOOP")
-        print("id found loop")
         select_days = [load_checkin(day) for day in select_days]
-    print("data which is loaded")
     all_chekin = weekly_report['user']
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
@@ -511,6 +500,7 @@ def add_weekly_checkin():
     for data in users:
         for mData in data['managers']:
             mData['reviewed'] = reviewed
+            mData['expire_time'] = datetime.datetime.now() + datetime.timedelta(minutes=15)
             managers_data.append(mData)
 
     if 'kpi_id' in users:
@@ -552,7 +542,6 @@ def add_weekly_checkin():
                     "priority": 1,
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
-    print("managers_name",managers_name)
     weekly_id = str(ret)
     for manger_id in managers_name:
         mang_id = manger_id['Id']
@@ -563,7 +552,7 @@ def add_weekly_checkin():
         actions = button['actions']
         for action in actions:
             rating = action['text']
-            api_url = "http://127.0.0.1:5000/testing?rating="+rating+"&comment=xyz&weekly_id="+weekly_id+"&manager_id="+mang_id+""
+            api_url = "http://127.0.0.1:8000/slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+""
             action["url"] = api_url
         user = json.loads(json.dumps(manager_profile,default=json_util.default))
         weekly_payload = {"user":user,
