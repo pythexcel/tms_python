@@ -945,7 +945,7 @@ def review_activity():
             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=manager_monthly_reminder)
 
 
-def missed_review_activity(): 
+def missed_review_activity():
     print("running")
     state = mongo.db.schdulers_setting.find_one({
         "missed_reviewed": {"$exists": True}
@@ -980,7 +980,7 @@ def missed_review_activity():
                         slack_id = data['_id']
                         checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
                         if checking is not None:
-                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
+                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
                             use = [serialize_doc(doc) for doc in use]
                             if use:
                                 for details in use:
@@ -993,6 +993,8 @@ def missed_review_activity():
                                 pass
                         else:
                             pass
+                    else:
+                        pass
             print("all_ids",len(all_ids))
             print("manager_name",len(managers_name))
             if managers_name:
