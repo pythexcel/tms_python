@@ -11,6 +11,8 @@ from app.util import serialize_doc
 import datetime
 from dateutil.relativedelta import relativedelta
 from bson import json_util
+import json
+import requests
 
 bp = Blueprint('system', __name__, url_prefix='/system')
 
@@ -39,7 +41,7 @@ def rating_reset(user_id):
         rating_reset = {"user":user,
                     "data":None,"message_key":"rating_reset","message_type":"simple_message"}
         notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
-        return jsonify(str(ret))
+        return jsonify({"status":"success"})
 
 
    

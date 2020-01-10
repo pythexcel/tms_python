@@ -1,5 +1,5 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/' #'http://176.9.137.77/hr_tms/ReactReduxHR/backend/'
-notification_system_url =  'http://5.9.144.226:8005/' #'http://5.9.144.226:8005/'
+notification_system_url =  'http://127.0.0.1:5000/' #'http://5.9.144.226:8005/'
 
 
 
