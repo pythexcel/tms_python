@@ -72,13 +72,10 @@ def login():
             response_user_details = requests.post(url=URL+"attendance/sal_info/api.php", json=payload_user_details)
             result = response_user_details.json()
             user_data = result['data']['user_profile_detail']
-            print("HR API RESPONSE")
-            print(user_data)
             status = user_data["status"]
             role_response = jwt.decode(token['data']['token'], None, False)
             id = user_data["id"]
             username = log_username
-            print(username)
             name = user_data['name']
             print(name)
             jobtitle = user_data["jobtitle"]
@@ -94,15 +91,12 @@ def login():
             user = mongo.db.users.find_one({
                 "username": username})
             print("MONGO DATABASE RESPONSE")
-            print(user)
             if len(user_data["profileImage"]) > 0:
                 prImage = user_data["profileImage"]
-                print(prImage)
                 print("HR api pr image test")
             else:
                 if "profileImage" in user:
                     prImage = user['profileImage']
-                    print(prImage)
                     print("database pr image test")
                 else:
                     prImage = ""
@@ -170,7 +164,7 @@ def login():
                         role = user['role_name']
                         id = user['id']
                         username = user['username']
-                        print(username)
+                        print(username,"=======check user name for duplication")
                         user_Id = user['user_Id']
                         status = user['status']
                         name = user['name']
@@ -257,6 +251,11 @@ def profile():
             ret['kpi'] = ret_kpi
         else:
             ret['kpi'] = {}
+        state = mongo.db.schdulers_setting.find_one({
+            "easyRating": {"$exists": True}
+        }, {"easyRating": 1, '_id': 0})
+        status = state['easyRating']
+        ret['easyRating'] = status 
         return jsonify(ret)
     if request.json is None:
         abort(500)

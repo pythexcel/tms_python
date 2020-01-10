@@ -5,13 +5,43 @@ from flask_jwt_extended import (
     jwt_required, create_access_token, get_current_user
 )
 from app import token
+from app.config import notification_system_url
 from bson import ObjectId
 from app.util import serialize_doc
 import datetime
 from dateutil.relativedelta import relativedelta
-
+from bson import json_util
+import json
+import requests
 
 bp = Blueprint('system', __name__, url_prefix='/system')
+
+
+
+
+#Api for reset person overall rating    
+@bp.route('/rating_reset/<string:user_id>', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def rating_reset(user_id):
+    if request.method == "PUT":
+        ret = mongo.db.users.update({
+            "_id": ObjectId(user_id)
+        }, {
+            "$set": {
+                "Overall_rating": 0,
+                "rating_reset_time":datetime.datetime.utcnow()
+            }
+        },upsert=True)
+        users = mongo.db.users.find_one({
+            "_id": ObjectId(user_id)
+        })
+        user_info = serialize_doc(users)
+        user = json.loads(json.dumps(user_info,default=json_util.default))
+        rating_reset = {"user":user,
+                    "data":None,"message_key":"rating_reset","message_type":"simple_message"}
+        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+        return jsonify({"status":"success"})
 
 
    
@@ -172,6 +202,7 @@ def schdulers_setings():
         skip_review_setting=request.json.get("managerSkip",True)
         only_manager_skip_setting=request.json.get("only_manager_skip",True)
         weekly_automated=request.json.get("weekly_automated",True)
+        easyRating=request.json.get("easyRating",True)
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
@@ -184,7 +215,8 @@ def schdulers_setings():
                 "missed_reviewed":missed_reviewed,
                 "skip_review":skip_review_setting,
                 "only_manager_skip":only_manager_skip_setting,
-                "weekly_automated":weekly_automated
+                "weekly_automated":weekly_automated,
+                "easyRating":easyRating
             }}, upsert=True)
         return jsonify(str(ret))
 
