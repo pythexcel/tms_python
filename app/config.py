@@ -1,6 +1,6 @@
+
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
 notification_system_url = 'http://127.0.0.1:8000/'
-
 
 
 checkin_score_scheduler_seconds = 90
