@@ -251,6 +251,11 @@ def profile():
             ret['kpi'] = ret_kpi
         else:
             ret['kpi'] = {}
+        state = mongo.db.schdulers_setting.find_one({
+            "easyRating": {"$exists": True}
+        }, {"easyRating": 1, '_id': 0})
+        status = state['easyRating']
+        ret['easyRating'] = status 
         return jsonify(ret)
     if request.json is None:
         abort(500)

@@ -201,6 +201,7 @@ def schdulers_setings():
         missed_reviewed=request.json.get("missed_reviewed",True)
         skip_review_setting=request.json.get("managerSkip",True)
         weekly_automated=request.json.get("weekly_automated",True)
+        easyRating=request.json.get("easyRating",True)
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
@@ -212,7 +213,8 @@ def schdulers_setings():
                 "revew_360_setting":revew_360_setting,
                 "missed_reviewed":missed_reviewed,
                 "skip_review":skip_review_setting,
-                "weekly_automated":weekly_automated
+                "weekly_automated":weekly_automated,
+                "easyRating":easyRating
             }}, upsert=True)
         return jsonify(str(ret))
 
