@@ -1,6 +1,14 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
+
 notification_system_url = 'http://127.0.0.1:5000/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
-tms_system_url = 'http://127.0.0.1:8000/'
+tms_system_url = 'http://127.0.0.1:8000/' #server ip and port on which tms code running.
+
+
+
+default_skip_settings = {
+    "skip_review":True,
+    "only_manager_skip":True
+}
 
 
 button={"actions": [
