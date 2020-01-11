@@ -425,7 +425,25 @@ def overall_reviewes():
     users = [serialize_doc(doc) for doc in users]
     for detail in users:
         id = detail['_id']
-        docs = mongo.db.reports.find({"user": str(id), "type": "weekly"})
+        state = mongo.db.users.find_one({
+            "_id": ObjectId(id),
+            "rating_reset_time": {"$exists": True}
+            }, {"rating_reset_time": 1, '_id': 0})
+        if state is not None:
+            reset_time = state['rating_reset_time']
+            docs = mongo.db.reports.find({
+                "user": str(id), 
+                "type": "weekly",
+                "created_at": {
+                    "$gte":reset_time
+                }
+            })
+        else:
+            docs = mongo.db.reports.find({
+                "user": str(id), 
+                "type": "weekly"
+            })
+        
         docs = [serialize_doc(doc) for doc in docs]
         if docs:
             all_sum = []
@@ -945,7 +963,7 @@ def review_activity():
             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=manager_monthly_reminder)
 
 
-def missed_review_activity(): 
+def missed_review_activity():
     print("running")
     state = mongo.db.schdulers_setting.find_one({
         "missed_reviewed": {"$exists": True}
@@ -975,26 +993,32 @@ def missed_review_activity():
         if reports:
             for detail in reports:
                 for data in detail['is_reviewed']:
-                    if data['reviewed'] is False:   
-                        user = data
+                    if data['reviewed'] is False:
+                        user = detail['user']
                         slack_id = data['_id']
-                        print(slack_id)
-                        use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
-                        use = [serialize_doc(doc) for doc in use]
-                        if use:
-                            for details in use:
-                                slack = details['slack_id']
-                                mang_id = details['_id']
-                                all_ids.append(details)
-                                if details not in managers_name:
-                                    managers_name.append(details)
+                        checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                        if checking is not None:
+                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                            use = [serialize_doc(doc) for doc in use]
+                            if use:
+                                for details in use:
+                                    slack = details['slack_id']
+                                    mang_id = details['_id']
+                                    all_ids.append(details)
+                                    if details not in managers_name:
+                                        managers_name.append(details)
+                            else:
+                                pass
                         else:
                             pass
+                    else:
+                        pass
+            print("all_ids",len(all_ids))
+            print("manager_name",len(managers_name))
             if managers_name:
                 for ids in managers_name:
                     coun = all_ids.count(ids)
                     user = json.loads(json.dumps(ids,default=json_util.default))
-                    print(user)
                     review_count_payload = {
                         "user": user,
                             "data": str(coun),
@@ -1007,7 +1031,7 @@ def missed_review_activity():
                 pass
         else:
             pass
-    
+                        
 def manager_update():
     print("running")
     users = mongo.db.users.find()
