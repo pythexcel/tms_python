@@ -131,7 +131,7 @@ def slack_report_review():
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                             print(notification_message.text)
                             return "Report reviewed successfully"
-        #If link is expired
+        #If link is expired then sending new genrated link.
         else:
             manager_profile = mongo.db.users.find_one({
                 "_id": ObjectId(str(manager_id))
@@ -139,6 +139,7 @@ def slack_report_review():
             manager_profile["_id"] = str(manager_profile["_id"])
             actions = button['actions']
             new_u_id = str(uuid.uuid4())
+            #updating new 15 min time link validation time and new unique id 
             docs = mongo.db.reports.update({
                 "_id": ObjectId(weekly_id),
                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id)}},
