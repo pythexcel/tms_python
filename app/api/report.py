@@ -541,7 +541,8 @@ def add_weekly_checkin():
         "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
-
+    descriptio = k_highlight[0]
+    description = descriptio['description']
     for element in managers_name:
         manager = element['Id']
         rec = mongo.db.recent_activity.update({
@@ -568,7 +569,7 @@ def add_weekly_checkin():
             action["url"] = api_url
         user = json.loads(json.dumps(manager_profile,default=json_util.default))
         weekly_payload = {"user":user,
-        "data":{"junior":username, "report":k_highlight},"message_key":"weekly_notification","message_type":"button_message","button":button}
+        "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":button}
         notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
     return jsonify(str(ret)), 200
 
@@ -581,6 +582,7 @@ def add_weekly_automated():
     slack = current_user['slack_id']
     formated_date = today.strftime("%d-%B-%Y")
     last_monday = today - datetime.timedelta(days=today.weekday())
+    username = current_user['username']
     state = mongo.db.schdulers_setting.find_one({
         "weekly_automated": {"$exists": True}
         }, {"weekly_automated": 1, '_id': 0})
@@ -603,6 +605,8 @@ def add_weekly_automated():
             for data in users:
                 for mData in data['managers']:
                     mData['reviewed'] = reviewed
+                    mData['expire_time'] = datetime.datetime.now() + datetime.timedelta(minutes=15)
+                    mData['expire_id'] = str(uuid.uuid4())
                     managers_data.append(mData)
 
             if 'kpi_id' in users:
@@ -617,7 +621,8 @@ def add_weekly_automated():
                 
             managers_name = []
             for elem in managers_data:
-                managers_name.append({"Id":elem['_id']})
+                managers_name.append({"Id":elem['_id'],"unique_id":elem['expire_id']})
+            
             last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
             last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
             ret = mongo.db.reports.find_one({
@@ -643,12 +648,26 @@ def add_weekly_automated():
                     "era_json": era_name,
                     "difficulty": 0
                 }).inserted_id
-                current_user["_id"] = str(current_user["_id"])
-                user = json.loads(json.dumps(current_user,default=json_util.default))
-                weekly_payload = {"user":user,
-                "data":None,"message_key":"weekly_notification","message_type":"simple_message"}
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
-                return jsonify({"msg":"weekly report has been successfully submitted"}), 200
+                
+                weekly_id = str(ret)
+                
+                for manger_id in managers_name:
+                    mang_id = manger_id['Id']
+                    unique_id = manger_id['unique_id']
+                    manager_profile = mongo.db.users.find_one({
+                        "_id": ObjectId(str(mang_id))
+                            })
+                    manager_profile["_id"] = str(manager_profile["_id"])
+                    actions = button['actions']
+                    for action in actions:
+                        rating = action['text']
+                        api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+"&unique_id="+unique_id+""
+                        action["url"] = api_url
+                    user = json.loads(json.dumps(manager_profile,default=json_util.default))
+                    weekly_payload = {"user":user,
+                    "data":{"junior":username, "report":"This is lazy weekly submit by your junior" , "extra":"NA"},"message_key":"weekly_notification","message_type":"button_message","button":button}
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+                    return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403
         else:
