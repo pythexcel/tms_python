@@ -1,5 +1,7 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
 notification_system_url = 'http://127.0.0.1:5000/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
+tms_system_url = 'http://127.0.0.1:8000/'
+
 
 button={"actions": [
                 {
@@ -34,7 +36,7 @@ button={"actions": [
     }
 
 
-checkin_score_scheduler_seconds = 900000
+checkin_score_scheduler_seconds = 90
 
 overall_score_scheduler_hour = 16
 overall_score_scheduler_min = 30

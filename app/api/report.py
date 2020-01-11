@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url,button
+from app.config import notification_system_url,button,tms_system_url
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -18,6 +18,7 @@ from flask_jwt_extended import (
 )
 import json
 from bson import json_util
+import uuid
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
@@ -32,7 +33,7 @@ def slack():
     return jsonify (slack_channels)
 
 
-
+#Api for weekly report review on slack
 
 @bp.route('/slack_report_review', methods=["GET"])
 def slack_report_review():
@@ -40,7 +41,9 @@ def slack_report_review():
     comment = request.args.get('comment',default="", type=str)
     weekly_id = request.args.get('weekly_id',default=None, type=str)
     manager_id = request.args.get('manager_id',default=None, type=str)
+    expire_id = request.args.get('unique_id',default=None, type=str)
     
+    #finding manager juniours
     juniors = get_manager_juniors(manager_id)
     expire_checking = mongo.db.reports.find_one({
         "_id": ObjectId(weekly_id),
@@ -48,8 +51,9 @@ def slack_report_review():
         "user": {
             "$in": juniors
         },
-        "is_reviewed": {'$elemMatch': {"_id": manager_id}},
+        "is_reviewed": {'$elemMatch': {"_id": manager_id,"expire_id":expire_id}},
         }, { "is_reviewed": 1,"_id": 0 })
+    #checking expire time link is valid or not by 15 min time validation
     if expire_checking is not None:
         managers_matching = expire_checking['is_reviewed']
         for manager_matching in managers_matching:
@@ -91,6 +95,7 @@ def slack_report_review():
                                     }
                                 }
                             })
+                            #updating manager review in report
                             ret = mongo.db.reports.update({
                                 "_id": ObjectId(weekly_id)
                             }, {
@@ -104,51 +109,54 @@ def slack_report_review():
                                     }
                                 }
                             })
-
+                            
                             cron = mongo.db.reports.update({
                                 "_id": ObjectId(weekly_id)
                                 }, {
                                 "$set": {
                                     "cron_checkin": True
                                 }})
-
+                            #updating report review status true
                             docs = mongo.db.reports.update({
                                 "_id": ObjectId(weekly_id),
                                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                             }, {
                                 "$set": {
                                     "is_reviewed.$.reviewed": True
-                                }})                        
+                                }})                 
+                            #sending notification to junior       
                             user = json.loads(json.dumps(dub,default=json_util.default))
                             weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                             print(notification_message.text)
-                            return "Done"
+                            return "Report reviewed successfully"
+        #If link is expired
         else:
             manager_profile = mongo.db.users.find_one({
                 "_id": ObjectId(str(manager_id))
                     })
             manager_profile["_id"] = str(manager_profile["_id"])
             actions = button['actions']
+            new_u_id = str(uuid.uuid4())
             docs = mongo.db.reports.update({
                 "_id": ObjectId(weekly_id),
                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id)}},
                     }, {
                 "$set": {
-                    "is_reviewed.$.expire_time":datetime.datetime.now() + datetime.timedelta(minutes=15)
+                    "is_reviewed.$.expire_time":datetime.datetime.now() + datetime.timedelta(minutes=15),
+                    "is_reviewed.$.expire_id":new_u_id
                 }})
             for action in actions:
                 rating = action['text']
-                api_url = "http://127.0.0.1:8000/slack_report_review?rating="+rating+"&comment="+comment+"&weekly_id="+weekly_id+"&manager_id="+manager_id+""
+                api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment="+comment+"&weekly_id="+weekly_id+"&manager_id="+manager_id+"&unique_id="+new_u_id+""
                 action["url"] = api_url
-
             user = json.loads(json.dumps(manager_profile,default=json_util.default))
             weekly_payload = {"user":user,
             "data":None,"message_key":"expire_weekly_notification","message_type":"button_message","button":button}
             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
-            return "you link expired.check your slackbot we just sended you new link for same report"
-    return "Not a valid report"                                
+            return "your link expired.check your slackbot we just sent you new link for same report"
+    return "Not a valid link"                                
 
 
 def checkin_data(weekly_report):
@@ -501,6 +509,7 @@ def add_weekly_checkin():
         for mData in data['managers']:
             mData['reviewed'] = reviewed
             mData['expire_time'] = datetime.datetime.now() + datetime.timedelta(minutes=15)
+            mData['expire_id'] = str(uuid.uuid4())
             managers_data.append(mData)
 
     if 'kpi_id' in users:
@@ -515,7 +524,7 @@ def add_weekly_checkin():
         
     managers_name = []
     for elem in managers_data:
-        managers_name.append({"Id":elem['_id']})    
+        managers_name.append({"Id":elem['_id'],"unique_id":elem['expire_id']})    
     
     ret = mongo.db.reports.insert_one({
         "k_highlight": k_highlight,
@@ -531,7 +540,7 @@ def add_weekly_checkin():
         "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
-    
+
     for element in managers_name:
         manager = element['Id']
         rec = mongo.db.recent_activity.update({
@@ -542,9 +551,11 @@ def add_weekly_checkin():
                     "priority": 1,
                     "Message": str(username)+' '+"have created a weekly report please review it"
                 }}}, upsert=True)
+
     weekly_id = str(ret)
     for manger_id in managers_name:
         mang_id = manger_id['Id']
+        unique_id = manger_id['unique_id']
         manager_profile = mongo.db.users.find_one({
             "_id": ObjectId(str(mang_id))
                 })
@@ -552,7 +563,7 @@ def add_weekly_checkin():
         actions = button['actions']
         for action in actions:
             rating = action['text']
-            api_url = "http://127.0.0.1:8000/slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+""
+            api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+"&unique_id="+unique_id+""
             action["url"] = api_url
         user = json.loads(json.dumps(manager_profile,default=json_util.default))
         weekly_payload = {"user":user,
