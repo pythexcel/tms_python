@@ -17,6 +17,29 @@ import requests
 bp = Blueprint('system', __name__, url_prefix='/system')
 
 
+#Api for weekly and monthly settings.
+@bp.route('put/reports_settings', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def reports_settings():
+
+    if request.method == "PUT":
+        weekly_status = request.json.get("weekly_status",True)
+        monthly_status = request.json.get("monthly_status",True)
+
+        ret = mongo.db.schdulers_setting.update({
+            },{
+                "$set":{
+                    "monthly_remainder": monthly_status,
+                    "monthly_manager_reminder": monthly_status,
+                    "weekly_remainder": weekly_status,
+                    "review_activity": weekly_status,
+                    "weekly_status": weekly_status,
+                    "monthly_status": monthly_status
+            }}, upsert=True)
+        return jsonify({"status":"success"})
+
+
 
 
 #Api for reset person overall rating    

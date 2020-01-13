@@ -252,11 +252,17 @@ def profile():
         else:
             ret['kpi'] = {}
         state = mongo.db.schdulers_setting.find_one({
-            "easyRating": {"$exists": True}
-        }, {"easyRating": 1, '_id': 0})
+            "easyRating": {"$exists": True},
+            "weekly_status":{"$exists":True},
+            "monthly_status":{"$exists":True}
+        }, {"easyRating": 1,"weekly_status":1,"monthly_status":1,'_id': 0})
         if state is not None:
             status = state['easyRating']
-            ret['easyRating'] = status 
+            weekly_status = state['weekly_status']
+            monthly_status = state['monthly_status']
+            ret['easyRating'] = status
+            ret['weekly_status'] = weekly_status
+            ret['monthly_status'] = monthly_status
             return jsonify(ret)
         else:
             return jsonify(ret)
@@ -271,8 +277,6 @@ def profile():
         }
     })
     return jsonify(str(ret)), 200
-
-
 
 
 
