@@ -1494,7 +1494,7 @@ def dashboard_details(data):
         review_detail = None
     return data
 
-    
+
 @bp.route('/dashboard_profile/<string:id>', methods=['GET'])
 @jwt_required
 @token.admin_required
@@ -1511,17 +1511,70 @@ def dashboard_profile(id):
         ret['kpi'] = ret_kpi
     else:
         ret['kpi'] = {}
-    docs = mongo.db.reports.find({
-        "user": str(id),
-        "type": "weekly",
-    }).sort("created_at", 1)
-    docs = [load_details(serialize_doc(doc)) for doc in docs]
-    report = mongo.db.reports.find({
+    state = mongo.db.users.find_one({
+        "_id": ObjectId(id),
+        "rating_reset_time": {"$exists": True}
+        }, {"rating_reset_time": 1, '_id': 0})
+    if state is not None:
+        reset_time = state['rating_reset_time']
+        docs = mongo.db.reports.find({
             "user": str(id),
-            "type": "monthly",
-        })
-    report = [dashboard_details(serialize_doc(doc)) for doc in report]
-    return jsonify({"profile":ret,"weekly":docs, "monthly":report})              
+            "type": "weekly",
+            "created_at": {
+                "$gte":reset_time
+                }
+        }).sort("created_at", 1)
+        docs = [load_details(serialize_doc(doc)) for doc in docs]
+        report = mongo.db.reports.find({
+                "user": str(id),
+                "type": "monthly",
+                "created_at": {
+                    "$gte":reset_time
+                    }                
+            })
+        report = [dashboard_details(serialize_doc(doc)) for doc in report]
+    else:
+        docs = mongo.db.reports.find({
+            "user": str(id),
+            "type": "weekly"
+        }).sort("created_at", 1)
+        docs = [load_details(serialize_doc(doc)) for doc in docs]
+        report = mongo.db.reports.find({
+                "user": str(id),
+                "type": "monthly"
+            })
+        report = [dashboard_details(serialize_doc(doc)) for doc in report]
+    return jsonify({"profile":ret,"weekly":docs, "monthly":report})
+
+
+
+@bp.route('/old_ratings/<string:id>', methods=['GET'])
+@jwt_required
+@token.admin_required
+def old_ratings(id):
+    state = mongo.db.users.find_one({
+        "_id": ObjectId(id),
+        "rating_reset_time": {"$exists": True}
+    }, {"rating_reset_time": 1, '_id': 0})
+    if state is not None:
+        reset_time = state['rating_reset_time']
+        docs = mongo.db.reports.find({
+            "user": str(id),
+            "type": "weekly",
+            "created_at": {
+                "$lt":reset_time
+                }
+        }).sort("created_at", 1)
+        docs = [load_details(serialize_doc(doc)) for doc in docs]
+        report = mongo.db.reports.find({
+                "user": str(id),
+                "type": "monthly",
+                "created_at": {
+                    "$lt":reset_time
+                    }
+            })
+        report = [dashboard_details(serialize_doc(doc)) for doc in report]
+        return jsonify({"weekly":docs, "monthly":report})
 
 
 
