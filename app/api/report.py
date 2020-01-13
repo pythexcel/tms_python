@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url,button,tms_system_url,default_skip_settings
+from app.config import notification_system_url,button,tms_system_url,default_skip_settings,easy_actions
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -555,6 +555,10 @@ def add_weekly_checkin():
                 }}}, upsert=True)
 
     weekly_id = str(ret)
+    state = mongo.db.schdulers_setting.find_one({
+        "easyRating": {"$exists": True}
+        }, {"easyRating": 1,'_id': 0})
+    status = state['easyRating']
     for manger_id in managers_name:
         mang_id = manger_id['Id']
         unique_id = manger_id['unique_id']
@@ -563,14 +567,31 @@ def add_weekly_checkin():
                 })
         manager_profile["_id"] = str(manager_profile["_id"])
         actions = button['actions']
-        for action in actions:
-            rating = action['text']
-            api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+"&unique_id="+unique_id+""
-            action["url"] = api_url
-        user = json.loads(json.dumps(manager_profile,default=json_util.default))
-        weekly_payload = {"user":user,
-        "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":button}
-        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+        easy_action = easy_actions['actions']
+        if status == 1:
+            for action in easy_action:
+                value = action['text']
+                if value == "Bad":
+                    rating = "3"
+                if value == "Neutral":
+                    rating = "6"
+                if value == "Good":
+                    rating = "8"
+                api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+"&unique_id="+unique_id+""
+                action["url"] = api_url
+            user = json.loads(json.dumps(manager_profile,default=json_util.default))
+            weekly_payload = {"user":user,
+            "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":button}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)        
+        else:
+            for action in actions:
+                rating = action['text']
+                api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+weekly_id+"&manager_id="+mang_id+"&unique_id="+unique_id+""
+                action["url"] = api_url
+            user = json.loads(json.dumps(manager_profile,default=json_util.default))
+            weekly_payload = {"user":user,
+            "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":button}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
     return jsonify(str(ret)), 200
 
 

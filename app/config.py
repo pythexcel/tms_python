@@ -14,7 +14,28 @@ default_skip_settings = {
 button={"actions": [
                 {
                     "name": "rating",
+                    "text": "1",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "2",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
                     "text": "3",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "4",
                     "type": "button",
                     "style": "danger",
                     "value": "rating"
@@ -28,7 +49,21 @@ button={"actions": [
                 },
                 {
                     "name": "rating",
+                    "text": "6",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
                     "text": "7",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "8",
                     "type": "button",
                     "style": "danger",
                     "value": "rating"
@@ -39,10 +74,41 @@ button={"actions": [
                     "type": "button",
                     "style": "danger",
                     "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "10",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
                 }
             ]
     }
 
+easy_actions ={"actions": [
+                {
+                    "name": "rating",
+                    "text": "Bad",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "Neutral",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "Good",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                }
+            ]
+    } 
 
 checkin_score_scheduler_seconds = 90
 
