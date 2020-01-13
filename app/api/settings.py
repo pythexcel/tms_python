@@ -48,6 +48,7 @@ def reports_settings():
 @token.admin_required
 def rating_reset(user_id):
     if request.method == "PUT":
+        reason = request.json.get("msg",None)
         ret = mongo.db.users.update({
             "_id": ObjectId(user_id)
         }, {
@@ -60,10 +61,17 @@ def rating_reset(user_id):
             "_id": ObjectId(user_id)
         })
         user_info = serialize_doc(users)
-        user = json.loads(json.dumps(user_info,default=json_util.default))
-        rating_reset = {"user":user,
-                    "data":None,"message_key":"rating_reset","message_type":"simple_message"}
-        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+        if reason is not None:
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            rating_reset = {"user":user,
+                        "data":{"message":reason},"message_key":"rating_reset_with_comment","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+
+        else:
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            rating_reset = {"user":user,
+                        "data":None,"message_key":"rating_reset","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
         return jsonify({"status":"success"})
 
 

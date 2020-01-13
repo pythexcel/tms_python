@@ -45,7 +45,6 @@ def monthly_score():
                 score[data['id']][0] = (score[data['id']][0] + data['rating'])
                 score[data['id']][1] = score[data['id']][1] + 1
                 # (y[data['title']] + data['rating'])
-
             else:
                 score[data['id']] = [data['rating'], 1]
         # find all the avg of kpi/era ratings
