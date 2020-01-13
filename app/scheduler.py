@@ -379,8 +379,8 @@ def checkin_score():
                 "Checkin_rating": checkin_scr,
             }
         })
-        
-        
+    
+    
 def disable_user():
     secret_key1 = secret_key()
     print('Disable schduler running....')
@@ -946,15 +946,19 @@ def review_activity():
         managers_name = []
         for detail in reports:
             for data in detail['is_reviewed']:
-                if data['reviewed'] is False:   
+                if data['reviewed'] is False:  
+                    user = detail['user'] 
                     slack_id = data['_id']
                     print(slack_id)
-                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
-                    use = [serialize_doc(doc) for doc in use]
-                    for details in use:
-                        if details not in managers_name:
-                            managers_name.append(details)
-                                 
+                    checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                    if checking is not None:
+                        use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
+                        use = [serialize_doc(doc) for doc in use]
+                        for details in use:
+                            if details not in managers_name:
+                                managers_name.append(details)
+                    else:
+                        pass
         print(managers_name)
         for ids in managers_name:
             user = json.loads(json.dumps(ids,default=json_util.default))

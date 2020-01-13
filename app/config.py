@@ -1,5 +1,8 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
-notification_system_url = 'http://127.0.0.1:8000/'
+
+notification_system_url = 'http://127.0.0.1:5000/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
+tms_system_url = 'http://127.0.0.1:8000/' #server ip and port on which tms code running.
+
 
 
 default_skip_settings = {
@@ -8,6 +11,37 @@ default_skip_settings = {
 }
 
 
+button={"actions": [
+                {
+                    "name": "rating",
+                    "text": "3",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "5",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "7",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "9",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                }
+            ]
+    }
 
 
 checkin_score_scheduler_seconds = 90
@@ -41,3 +75,4 @@ monthly_manager_reminder_scheduler_min=30
 
 missed_review_activity_scheduler_hour=12
 missed_review_activity_scheduler_min=56
+

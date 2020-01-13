@@ -1,7 +1,7 @@
 from app import mongo
 from bson.objectid import ObjectId
 import requests
-from slackclient import SlackClient
+#from slackclient import SlackClient
 
 
 def serialize_doc(doc):
