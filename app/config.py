@@ -1,4 +1,44 @@
+tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port on which tms code running.
 
+
+
+default_skip_settings = {
+    "skip_review":True,
+    "only_manager_skip":True
+}
+
+
+button={"actions": [
+                {
+                    "name": "rating",
+                    "text": "3",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "5",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "7",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "9",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                }
+            ]
+    }
 URL = 'https://apistaginghr.excellencetechnologies.in/'
 notification_system_url = 'http://5.9.144.226:8005/'
 
@@ -33,3 +73,4 @@ monthly_manager_reminder_scheduler_min=30
 
 missed_review_activity_scheduler_hour=12
 missed_review_activity_scheduler_min=56
+
