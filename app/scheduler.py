@@ -21,9 +21,19 @@ def monthly_score():
     for detail in reports:
         _id = detail['user']
         print(_id)
-        #find monthly report of one particular user
-        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
-        docs = [serialize_doc(doc) for doc in docs]
+        state = mongo.db.users.find_one({
+            "_id": ObjectId(_id),
+            "rating_reset_time": {"$exists": True}
+            }, {"rating_reset_time": 1, '_id': 0})
+        if state is not None:
+            reset_time = state['rating_reset_time']
+            #find monthly report of one particular user
+            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly","created_at": {"$gte":reset_time}})
+            docs = [serialize_doc(doc) for doc in docs]
+        else:
+            #find monthly report of one particular user
+            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+            docs = [serialize_doc(doc) for doc in docs]
         print(docs)
         # append in all_sum arrays all the ID of kpi/era and their rating
         all_sum = []
@@ -34,7 +44,6 @@ def monthly_score():
                         all_sum.append({'id': data['id'], 'rating': data['rating']})
                     for data in review['comment']['era']:
                         all_sum.append({'id': data['id'], 'rating': data['rating']})
-
         print(all_sum)
         score = {}
         # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
