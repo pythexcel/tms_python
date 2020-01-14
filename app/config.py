@@ -1,7 +1,7 @@
 URL = 'http://dynamic.hr.excellencetechnologies.in/'
 
 notification_system_url = 'http://176.9.137.77:8007/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
-tms_system_url = 'http://127.0.0.1:5000/' #server ip and port on which tms code running.
+tms_system_url = 'http://127.0.0.1:8000/' #server ip and port on which tms code running.
 
 
 
@@ -14,28 +14,7 @@ default_skip_settings = {
 button={"actions": [
                 {
                     "name": "rating",
-                    "text": "1",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
-                    "text": "2",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
                     "text": "3",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
-                    "text": "4",
                     "type": "button",
                     "style": "danger",
                     "value": "rating"
@@ -49,13 +28,6 @@ button={"actions": [
                 },
                 {
                     "name": "rating",
-                    "text": "6",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
                     "text": "7",
                     "type": "button",
                     "style": "danger",
@@ -63,21 +35,7 @@ button={"actions": [
                 },
                 {
                     "name": "rating",
-                    "text": "8",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
                     "text": "9",
-                    "type": "button",
-                    "style": "danger",
-                    "value": "rating"
-                },
-                {
-                    "name": "rating",
-                    "text": "10",
                     "type": "button",
                     "style": "danger",
                     "value": "rating"

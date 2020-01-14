@@ -568,6 +568,7 @@ def add_weekly_checkin():
         manager_profile["_id"] = str(manager_profile["_id"])
         actions = button['actions']
         easy_action = easy_actions['actions']
+        print(status)
         if status == 1:
             for action in easy_action:
                 value = action['text']
@@ -581,7 +582,7 @@ def add_weekly_checkin():
                 action["url"] = api_url
             user = json.loads(json.dumps(manager_profile,default=json_util.default))
             weekly_payload = {"user":user,
-            "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":button}
+            "data":{"junior":username, "report":description , "extra":extra},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)        
         else:
             for action in actions:
