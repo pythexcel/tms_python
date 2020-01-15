@@ -1557,6 +1557,18 @@ def old_ratings(id):
         "rating_reset_time": {"$exists": True}
     }, {"rating_reset_time": 1, '_id': 0})
     if state is not None:
+        ret = mongo.db.users.find_one({
+        "_id": ObjectId(id)
+        })
+        ret["_id"] = str(ret["_id"])
+        if "kpi_id" in ret and ret["kpi_id"] is not None:
+            ret_kpi = mongo.db.kpi.find_one({
+                "_id": ObjectId(ret["kpi_id"])
+            })
+            ret_kpi["_id"] = str(ret_kpi['_id'])
+            ret['kpi'] = ret_kpi
+        else:
+            ret['kpi'] = {}
         reset_time = state['rating_reset_time']
         docs = mongo.db.reports.find({
             "user": str(id),
@@ -1574,7 +1586,7 @@ def old_ratings(id):
                     }
             })
         report = [dashboard_details(serialize_doc(doc)) for doc in report]
-        return jsonify({"weekly":docs, "monthly":report})
+        return jsonify({"profile":ret,"weekly":docs, "monthly":report})
 
 
 

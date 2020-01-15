@@ -128,6 +128,3 @@ def create_app(test_config=None):
         #monthly_remainder_scheduler.shutdown()
         #monthly_manager_reminder_scheduler.shutdown()
         missed_review_activity_scheduler.shutdown()
-    
-        
-       
