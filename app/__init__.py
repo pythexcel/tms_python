@@ -14,7 +14,7 @@ from app import token
 
 jwt = token.init_token()
 
-from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder,monthly_manager_reminder,missed_review_activity
+from app.scheduler import checkin_score,review_activity, update_croncheckin,weekly_remainder,recent_activity,overall_reviewes,disable_user,monthly_score,monthly_remainder,monthly_manager_reminder,missed_review_activity,weekly_rating_left
 from app.config import checkin_score_scheduler_seconds,overall_score_scheduler_hour,overall_score_scheduler_min,reset_cron_scheduler_hour,reset_cron_scheduler_min,missed_checkin_scheduler_hour,missed_checkin_scheduler_min,weekly_remainder_scheduler_hour,weekly_remainder_scheduler_min,review_activity_scheduler_hour,review_activity_scheduler_min,disable_user_scheduler_hour,disable_user_scheduler_min,monthly_manager_reminder_scheduler_hour,monthly_manager_reminder_scheduler_min,monthly_remainder_scheduler_hour,monthly_remainder_scheduler_min,monthly_score_scheduler_hour,monthly_score_scheduler_min,missed_review_activity_scheduler_hour,missed_review_activity_scheduler_min
 
 def create_app(test_config=None):
@@ -88,10 +88,15 @@ def create_app(test_config=None):
     weekly_remainder_scheduler.add_job(weekly_remainder, trigger='cron', day_of_week='mon-sat', hour=weekly_remainder_scheduler_hour, minute=weekly_remainder_scheduler_min)
     weekly_remainder_scheduler.start()
     
+    weekly_rating_left_scheduler = BackgroundScheduler()
+    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=14, minute=00)
+    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=16, minute=00)
+    weekly_rating_left_scheduler.start()
+
     review_activity_scheduler = BackgroundScheduler()
     review_activity_scheduler.add_job(review_activity, trigger='cron', day_of_week='fri-sat', hour=review_activity_scheduler_hour, minute=review_activity_scheduler_min)
     review_activity_scheduler.start()
-    
+
     disable_user_scheduler = BackgroundScheduler()
     disable_user_scheduler.add_job(disable_user, trigger='cron', day_of_week='mon-sat', hour=disable_user_scheduler_hour, minute=disable_user_scheduler_min)
     disable_user_scheduler.start()
@@ -128,3 +133,5 @@ def create_app(test_config=None):
         #monthly_remainder_scheduler.shutdown()
         #monthly_manager_reminder_scheduler.shutdown()
         missed_review_activity_scheduler.shutdown()
+        weekly_rating_left_scheduler.shutdown()
+    
