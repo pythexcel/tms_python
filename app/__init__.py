@@ -135,5 +135,3 @@ def create_app(test_config=None):
         missed_review_activity_scheduler.shutdown()
         weekly_rating_left_scheduler.shutdown()
     
-        
-       
