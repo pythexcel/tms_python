@@ -680,8 +680,9 @@ def weekly_remainder():
                                                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                             }, {
                                                 "$set": {
-                                                    "is_reviewed.$.reviewed": True
-                                                }})
+                                                    "is_reviewed.$.reviewed": True,
+                                                    "is_reviewed.$.is_notify": True
+                                                }}upsert=True)
 
                                         cron = mongo.db.reports.update({
                                             "_id": ObjectId(weekly)
@@ -830,8 +831,9 @@ def weekly_remainder():
                                                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                             }, {
                                                 "$set": {
-                                                    "is_reviewed.$.reviewed": True
-                                                }})
+                                                    "is_reviewed.$.reviewed": True,
+                                                    "is_reviewed.$.is_notify": True
+                                                }},upsert=True)
 
                                         cron = mongo.db.reports.update({
                                             "_id": ObjectId(weekly)
