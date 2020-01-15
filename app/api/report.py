@@ -51,8 +51,7 @@ def slack_report_review():
                         }
                      })
     print(sap)
-    if sap is None:
-        print("55")                 
+    if sap is None:                 
         expire_checking = mongo.db.reports.find_one({
             "_id": ObjectId(weekly_id),
             "type": "weekly",
@@ -666,6 +665,7 @@ def add_weekly_automated():
                     mData['reviewed'] = reviewed
                     mData['expire_time'] = datetime.datetime.now() + datetime.timedelta(minutes=15)
                     mData['expire_id'] = str(uuid.uuid4())
+                    mData['is_notify'] = False
                     managers_data.append(mData)
 
             if 'kpi_id' in users:
