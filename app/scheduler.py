@@ -682,7 +682,7 @@ def weekly_remainder():
                                                 "$set": {
                                                     "is_reviewed.$.reviewed": True,
                                                     "is_reviewed.$.is_notify": True
-                                                }}upsert=True)
+                                                }},upsert=True)
 
                                         cron = mongo.db.reports.update({
                                             "_id": ObjectId(weekly)
