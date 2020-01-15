@@ -1533,6 +1533,7 @@ def dashboard_profile(id):
                     }                
             })
         report = [dashboard_details(serialize_doc(doc)) for doc in report]
+        ret['is_reset'] = True
     else:
         docs = mongo.db.reports.find({
             "user": str(id),
@@ -1544,6 +1545,7 @@ def dashboard_profile(id):
                 "type": "monthly"
             })
         report = [dashboard_details(serialize_doc(doc)) for doc in report]
+        ret['is_reset'] = False
     return jsonify({"profile":ret,"weekly":docs, "monthly":report})
 
 
