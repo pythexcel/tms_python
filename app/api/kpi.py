@@ -5,8 +5,7 @@ from flask import (
 )
 
 from bson.objectid import ObjectId
-from app.util import serialize_doc
-
+from app.util import serialize_doc,get_manager_juniors
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_current_user, jwt_refresh_token_required,
@@ -156,6 +155,17 @@ def assign_manager(user_id, manager_id, weight):
                 }
             }
         })
+        check = get_manager_juniors(manager_id)
+        if not check:
+            ret = mongo.db.users.update({
+                "_id": ObjectId(manager_id)
+            }, {
+                "$set": {
+                    "role":"Employee"
+                }
+            })
+        else:
+            pass
     return jsonify(str(ret)), 200
 
 
