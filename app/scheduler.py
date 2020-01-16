@@ -405,7 +405,8 @@ def disable_user():
     sap = [serialize_doc(user) for user in sap]
     enabled_users = []
     for doc in sap:
-        enabled_users.append(doc['id'])
+        if "id" in doc:
+            enabled_users.append(doc['id'])
     print('fetching all the enabled users')
     print(enabled_users)
     disable_user = []
@@ -415,6 +416,7 @@ def disable_user():
     print('users who have to be disabled')
     print(disable_user)
     if disable_user is not None:
+        print("disable_usersssssssssssssssssssssssss",disable_user)
         rep = mongo.db.users.update({
             "id": {"$in": disable_user}
         }, {
