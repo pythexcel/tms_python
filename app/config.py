@@ -1,5 +1,11 @@
 tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port on which tms code running.
 
+URL = 'https://apistaginghr.excellencetechnologies.in/'
+
+notification_system_url = 'http://176.9.137.77:8007/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
+
+weekly_page_link="http://tms.excellencetechnologies.in/#/app/week/WeeklyReport?update=true"
+
 
 default_skip_settings = {
     "skip_review":True,
@@ -38,8 +44,31 @@ button={"actions": [
                 }
             ]
     }
-URL = 'https://apistaginghr.excellencetechnologies.in/'
-notification_system_url = 'http://5.9.144.226:8005/'
+
+easy_actions ={"actions": [
+                {
+                    "name": "rating",
+                    "text": "Bad",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "Neutral",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                },
+                {
+                    "name": "rating",
+                    "text": "Good",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                }
+            ]
+    } 
 
 checkin_score_scheduler_seconds = 90
 

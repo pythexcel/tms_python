@@ -17,7 +17,48 @@ import requests
 bp = Blueprint('system', __name__, url_prefix='/system')
 
 
+#Api for weekly and monthly settings.
+@bp.route('put/reports_settings', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def reports_settings():
 
+    if request.method == "PUT":
+        weekly_status = request.json.get("weekly_status",True)
+        monthly_status = request.json.get("monthly_status",True)
+
+        ret = mongo.db.schdulers_setting.update({
+            },{
+                "$set":{
+                    "monthly_remainder": monthly_status,
+                    "monthly_manager_reminder": monthly_status,
+                    "weekly_remainder": weekly_status,
+                    "review_activity": weekly_status,
+                    "weekly_status": weekly_status,
+                    "monthly_status": monthly_status
+            }}, upsert=True)
+        return jsonify({"status":"success"})
+
+def reset_dict(user_id):
+    docs = mongo.db.reports.find({"user": str(user_id), "type": "monthly"})
+    docs = [serialize_doc(doc) for doc in docs]
+    all_ids = []
+    for detail in docs:
+        if 'review' in detail:
+            for review in detail['review']:
+                for data in review['comment']['kpi']:
+                    if data['id'] not in all_ids:
+                        all_ids.append(data['id'])
+                for data in review['comment']['era']:
+                    if data['id'] not in all_ids:
+                        all_ids.append(data['id'])
+    user_details = mongo.db.users.find_one({"_id":ObjectId(user_id)},{"Monthly_rating":1,"_id":0})
+    monthly_kpis = user_details['Monthly_rating']
+    for all_id in all_ids:
+        if all_id in monthly_kpis:
+            reset_dict = {""+all_id+"":0}
+            monthly_kpis.update(reset_dict)
+    return monthly_kpis
 
 #Api for reset person overall rating    
 @bp.route('/rating_reset/<string:user_id>', methods=["PUT"])
@@ -25,6 +66,7 @@ bp = Blueprint('system', __name__, url_prefix='/system')
 @token.admin_required
 def rating_reset(user_id):
     if request.method == "PUT":
+        reason = request.json.get("msg",None)
         ret = mongo.db.users.update({
             "_id": ObjectId(user_id)
         }, {
@@ -33,14 +75,28 @@ def rating_reset(user_id):
                 "rating_reset_time":datetime.datetime.utcnow()
             }
         },upsert=True)
+        monthly_kpis = reset_dict(user_id)
+        docs = mongo.db.users.update({
+                "_id": ObjectId(user_id)
+            }, {
+                "$set": {
+                    "Monthly_rating":monthly_kpis
+                }})
         users = mongo.db.users.find_one({
             "_id": ObjectId(user_id)
         })
         user_info = serialize_doc(users)
-        user = json.loads(json.dumps(user_info,default=json_util.default))
-        rating_reset = {"user":user,
-                    "data":None,"message_key":"rating_reset","message_type":"simple_message"}
-        notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+        if reason is not None:
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            rating_reset = {"user":user,
+                        "data":{"message":reason},"message_key":"rating_reset_with_comment","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+
+        else:
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            rating_reset = {"user":user,
+                        "data":None,"message_key":"rating_reset","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
         return jsonify({"status":"success"})
 
 

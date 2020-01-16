@@ -6,7 +6,8 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc
 from app import mongo
 import numpy as np
-from app.config import notification_system_url
+from app.config import notification_system_url,button,tms_system_url,easy_actions
+
 from app.util import secret_key
 import uuid
 import json
@@ -21,9 +22,19 @@ def monthly_score():
     for detail in reports:
         _id = detail['user']
         print(_id)
-        #find monthly report of one particular user
-        docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
-        docs = [serialize_doc(doc) for doc in docs]
+        state = mongo.db.users.find_one({
+            "_id": ObjectId(_id),
+            "rating_reset_time": {"$exists": True}
+            }, {"rating_reset_time": 1, '_id': 0})
+        if state is not None:
+            reset_time = state['rating_reset_time']
+            #find monthly report of one particular user
+            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly","created_at": {"$gte":reset_time}})
+            docs = [serialize_doc(doc) for doc in docs]
+        else:
+            #find monthly report of one particular user
+            docs = mongo.db.reports.find({"user": str(_id), "type": "monthly"})
+            docs = [serialize_doc(doc) for doc in docs]
         print(docs)
         # append in all_sum arrays all the ID of kpi/era and their rating
         all_sum = []
@@ -34,7 +45,6 @@ def monthly_score():
                         all_sum.append({'id': data['id'], 'rating': data['rating']})
                     for data in review['comment']['era']:
                         all_sum.append({'id': data['id'], 'rating': data['rating']})
-
         print(all_sum)
         score = {}
         # append in dictionary all the ID with all their ratings and find len count of their ratings and append in y dict
@@ -45,7 +55,6 @@ def monthly_score():
                 score[data['id']][0] = (score[data['id']][0] + data['rating'])
                 score[data['id']][1] = score[data['id']][1] + 1
                 # (y[data['title']] + data['rating'])
-
             else:
                 score[data['id']] = [data['rating'], 1]
         # find all the avg of kpi/era ratings
@@ -396,7 +405,8 @@ def disable_user():
     sap = [serialize_doc(user) for user in sap]
     enabled_users = []
     for doc in sap:
-        enabled_users.append(doc['id'])
+        if "id" in doc:
+            enabled_users.append(doc['id'])
     print('fetching all the enabled users')
     print(enabled_users)
     disable_user = []
@@ -406,6 +416,7 @@ def disable_user():
     print('users who have to be disabled')
     print(disable_user)
     if disable_user is not None:
+        print("disable_usersssssssssssssssssssssssss",disable_user)
         rep = mongo.db.users.update({
             "id": {"$in": disable_user}
         }, {
@@ -671,8 +682,9 @@ def weekly_remainder():
                                                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                             }, {
                                                 "$set": {
-                                                    "is_reviewed.$.reviewed": True
-                                                }})
+                                                    "is_reviewed.$.reviewed": True,
+                                                    "is_reviewed.$.is_notify": True
+                                                }},upsert=True)
 
                                         cron = mongo.db.reports.update({
                                             "_id": ObjectId(weekly)
@@ -821,8 +833,9 @@ def weekly_remainder():
                                                 "is_reviewed": {'$elemMatch': {"_id": str(manager_id), "reviewed": False}},
                                             }, {
                                                 "$set": {
-                                                    "is_reviewed.$.reviewed": True
-                                                }})
+                                                    "is_reviewed.$.reviewed": True,
+                                                    "is_reviewed.$.is_notify": True
+                                                }},upsert=True)
 
                                         cron = mongo.db.reports.update({
                                             "_id": ObjectId(weekly)
@@ -1114,3 +1127,125 @@ def monthly_manager_reminder():
             manager_monthly_reminder = {"user":ids,
             "data":None,"message_key":"monthly_manager_reminder","message_type":"simple_message"}
             notification_message = requests.post(url=notification_system_url,json=manager_monthly_reminder)
+
+
+
+
+def weekly_rating_left():
+    print("running")
+    #finding enabled users from db
+    today = datetime.datetime.utcnow()
+    last_monday = today - datetime.timedelta(days=today.weekday())
+    enb_user = []
+    user = mongo.db.users.find({"status":"Enabled"})
+    users = [serialize_doc(doc) for doc in user]
+    for dvn in users:
+        enb_user.append(dvn['_id'])
+    #finding reports of anabled users
+    reports = mongo.db.reports.find({"cron_review_activity": False,
+                                    "type": "weekly",
+                                    "user":{"$in":enb_user},
+                                    "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+            }})
+
+    reports = [serialize_doc(doc) for doc in reports]
+    #finding managers which are managers at the current time and reports available to review
+    managers_name = []
+    for detail in reports:
+        for data in detail['is_reviewed']:
+            if data['reviewed'] is False:  
+                user = detail['user']
+                slack_id = data['_id']
+                print(slack_id)
+                checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                if checking is not None:
+                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
+                    use = [serialize_doc(doc) for doc in use]
+                    for details in use:
+                        if details not in managers_name:
+                            managers_name.append(details)
+                else:
+                    pass
+    #find a random reports for send to manager on slack
+    for ids in managers_name:
+        id = ids['_id']
+        dab = mongo.db.reports.find_one({
+                "type": "weekly",
+                "is_reviewed": {'$elemMatch': {"_id": str(id),"reviewed":False,"is_notify":False}},
+                "created_at": {
+                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
+            }
+            })
+        #finding require detials and sending report and msg to manager
+        if dab is not None:
+            weekly_id = dab['_id']
+            k_highlight = dab['k_highlight']
+            extra = dab['extra']
+            junior_id = dab['user']
+            descriptio = k_highlight[0]
+            description = descriptio['description']
+            user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id)},{"_id":0,"username":1})
+            print(user_details)
+            if user_details is not None:
+                username = user_details['username']
+                for manager_obj in dab['is_reviewed']:
+                    manager_id = manager_obj['_id']
+                    if manager_id == str(id):
+                        mang_id = manager_id
+                        expire_time = manager_obj['expire_time']
+                        unique_id = manager_obj['expire_id']
+                        state = mongo.db.schdulers_setting.find_one({
+                            "easyRating": {"$exists": True}
+                            }, {"easyRating": 1,'_id': 0})
+                        status = state['easyRating']
+
+                        manager_profile = mongo.db.users.find_one({
+                            "_id": ObjectId(str(mang_id))
+                                })
+                        manager_profile["_id"] = str(manager_profile["_id"])
+
+                        actions = button['actions']
+                        easy_action = easy_actions['actions']
+
+                        docs = mongo.db.reports.update({
+                            "_id": ObjectId(weekly_id),
+                            "type":"weekly",
+                            "is_reviewed": {'$elemMatch': {"_id": str(mang_id)}},
+                        }, {
+                            "$set": {
+                                "is_reviewed.$.is_notify": True,
+                                "is_reviewed.$.expire_time":datetime.datetime.now() + datetime.timedelta(minutes=15)
+                            }})
+
+                        if status == 1:
+                            for action in easy_action:
+                                value = action['text']
+                                if value == "Bad":
+                                    rating = "3"
+                                if value == "Neutral":
+                                    rating = "5"
+                                if value == "Good":
+                                    rating = "8"
+                                api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+str(weekly_id)+"&manager_id="+mang_id+"&unique_id="+unique_id+""
+                                action["url"] = api_url
+                            user = json.loads(json.dumps(manager_profile,default=json_util.default))
+                            extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
+                            weekly_payload = {"user":user,
+                            "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+                        else:
+                            for action in actions:
+                                rating = action['text']
+                                api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+str(weekly_id)+"&manager_id="+mang_id+"&unique_id="+unique_id+""
+                                action["url"] = api_url
+                            user = json.loads(json.dumps(manager_profile,default=json_util.default))
+                            extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
+                            weekly_payload = {"user":user,
+                            "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
+            else:
+                pass
+        else:
+            pass
+
