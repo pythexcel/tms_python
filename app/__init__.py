@@ -89,8 +89,8 @@ def create_app(test_config=None):
     weekly_remainder_scheduler.start()
     
     weekly_rating_left_scheduler = BackgroundScheduler()
-    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=14, minute=00)
-    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=16, minute=00)
+    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=18, minute=54)
+    weekly_rating_left_scheduler.add_job(weekly_rating_left, trigger='cron', day_of_week='mon-sat', hour=18, minute=55)
     weekly_rating_left_scheduler.start()
 
     review_activity_scheduler = BackgroundScheduler()
