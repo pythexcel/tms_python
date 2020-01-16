@@ -30,10 +30,10 @@ def reports_settings():
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
-                    "monthly_remainder": monthly_status,
-                    "monthly_manager_reminder": monthly_status,
-                    "weekly_remainder": weekly_status,
-                    "review_activity": weekly_status,
+                    "monthly_remainder": weekly_status,
+                    "monthly_manager_reminder": weekly_status,
+                    "weekly_remainder": monthly_status,
+                    "review_activity": monthly_status,
                     "weekly_status": weekly_status,
                     "monthly_status": monthly_status
             }}, upsert=True)
