@@ -1,7 +1,6 @@
 tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port on which tms code running.
 
 
-
 default_skip_settings = {
     "skip_review":True,
     "only_manager_skip":True
