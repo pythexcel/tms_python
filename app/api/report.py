@@ -136,13 +136,31 @@ def slack_report_review():
                                         "is_reviewed.$.reviewed": True,
                                         "is_reviewed.$.is_notify": True
                                     }})                 
-                                #sending notification to junior       
-                                user = json.loads(json.dumps(dub,default=json_util.default))
-                                weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
-                                "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                                notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
-                                print(notification_message.text)
-                                return "Report reviewed successfully.  <a href="+weekly_page_link+">Add comment</a>"
+                                state = mongo.db.schdulers_setting.find_one({
+                                        "easyRating": {"$exists": True}
+                                        }, {"easyRating": 1,'_id': 0})
+                                status = state['easyRating']
+                                if status == 1:
+                                    if rating == 3:
+                                        value = "Bad"
+                                    if rating == 5:
+                                        value = "Neutral"
+                                    if rating == 8:
+                                        value = "Good"
+                                    #sending notification to junior       
+                                    user = json.loads(json.dumps(dub,default=json_util.default))
+                                    weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(value),"comment":comment},
+                                    "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
+                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
+                                    print(notification_message.text)
+                                    return "Report reviewed successfully.  <a href="+weekly_page_link+">Add comment</a>"
+                                else:
+                                    user = json.loads(json.dumps(dub,default=json_util.default))
+                                    weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
+                                    "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
+                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
+                                    print(notification_message.text)
+                                    return "Report reviewed successfully.  <a href="+weekly_page_link+">Add comment</a>"
             #If link is expired then sending new genrated link.
             else:
                 manager_profile = mongo.db.users.find_one({
