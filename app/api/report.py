@@ -153,14 +153,19 @@ def slack_report_review():
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                                     notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                                     print(notification_message.text)
-                                    return "Report reviewed successfully.  <a href="+weekly_page_link+">Add comment</a>"
+                                    expires = datetime.timedelta(minutes=5)
+                                    access_token = create_access_token(identity=manager_name, expires_delta=expires)
+                                    return "Report reviewed successfully.  <a href="+weekly_page_link+"&token="+access_token+">Add comment</a>"
                                 else:
                                     user = json.loads(json.dumps(dub,default=json_util.default))
                                     weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                                     notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_reviewed_payload)
                                     print(notification_message.text)
-                                    return "Report reviewed successfully.  <a href="+weekly_page_link+">Add comment</a>"
+                                    print(notification_message.text)
+                                    expires = datetime.timedelta(minutes=5)
+                                    access_token = create_access_token(identity=manager_name, expires_delta=expires)
+                                    return "Report reviewed successfully.  <a href="+weekly_page_link+"&token="+access_token+">Add comment</a>"
             #If link is expired then sending new genrated link.
             else:
                 manager_profile = mongo.db.users.find_one({
