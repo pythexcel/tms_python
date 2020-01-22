@@ -1132,7 +1132,7 @@ def monthly_manager_reminder():
 
 
 def weekly_rating_left():
-    print("running")
+    print("running_weekly_rating_left")
     #finding enabled users from db
     today = datetime.datetime.utcnow()
     last_monday = today - datetime.timedelta(days=today.weekday())
@@ -1144,10 +1144,8 @@ def weekly_rating_left():
     #finding reports of anabled users
     reports = mongo.db.reports.find({"cron_review_activity": False,
                                     "type": "weekly",
-                                    "user":{"$in":enb_user},
-                                    "created_at": {
-                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
-            }})
+                                    "user":{"$in":enb_user}
+                                    })
 
     reports = [serialize_doc(doc) for doc in reports]
     #finding managers which are managers at the current time and reports available to review
@@ -1167,15 +1165,15 @@ def weekly_rating_left():
                             managers_name.append(details)
                 else:
                     pass
+    print("manager name",managers_name)
+
     #find a random reports for send to manager on slack
     for ids in managers_name:
+        print("asdngasvdashgdafdhagdfahdgafdahgdafdahdasdafhdah")
         id = ids['_id']
         dab = mongo.db.reports.find_one({
                 "type": "weekly",
-                "is_reviewed": {'$elemMatch': {"_id": str(id),"reviewed":False,"is_notify":False}},
-                "created_at": {
-                    "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)
-            }
+                "is_reviewed": {'$elemMatch': {"_id": str(id),"reviewed":False,"is_notify":False}}
             })
         #finding require detials and sending report and msg to manager
         if dab is not None:
@@ -1219,6 +1217,7 @@ def weekly_rating_left():
                             }})
 
                         if status == 1:
+                            print("iffffffffffffffffffffffffffffffffffffffffffff")
                             for action in easy_action:
                                 value = action['text']
                                 if value == "Bad":
@@ -1235,6 +1234,7 @@ def weekly_rating_left():
                             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=weekly_payload)
                         else:
+                            print("elseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
                             for action in actions:
                                 rating = action['text']
                                 api_url = ""+tms_system_url+"slack_report_review?rating="+rating+"&comment=""&weekly_id="+str(weekly_id)+"&manager_id="+mang_id+"&unique_id="+unique_id+""
@@ -1248,4 +1248,3 @@ def weekly_rating_left():
                 pass
         else:
             pass
-
