@@ -175,7 +175,7 @@ def slack_report_review():
                     "type": "weekly"
                      })                
                 if dab is not None:
-                    weekly_id = dab['_id']
+                    weekly_id = str(dab['_id'])
                     k_highlight = dab['k_highlight']
                     extra = dab['extra']
                     junior_id = dab['user']
