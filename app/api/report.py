@@ -1048,17 +1048,87 @@ def update_manager_weekly(weekly_id=None):
     if comment is None or weekly_id is None:
         return jsonify(msg="invalid request"), 500
 
-    ret = mongo.db.reports.update({
+    ret = mongo.db.reports.find_one({
         "_id": ObjectId(weekly_id),
         "review": {'$elemMatch': {"manager_id": str(current_user["_id"])}},
-    }, {
-        "$set": {
-            "review.$.rating":rating,
-            "review.$.updated_at":datetime.datetime.utcnow(),
-            "review.$.comment":comment,
-            "review.$.manager_id":str(current_user["_id"])
-        }
-    },upsert=True)
+    })
+    if ret is not None:
+        ret = mongo.db.reports.update({
+            "_id": ObjectId(weekly_id),
+            "review": {'$elemMatch': {"manager_id": str(current_user["_id"])}},
+        }, {
+            "$set": {
+                "review.$.rating":rating,
+                "review.$.updated_at":datetime.datetime.utcnow(),
+                "review.$.comment":comment,
+                "review.$.manager_id":str(current_user["_id"])
+            }
+        },upsert=True)
+    else:
+        juniors = get_manager_juniors(current_user['_id'])
+        dab = mongo.db.reports.find({
+            "_id": ObjectId(weekly_id),
+            "type": "weekly",
+            "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+            "user": {
+                "$in": juniors
+            }
+        }).sort("created_at", 1)
+        dab = [add_checkin_data(serialize_doc(doc)) for doc in dab]
+        for data in dab:
+            ID = data['user']
+            rap = mongo.db.users.find({
+                "_id": ObjectId(str(ID))
+            })
+            rap = [serialize_doc(doc) for doc in rap]
+            for dub in rap:
+                print(dub)
+                junior_name = dub['username']
+                slack = dub['slack_id']
+                email = dub['work_email']
+                print(slack)
+                manager = dub['managers']
+                for a in manager:
+                    print("YHA pE")
+                    if a['_id']==str(current_user["_id"]):
+                        manager_weights=a['weight']
+                        sap = mongo.db.reports.find({
+                            "_id": ObjectId(weekly_id),
+                            "review": {'$elemMatch': {"manager_id": str(current_user["_id"])},
+                        }
+                        })
+                        sap = [serialize_doc(saps) for saps in sap]
+                        if not sap:
+                            ret = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                            }, {
+                                "$push": {
+                                    "review": {
+                                        "rating": rating,
+                                        "created_at": datetime.datetime.utcnow(),
+                                        "comment": comment,
+                                        "manager_id": str(current_user["_id"]),
+                                        "manager_weight":manager_weights
+                                    }
+                                }
+                            })
+
+                            cron = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id)
+                                }, {
+                                "$set": {
+                                    "cron_checkin": True
+                                }})
+
+
+                            docs = mongo.db.reports.update({
+                                "_id": ObjectId(weekly_id),
+                                "is_reviewed": {'$elemMatch': {"_id": str(current_user["_id"]), "reviewed": False}},
+                            }, {
+                                "$set": {
+                                    "is_reviewed.$.reviewed": True,
+                                    "is_reviewed.$.is_notify": True
+                                }},upsert=True)
     return jsonify({"status":"success"}), 200
 
 
