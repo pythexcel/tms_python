@@ -1142,6 +1142,7 @@ def weekly_rating_left():
     for dvn in users:
         enb_user.append(dvn['_id'])
     #finding reports of anabled users
+    print("11111445555")
     reports = mongo.db.reports.find({"cron_review_activity": False,
                                     "type": "weekly",
                                     "user":{"$in":enb_user}
@@ -1186,6 +1187,7 @@ def weekly_rating_left():
             user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id)},{"_id":0,"username":1})
             print(user_details)
             if user_details is not None:
+                print("user is not none")
                 username = user_details['username']
                 for manager_obj in dab['is_reviewed']:
                     manager_id = manager_obj['_id']
