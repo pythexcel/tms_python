@@ -102,5 +102,5 @@ monthly_manager_reminder_scheduler_min=30
 missed_review_activity_scheduler_hour=12
 missed_review_activity_scheduler_min=56
 
-weekly_rating_left_scheduler_hour=15
-weekly_rating_left_scheduler_min=30
+weekly_rating_left_scheduler_hour=14
+weekly_rating_left_scheduler_min=00
