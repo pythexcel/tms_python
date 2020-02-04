@@ -70,6 +70,21 @@ easy_actions ={"actions": [
             ]
     } 
 
+
+weekly_notification ={"actions": [
+                {
+                    "name": "rating",
+                    "text": "Submit an automatic weekly report",
+                    "url":"http://tms.excellencetechnologies.in/#/app/automateWeekly",
+                    "type": "button",
+                    "style": "danger",
+                    "value": "rating"
+                }]
+                    }
+
+
+
+
 checkin_score_scheduler_seconds = 90
 
 overall_score_scheduler_hour = 16
