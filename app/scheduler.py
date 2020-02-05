@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc
 from app import mongo
 import numpy as np
-from app.config import notification_system_url,button,tms_system_url,easy_actions
+from app.config import notification_system_url,button,tms_system_url,easy_actions,weekly_notification
 
 from app.util import secret_key
 import uuid
@@ -598,8 +598,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "button_message",
                                     "message_key": "automated_weekly_less",
-                                    "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
-                                    "button_text":"Submit an automatic weekly report"
+                                    "button":weekly_notification
                                     }
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)          
                         elif day in last:
@@ -608,8 +607,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "button_message",
                                     "message_key": "automated_weekly",
-                                    "url_link": "http://tms.excellencetechnologies.in/#/app/automateWeekly",
-                                    "button_text":"Submit an automatic weekly report"
+                                    "button":weekly_notification
                                     }
                                 notification_message = requests.post(url=notification_system_url+"notify/dispatch", json=weekly_payload)            
                         else:
