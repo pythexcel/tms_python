@@ -1170,9 +1170,19 @@ def weekly_rating_left():
     for ids in managers_name:
         print("asdngasvdashgdafdhagdfahdgafdahgdafdahdasdafhdah")
         id = ids['_id']
+        lst_date = str("2020-01-20")
+        last_date = parser.parse(lst_date)
+        print(last_date)
+        last_date_iso = last_date.isoformat()
+        print(last_date_iso)
+        F = datetime.datetime.strptime(last_date_iso, "%Y-%m-%dT%H:%M:%S")
+        print(F)
         dab = mongo.db.reports.find_one({
                 "type": "weekly",
-                "is_reviewed": {'$elemMatch': {"_id": str(id),"reviewed":False,"is_notify":False}}
+                "is_reviewed": {'$elemMatch': {"_id": str(id),"reviewed":False}},
+                "created_at": {
+                    "$gte":F,
+            }
             })
         #finding require detials and sending report and msg to manager
         if dab is not None:
