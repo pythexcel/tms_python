@@ -253,12 +253,12 @@ def schdulers_setings():
         recent_activity = request.json.get("recent_activity")
         review_activity = request.json.get("review_activity")
         monthly_manager_reminder = request.json.get("monthly_manager_reminder")
-        revew_360_setting=request.json.get("revew_360_setting",True)
-        missed_reviewed=request.json.get("missed_reviewed",True)
-        skip_review_setting=request.json.get("managerSkip",True)
-        only_manager_skip_setting=request.json.get("only_manager_skip",True)
-        weekly_automated=request.json.get("weekly_automated",True)
-        easyRating=request.json.get("easyRating",True)
+        revew_360_setting=request.json.get("revew_360_setting")
+        missed_reviewed=request.json.get("missed_reviewed")
+        skip_review_setting=request.json.get("managerSkip")
+        only_manager_skip_setting=request.json.get("only_manager_skip")
+        weekly_automated=request.json.get("weekly_automated")
+        easyRating=request.json.get("easyRating")
         ret = mongo.db.schdulers_setting.update({
             },{
                 "$set":{
