@@ -1013,7 +1013,7 @@ def missed_review_activity():
                         slack_id = data['_id']
                         checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
                         if checking is not None:
-                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id))})
+                            use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
                             use = [serialize_doc(doc) for doc in use]
                             if use:
                                 for details in use:
