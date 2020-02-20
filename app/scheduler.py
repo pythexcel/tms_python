@@ -858,7 +858,7 @@ def recent_activity():
     status = state['recent_activity']
     if status==1:
         print("running")
-        users = mongo.db.users.find({}, {"username": 1})
+        users = mongo.db.users.find({"status":"Enabled"}, {"username": 1})
         users = [serialize_doc(doc) for doc in users]
         today = datetime.datetime.now()
         last_day = today - datetime.timedelta(1)
@@ -877,9 +877,7 @@ def recent_activity():
                 user=reports['user']
                 last_day_checkin.append(ObjectId(user))
         print(last_day_checkin)
-        rep = mongo.db.users.find({
-                "_id": {"$nin": last_day_checkin}
-            })
+        rep = mongo.db.users.find({"_id": {"$nin": last_day_checkin},"status":"Enabled"})
         rep = [serialize_doc(doc) for doc in rep]
 
         for users in rep:
