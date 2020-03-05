@@ -42,24 +42,34 @@ def reports_settings():
 def reset_dict(user_id):
     docs = mongo.db.reports.find({"user": str(user_id), "type": "monthly"})
     docs = [serialize_doc(doc) for doc in docs]
-    all_ids = []
-    for detail in docs:
-        if 'review' in detail:
-            for review in detail['review']:
-                for data in review['comment']['kpi']:
-                    if data['id'] not in all_ids:
-                        all_ids.append(data['id'])
-                for data in review['comment']['era']:
-                    if data['id'] not in all_ids:
-                        all_ids.append(data['id'])
-    user_details = mongo.db.users.find_one({"_id":ObjectId(user_id)},{"Monthly_rating":1,"_id":0})
-    monthly_kpis = user_details['Monthly_rating']
-    for all_id in all_ids:
-        if all_id in monthly_kpis:
-            reset_dict = {""+all_id+"":0}
-            monthly_kpis.update(reset_dict)
-    return monthly_kpis
-
+    if docs:
+        all_ids = []
+        for detail in docs:
+            if 'review' in detail:
+                for review in detail['review']:
+                    for data in review['comment']['kpi']:
+                        if data['id'] not in all_ids:
+                            all_ids.append(data['id'])
+                    for data in review['comment']['era']:
+                        if data['id'] not in all_ids:
+                            all_ids.append(data['id'])
+            else:
+                return None
+        user_details = mongo.db.users.find_one({"_id":ObjectId(user_id)},{"Monthly_rating":1,"_id":0})
+        if user_details is not None:
+            monthly_kpis = user_details['Monthly_rating']
+            if all_ids:
+                for all_id in all_ids:
+                    if all_id in monthly_kpis:
+                        reset_dict = {""+all_id+"":0}
+                        monthly_kpis.update(reset_dict)
+                return monthly_kpis
+            else:
+                return None
+        else:
+            return None    
+    else:
+        return None
 #Api for reset person overall rating    
 @bp.route('/rating_reset/<string:user_id>', methods=["PUT"])
 @jwt_required
@@ -76,16 +86,21 @@ def rating_reset(user_id):
             }
         },upsert=True)
         monthly_kpis = reset_dict(user_id)
-        docs = mongo.db.users.update({
-                "_id": ObjectId(user_id)
-            }, {
-                "$set": {
-                    "Monthly_rating":monthly_kpis
-                }})
+        print(monthly_kpis)
+        if monthly_kpis is not None:
+            docs = mongo.db.users.update({
+                    "_id": ObjectId(user_id)
+                }, {
+                    "$set": {
+                        "Monthly_rating":monthly_kpis
+                    }})
+        else:
+            pass
         users = mongo.db.users.find_one({
             "_id": ObjectId(user_id)
         })
         user_info = serialize_doc(users)
+        print(user_info)
         if reason is not None:
             user = json.loads(json.dumps(user_info,default=json_util.default))
             rating_reset = {"user":user,
