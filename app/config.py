@@ -1,10 +1,18 @@
-tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port on which tms code running.
+import os
+from dotenv import load_dotenv
 
-URL = 'https://apistaginghr.excellencetechnologies.in/'
 
-notification_system_url = 'http://5.9.144.226:8005/' #'http://127.0.0.1:8000/' #'http://5.9.144.22:8005/'
+APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
+dotenv_path = os.path.join(APP_ROOT, '.env')
+load_dotenv(dotenv_path)
 
-weekly_page_link="http://tms.excellencetechnologies.in/#/app/week/WeeklyReport?update=true"
+tms_system_url = os.getenv('tms_system_url')
+
+URL = os.getenv('URL')
+
+notification_system_url = os.getenv('notification_system_url')
+
+weekly_page_link= os.getenv('weekly_page_link')
 
 
 default_skip_settings = {

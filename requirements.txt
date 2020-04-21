@@ -4,13 +4,13 @@ bcrypt==3.1.6
 certifi==2019.3.9
 cffi==1.12.3
 chardet==3.0.4
-clarifai==2.6.1
 configparser==3.7.4
 Click==7.0
 cssselect==1.0.3
 cycler==0.10.0
 dnspython==1.16.0
 Flask==1.0.2
+python-dotenv==0.10.3
 Flask-Cors==3.0.7
 Flask-JWT-Extended==3.18.2
 Flask-PyMongo==2.3.0
