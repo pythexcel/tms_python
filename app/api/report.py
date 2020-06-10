@@ -23,6 +23,30 @@ import uuid
 bp = Blueprint('report', __name__, url_prefix='/')
 
 
+@bp.route('/user_daily', methods=["POST"])
+def user_daily():
+    date = request.json.get('date',None)
+    username = request.json.get('username',None)
+    if date and username is None:
+        return jsonify({"message": "please provide date and username values"}), 400
+    parsed_date = dateutil.parser.parse(date)
+    date_iso = parsed_date.isoformat()
+    next_day = parsed_date + datetime.timedelta(1)
+    iso_date = next_day.isoformat()
+    First_date = datetime.datetime.strptime(date_iso, "%Y-%m-%dT%H:%M:%S")
+    Last_date = datetime.datetime.strptime(iso_date, "%Y-%m-%dT%H:%M:%S")
+    ret = mongo.db.reports.find_one({"type" : "daily", "username": username, 
+    "created_at": {
+                    "$gt": First_date,
+                    "$lt": Last_date
+                }
+    })
+    if ret is not None:
+        ret['_id'] = str(ret['_id'])
+        return jsonify(ret), 200
+    else:
+        return jsonify({"message" : "no report available"}), 200
+
 @bp.route('/slack', methods=["GET"])
 @jwt_required
 def slack():
