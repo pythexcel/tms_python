@@ -115,6 +115,51 @@ def rating_reset(user_id):
         return jsonify({"status":"success"})
 
 
+#reset rating for all employees together
+
+@bp.route('/ResetAllRatings', methods=["PUT"])
+@jwt_required
+@token.admin_required
+def ResetAllRatings():
+    if request.method == "PUT":
+        #Finding all users addresses rest admin
+        users = mongo.db.users.find({
+            "role":{"$ne":"Admin"}
+        }).distinct("_id")
+        #Update all users overall rating and puting reset rating time
+        ret = mongo.db.users.update({
+            "_id": {
+                "$in": users
+            }}, {
+            "$set": {
+                "Overall_rating": 0,
+                "rating_reset_time":datetime.datetime.utcnow()
+            }
+        },multi=True)
+        for user_id in users:
+            #calling function for reset monthly rating for each employee with same kpi id and update kpi with 0 ratings
+            monthly_kpis = reset_dict(str(user_id))
+            if monthly_kpis is not None:
+                docs = mongo.db.users.update({
+                        "_id": ObjectId(str(user_id))
+                    }, {
+                        "$set": {
+                            "Monthly_rating":monthly_kpis
+                        }})
+            else:
+                pass
+            #fetching user profile for sending notification
+            users = mongo.db.users.find_one({
+                "_id": ObjectId(str(user_id))
+            })
+            user_info = serialize_doc(users)
+            #sending notification 
+            user = json.loads(json.dumps(user_info,default=json_util.default))
+            rating_reset = {"user":user,
+                        "data":None,"message_key":"rating_reset","message_type":"simple_message"}
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+        return jsonify({"status":"success"})
+
    
 #Api for slack token settings   
 @bp.route('/slack_settings', methods=["PUT","GET"])
