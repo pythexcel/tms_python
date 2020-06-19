@@ -1153,7 +1153,7 @@ def weekly_rating_left():
                 user = detail['user']
                 slack_id = data['_id']
                 print(slack_id)
-                checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"status":"Enabled","managers":{'$elemMatch': {"_id": str(slack_id)}}})
                 if checking is not None:
                     use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
                     use = [serialize_doc(doc) for doc in use]
@@ -1190,7 +1190,7 @@ def weekly_rating_left():
             junior_id = dab['user']
             descriptio = k_highlight[0]
             description = descriptio['description']
-            user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id)},{"_id":0,"username":1})
+            user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id),"status":"Enabled"},{"_id":0,"username":1})
             print(user_details)
             if user_details is not None:
                 print("user is not none")
