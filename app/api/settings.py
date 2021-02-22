@@ -105,13 +105,13 @@ def rating_reset(user_id):
             user = json.loads(json.dumps(user_info,default=json_util.default))
             rating_reset = {"user":user,
                         "data":{"message":reason},"message_key":"rating_reset_with_comment","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=rating_reset)
 
         else:
             user = json.loads(json.dumps(user_info,default=json_util.default))
             rating_reset = {"user":user,
                         "data":None,"message_key":"rating_reset","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=rating_reset)
         return jsonify({"status":"success"})
 
 
@@ -157,7 +157,7 @@ def ResetAllRatings():
             user = json.loads(json.dumps(user_info,default=json_util.default))
             rating_reset = {"user":user,
                         "data":None,"message_key":"rating_reset","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=rating_reset)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=rating_reset)
         return jsonify({"status":"success"})
 
    
