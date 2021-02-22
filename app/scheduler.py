@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc
 from app import mongo
 import numpy as np
-from app.config import notification_system_url,button,tms_system_url,easy_actions,weekly_notification
+from app.config import notification_system_url,button,tms_system_url,easy_actions,weekly_notification,accountname
 
 from app.util import secret_key
 import uuid
@@ -141,7 +141,7 @@ def monthly_remainder():
                             user = json.loads(json.dumps(doc,default=json_util.default))
                             monthly_reminder_payload = {"user":user,
                             "data":month,"message_key":"monthly_reminder","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=monthly_reminder_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=monthly_reminder_payload)
                             print('sended')
                         else:
                             print('wait')
@@ -600,7 +600,7 @@ def weekly_remainder():
                                     "message_key": "automated_weekly_less",
                                     "button":weekly_notification
                                     }
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=weekly_payload)          
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=weekly_payload)          
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
                                 weekly_payload = {"user": user,
@@ -609,7 +609,7 @@ def weekly_remainder():
                                     "message_key": "automated_weekly",
                                     "button":weekly_notification
                                     }
-                                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=weekly_payload)            
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=weekly_payload)            
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -760,7 +760,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_reminder"}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=weekly_payload)        
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=weekly_payload)        
                             
                         elif day in last:
                                 user = json.loads(json.dumps(doc,default=json_util.default))
@@ -768,7 +768,7 @@ def weekly_remainder():
                                     "data": None,
                                     "message_type" : "simple_message",
                                     "message_key": "user_weekly_warning_reminder"}
-                                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=weekly_payload)        
+                                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=weekly_payload)        
                         else:
                             if day == 4:
                                 print("adding reportttttttttttttttttttttttttttt")
@@ -924,7 +924,7 @@ def recent_activity():
                     user = json.loads(json.dumps(users,default=json_util.default))
                     missed_checkin_payload = {"user":user,
                     "data":date,"message_key":"missed_checkin_notification","message_type":"simple_message"}
-                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=missed_checkin_payload)  
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=missed_checkin_payload)  
             else:
                 pass
                        
@@ -973,7 +973,7 @@ def review_activity():
             user = json.loads(json.dumps(ids,default=json_util.default))
             manager_monthly_reminder = {"user":user,
             "data":None,"message_key":"weekly_manager_reminder","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=manager_monthly_reminder)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=manager_monthly_reminder)
 
 
 def missed_review_activity():
@@ -1038,7 +1038,7 @@ def missed_review_activity():
                             "message_type" : "simple_message",
                             "message_key": "review_count_message"
                     }
-                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=review_count_payload)
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=review_count_payload)
                     print(notification_message.text)
             else:
                 pass
@@ -1240,7 +1240,7 @@ def weekly_rating_left():
                             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                             weekly_payload = {"user":user,
                             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                         else:
                             print("elseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
                             for action in actions:
@@ -1251,7 +1251,7 @@ def weekly_rating_left():
                             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                             weekly_payload = {"user":user,
                             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
             else:
                 pass
         else:

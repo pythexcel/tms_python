@@ -4,6 +4,7 @@ URL = 'https://apistaginghr.excellencetechnologies.in/'
 
 notification_system_url = 'http://176.9.11.14:8005/' #'http://127.0.0.1:8000/' 
 
+accountname = "notify_tms"
 weekly_page_link="http://tms.excellencetechnologies.in/#/app/week/WeeklyReport?update=true"
 
 

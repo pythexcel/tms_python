@@ -4,7 +4,7 @@ from app.util import serialize_doc, get_manager_profile,load_weekly_notes
 from flask import (
     Blueprint, flash, jsonify, abort, request
 )
-from app.config import notification_system_url,button,tms_system_url,default_skip_settings,easy_actions,weekly_page_link
+from app.config import notification_system_url,button,tms_system_url,default_skip_settings,easy_actions,weekly_page_link,accountname
 import dateutil.parser
 from bson.objectid import ObjectId
 import requests
@@ -53,7 +53,7 @@ def slack():
     current_user = get_current_user()
     slack = current_user['email']
     mail_payload = {"email":slack}
-    slack_channels = requests.post(url=notification_system_url+"slackchannels?account-name=notify_tms",json=mail_payload).json()
+    slack_channels = requests.post(url=notification_system_url+"slackchannels?account-name="+accountname,json=mail_payload).json()
     return jsonify (slack_channels)
 
 
@@ -175,7 +175,7 @@ def slack_report_review():
                                     user = json.loads(json.dumps(dub,default=json_util.default))
                                     weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(value),"comment":comment},
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_reviewed_payload)
+                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_reviewed_payload)
                                     print(notification_message.text)
                                     expires = datetime.timedelta(minutes=5)
                                     access_token = create_access_token(identity=manager_name, expires_delta=expires)
@@ -184,7 +184,7 @@ def slack_report_review():
                                     user = json.loads(json.dumps(dub,default=json_util.default))
                                     weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_reviewed_payload)
+                                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_reviewed_payload)
                                     print(notification_message.text)
                                     print(notification_message.text)
                                     expires = datetime.timedelta(minutes=5)
@@ -244,7 +244,7 @@ def slack_report_review():
                         extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                         weekly_payload = {"user":user,
                         "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"expire_weekly_notification","message_type":"button_message","button":easy_actions}
-                        notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+                        notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                         return "your link expired.check your slackbot we just sent you new link for same report"
                     else:
                         for action in actions:
@@ -255,7 +255,7 @@ def slack_report_review():
                         extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                         weekly_payload = {"user":user,
                         "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"expire_weekly_notification","message_type":"button_message","button":button}
-                        notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+                        notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                         return "your link expired.check your slackbot we just sent you new link for same report"
         return "Not a valid link"                                
     return "Report already reviewed"
@@ -353,7 +353,7 @@ def add_checkin():
                         "message_key": "check-in"
                     
                 }
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
             else:
@@ -366,7 +366,7 @@ def add_checkin():
                         "message_key": "check-in"
                     
                 }
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
         else:
@@ -398,7 +398,7 @@ def add_checkin():
                         "message_type" : "simple_message",
                         "message_key": "check-in_notification"
                     }
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=check_in_notification_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=check_in_notification_payload)
             print("NEECHE RESPONSE H")
             print(check_in_notification_payload)
             print(notification_message.text)
@@ -412,7 +412,7 @@ def add_checkin():
                         "message_key": "check-in"
                 
                 }
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
             else:
@@ -424,7 +424,7 @@ def add_checkin():
                         "message_type" : "simple_message",
                         "message_key": "check-in"    
                 }
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms", json=check_in_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname, json=check_in_payload)
                 print("NEECHE RESPONSE H")
                 print(notification_message.text)
         return jsonify(str(ret))
@@ -684,7 +684,7 @@ def add_weekly_checkin():
             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
             weekly_payload = {"user":user,
             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)        
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)        
         else:
             for action in actions:
                 rating = action['text']
@@ -694,7 +694,7 @@ def add_weekly_checkin():
             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
             weekly_payload = {"user":user,
             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
     return jsonify(str(ret)), 200
 
 
@@ -793,7 +793,7 @@ def add_weekly_automated():
                     extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                     weekly_payload = {"user":user,
                     "data":{"junior":username, "report":"This is lazy weekly submit by your junior" , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_payload)
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                     return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403
@@ -1050,7 +1050,7 @@ def get_manager_weekly_list(weekly_id=None):
                             print("user",user,"manager",manager_name,"rating",rating,"comment",comment)
                             weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                             "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_reviewed_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_reviewed_payload)
                             print("notification status====>")
                             print(notification_message.text)
                             return jsonify(str(ret)), 200
@@ -1532,7 +1532,7 @@ def skip_review(weekly_id):
             user = json.loads(json.dumps(user_info,default=json_util.default))
             weekly_skipped_payload = {"user":user,
             "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_skipped_payload)
+            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_skipped_payload)
             return jsonify({"status":"success"})
         else:
             if 1 in review_check:
@@ -1553,7 +1553,7 @@ def skip_review(weekly_id):
                 user = json.loads(json.dumps(user_info,default=json_util.default))
                 weekly_skipped_payload = {"user":user,
                 "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_skipped_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_skipped_payload)
                 return jsonify({"status":"success"})
             else:
                 #finding all assign managers_id
@@ -1603,7 +1603,7 @@ def skip_review(weekly_id):
                             user = json.loads(json.dumps(user_info,default=json_util.default))
                             weekly_skipped_payload = {"user":user,
                             "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_skipped_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_skipped_payload)
                             return jsonify({"status":"success"})
                         else:
                             return jsonify({"msg": "Senior manager needs to give review before you can skip"}), 400
@@ -1633,7 +1633,7 @@ def skip_review(weekly_id):
                             user = json.loads(json.dumps(user_info,default=json_util.default))
                             weekly_skipped_payload = {"user":user,
                             "data":name,"message_key":"weekly_skipped_notification","message_type":"simple_message"}
-                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=weekly_skipped_payload)
+                            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_skipped_payload)
                             return jsonify({"status":"success"})
                         else:
                             return jsonify({"msg": "Manager with higher weight needs to give review before you can skip"}), 400
@@ -1867,5 +1867,5 @@ def test_message(message_type,message_key):
         "data" : "data",
         "user": user_detail
         }    
-    notification_message_test = requests.post(url=notification_system_url+"notify/dispatch?account-name=notify_tms",json=payload)
+    notification_message_test = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=payload)
     return  (notification_message_test.text)
