@@ -6,7 +6,7 @@ from flask import (
 )
 import requests
 import json
-from app.config import notification_system_url
+from app.config import notification_system_url,accountname
 import dateutil.parser
 from bson.objectid import ObjectId
 from app.util import get_manager_juniors
@@ -209,7 +209,7 @@ def add_monthly_checkin():
                 user = json.loads(json.dumps(current_user,default=json_util.default))
                 print(user)
                 monthly_payload = {"user":user,"data":None,"message_key":"monthly_notification","message_type":"simple_message"}
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=monthly_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=monthly_payload)
                 print(notification_message.text)
                 return jsonify(str(ret)), 200
         else:
@@ -298,7 +298,7 @@ def get_manager_monthly_list(monthly_id):
                 user = json.loads(json.dumps(dub,default=json_util.default))
                 monthly_reviewed_payload = {"user":user,
                 "data":manager_name,"message_key":"monthly_reviewed_notification","message_type":"simple_message"}
-                notification_message = requests.post(url=notification_system_url+"notify/dispatch",json=monthly_reviewed_payload)
+                notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=monthly_reviewed_payload)
                 return jsonify(str(ret)), 200
             else:
                 return jsonify(msg="Already reviewed this report"), 400
