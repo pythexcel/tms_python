@@ -2,7 +2,7 @@ tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port
 
 URL = 'https://apistaginghr.excellencetechnologies.in/'
 
-notification_system_url = 'http://176.9.11.14:8005/' #'http://127.0.0.1:8000/' 
+notification_system_url = 'https://excellence_notifyapi.exweb.in/' #'http://127.0.0.1:8000/' 
 
 accountname = "notify_tms"
 weekly_page_link="http://tms.excellencetechnologies.in/#/app/week/WeeklyReport?update=true"
