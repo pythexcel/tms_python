@@ -392,31 +392,31 @@ def checkin_score():
     
 def disable_user():
     secret_key1 = secret_key()
-    print('Disable schduler running....')
+    # print('Disable schduler running....')
     payload_all_disabled_users_details = {"action": "show_disabled_users", "secret_key": secret_key1}
     response_all_disabled_users_details = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_all_disabled_users_details)
     result_disabled = response_all_disabled_users_details.json()
-    print('fetching the list of disable users')
+    # print('fetching the list of disable users')
     disabled_names = []
     for data_disable in result_disabled:
         disabled_names.append(data_disable['id'])
-    print(disabled_names)
+    # print(disabled_names)
     sap = mongo.db.users.find({}, {"id": 1})
     sap = [serialize_doc(user) for user in sap]
     enabled_users = []
     for doc in sap:
         if "id" in doc:
             enabled_users.append(doc['id'])
-    print('fetching all the enabled users')
-    print(enabled_users)
+    # print('fetching all the enabled users')
+    # print(enabled_users)
     disable_user = []
     for element in disabled_names:
         if element in enabled_users:
             disable_user.append(element)
-    print('users who have to be disabled')
-    print(disable_user)
+    # print('users who have to be disabled')
+    #print(disable_user)
     if disable_user is not None:
-        print("disable_usersssssssssssssssssssssssss",disable_user)
+        # print("disable_usersssssssssssssssssssssssss",len(disable_user))
         rep = mongo.db.users.update({
             "id": {"$in": disable_user}
         }, {
@@ -425,8 +425,18 @@ def disable_user():
 
             }
         }, multi=True)
-        print(rep)
-       
+        
+        users_ids = mongo.db.users.find({"id": {"$in":disable_user}}, {"_id": 1})
+        users_ids_list = [serialize_doc(user_id)['_id'] for user_id in users_ids]
+
+        mongo.db.users.update({"status":"Enabled"}, {
+            "$pull": {
+                "managers": {
+                    "_id": {"$in":users_ids_list}
+                }
+            }
+        },multi=True)
+
        
 def overall_reviewes():
     print("running")
