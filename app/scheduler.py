@@ -1159,23 +1159,30 @@ def weekly_rating_left():
     managers_name = []
     for detail in reports:
         for data in detail['is_reviewed']:
+            print(detail)
             if data['reviewed'] is False:  
+            
                 user = detail['user']
                 slack_id = data['_id']
                 print(slack_id)
-                checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"status":"Enabled","managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                # checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"status":"Enabled","managers":{'$elemMatch': {"_id": str(slack_id)}}})
+                checking = mongo.db.users.find_one({"_id": ObjectId(str(user)),"status":"Enabled"})
+                print(checking)
                 if checking is not None:
-                    use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
-                    use = [serialize_doc(doc) for doc in use]
+                    print("jghf",slack_id)
+                    # use = mongo.db.users.find({"_id": ObjectId(str(slack_id)),"status":"Enabled"})
+                    use = mongo.db.users.find({"_id": ObjectId(str(user)),"status":"Enabled"})
+                    # use = [serialize_doc(doc) for doc in use]
+                    print("hgdkgf", use)
                     for details in use:
                         if details not in managers_name:
-                            managers_name.append(details)
+                            managers_name.append(details['managers'])
                 else:
                     pass
-    print("manager name",managers_name)
+    print("manager name",managers_name[0])
 
     #find a random reports for send to manager on slack
-    for ids in managers_name:
+    for ids in managers_name[0]:
         print("asdngasvdashgdafdhagdfahdgafdahgdafdahdasdafhdah")
         id = ids['_id']
         lst_date = str("2020-01-20")
@@ -1192,13 +1199,16 @@ def weekly_rating_left():
                     "$gte":F,
             }
             })
+        print(dab)
         #finding require detials and sending report and msg to manager
         if dab is not None:
             weekly_id = dab['_id']
             k_highlight = dab['k_highlight']
             extra = dab['extra']
             junior_id = dab['user']
+            report = dab['report']
             descriptio = k_highlight[0]
+            # description = k_highlight
             description = descriptio['description']
             user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id),"status":"Enabled"},{"_id":0,"username":1})
             print(user_details)
@@ -1249,7 +1259,7 @@ def weekly_rating_left():
                             user = json.loads(json.dumps(manager_profile,default=json_util.default))
                             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                             weekly_payload = {"user":user,
-                            "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
+                            "data":{"junior":username, "report":report, "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
                             notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                         else:
                             print("elseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
