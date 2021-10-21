@@ -295,7 +295,8 @@ def add_checkin():
     task_not_completed_reason = request.json.get(
         "task_not_completed_reason", "")
     highlight = request.json.get("highlight", "")
-    date = request.json.get("date", "")
+    # date = request.json.get("date", "")
+    date = request.json.get("date", None)
     highlight_task_reason = request.json.get("highlight_task_reason", None)
     today = datetime.datetime.utcnow()
     slackChannels = request.json.get("slackChannels", [])
@@ -311,7 +312,6 @@ def add_checkin():
     current_user = get_current_user()
     username = current_user['username']
     slack = current_user['slack_id']
-
     if date is None:
         date_time = datetime.datetime.utcnow()
         formatted_date = date_time.strftime("%d-%B-%Y")
@@ -598,6 +598,19 @@ def add_weekly_checkin():
     if not k_highlight and select_days:
         return jsonify({"msg": "Invalid Request"}), 400
     
+    docs = mongo.db.reports.find({
+            "type": "daily",
+            "user": str(current_user["_id"]),
+            "created_at": {
+                "$gte": datetime.datetime(last_monday.year, last_monday.month, last_monday.day)}
+        }).sort("created_at", 1)
+    print(docs)
+    docs = [serialize_doc(doc) for doc in docs]
+    report = []
+    for doc in docs:
+        report.append(doc['report'])
+
+
     reviewed = False
     users = mongo.db.users.find({
         "_id": ObjectId(current_user["_id"])
@@ -606,6 +619,7 @@ def add_weekly_checkin():
 
     managers_data = []
     for data in users:
+        print("jkdsfjksd" ,data)
         for mData in data['managers']:
             mData['reviewed'] = reviewed
             mData['expire_time'] = datetime.datetime.now() + datetime.timedelta(minutes=15)
@@ -629,6 +643,7 @@ def add_weekly_checkin():
     
     ret = mongo.db.reports.insert_one({
         "k_highlight": k_highlight,
+        "report": report,
         "extra": extra,
         "select_days": select_days,
         "user": str(current_user["_id"]),
@@ -642,7 +657,9 @@ def add_weekly_checkin():
         "difficulty": difficulty
     }).inserted_id
     descriptio = k_highlight[0]
+    # print("sdfshds",k_highlight)
     description = descriptio['description']
+    # description = k_highlight
     for element in managers_name:
         manager = element['Id']
         rec = mongo.db.recent_activity.update({
@@ -658,6 +675,7 @@ def add_weekly_checkin():
     state = mongo.db.schdulers_setting.find_one({
         "easyRating": {"$exists": True}
         }, {"easyRating": 1,'_id': 0})
+    
     status = state['easyRating']
     for manger_id in managers_name:
         mang_id = manger_id['Id']
@@ -694,7 +712,7 @@ def add_weekly_checkin():
             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
             weekly_payload = {"user":user,
             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-            notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
+            # notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
     return jsonify(str(ret)), 200
 
 
