@@ -69,11 +69,14 @@ def slack_report_review():
     
     #finding manager juniours
     juniors = get_manager_juniors(manager_id)
+    print("dksjgksd")
+    print(weekly_id)
     sap = mongo.db.reports.find_one({
                             "_id": ObjectId(weekly_id),
                             "review": {'$elemMatch': {"manager_id": str(manager_id)},
                         }
                      })
+    print("ksdngkdfnngkfd")
     print(sap)
     if sap is None:                 
         expire_checking = mongo.db.reports.find_one({
@@ -104,12 +107,14 @@ def slack_report_review():
                     }
                 }).sort("created_at", 1)
                 dab = [checkin_data(serialize_doc(doc)) for doc in dab]
-                print(dab)
+                print
                 for data in dab:
                     ID = data['user']
+                    print("mkdsgmk", ID)
                     rap = mongo.db.users.find({
                         "_id": ObjectId(str(ID))
                     })
+                    print("jfhg", rap)
                     rap = [serialize_doc(doc) for doc in rap]
                     for dub in rap:
                         junior_name = dub['username']
@@ -555,7 +560,6 @@ def get_week_reports():
     today = datetime.date.today()
     last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
     last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
-
     docs = mongo.db.reports.find({
         "user": str(current_user["_id"]),
         "type": "weekly",
@@ -576,6 +580,7 @@ def add_weekly_checkin():
     today = datetime.datetime.utcnow()
     formated_date = today.strftime("%d-%B-%Y")
     last_monday = today - datetime.timedelta(days=today.weekday())
+    print(last_monday)
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
@@ -684,6 +689,7 @@ def add_weekly_checkin():
             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
             weekly_payload = {"user":user,
             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
+            print("here")
             notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)        
         else:
             for action in actions:
@@ -793,7 +799,7 @@ def add_weekly_automated():
                     extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                     weekly_payload = {"user":user,
                     "data":{"junior":username, "report":"This is lazy weekly submit by your junior" , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
+                    # notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                     return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403

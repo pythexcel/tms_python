@@ -180,6 +180,7 @@ def add_monthly_checkin():
             users = mongo.db.users.find({
                 "_id": ObjectId(current_user["_id"])
             })
+            print("jdsfjksd", users)
             users = [serialize_doc(doc) for doc in users]
             managers_data = []
             # get all data of managers from current user
@@ -187,13 +188,14 @@ def add_monthly_checkin():
                 for mData in data['managers']:
                     mData['reviewed'] = reviewed
                     managers_data.append(mData)
-
+            print("kdsfjkds")
             # check if report already exist don't allow user to make a new one for current month        
             rep = mongo.db.reports.find_one({
                 "user": str(current_user["_id"]),
                 "type": "monthly",
                 "month": month,
             })
+            print(rep, "dksjgds")
             if rep is not None:
                 return jsonify({"msg": "You have already submitted your monthly report"}), 409
             else:
