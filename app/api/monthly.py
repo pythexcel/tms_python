@@ -187,7 +187,6 @@ def add_monthly_checkin():
                 for mData in data['managers']:
                     mData['reviewed'] = reviewed
                     managers_data.append(mData)
-
             # check if report already exist don't allow user to make a new one for current month        
             rep = mongo.db.reports.find_one({
                 "user": str(current_user["_id"]),

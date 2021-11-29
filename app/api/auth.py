@@ -64,7 +64,9 @@ def login():
 
         payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
         response_user_token = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_user_login)
+        
         token = response_user_token.json()
+        # token = json.loads(response_user_token.text)
         if token['data'] == {'message': 'Invalid Login'}:
             return jsonify(msg='invalid login'), 500
         else:

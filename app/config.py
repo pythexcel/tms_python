@@ -1,11 +1,16 @@
 tms_system_url = 'http://tms.api.excellencetechnologies.in/' #server ip and port on which tms code running.
 
+# tms_system_url = 'http://127.0.0.1:5000/'
+
 URL = 'https://apistaginghr.excellencetechnologies.in/'
+# URL = 'http://176.9.137.77:81/backend/'
 
 notification_system_url = 'https://excellence_notifyapi.exweb.in/' #'http://127.0.0.1:8000/' 
+# notification_system_url = 'http://127.0.0.1:8000/'
 
 accountname = "notify_tms"
 weekly_page_link="http://tms.excellencetechnologies.in/#/app/week/WeeklyReport?update=true"
+# weekly_page_link = 'http://127.0.0.1:5000/'
 
 
 default_skip_settings = {

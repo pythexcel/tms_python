@@ -19,6 +19,7 @@ from flask_jwt_extended import (
 import json
 from bson import json_util
 import uuid
+import re
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
@@ -94,7 +95,6 @@ def slack_report_review():
                     expire_time = manager_matching['expire_time']
             
             if expire_time > datetime.datetime.now():
-                print("744444444444444444444444444")
                 dab = mongo.db.reports.find({
                     "_id": ObjectId(weekly_id),
                     "type": "weekly",
@@ -103,13 +103,16 @@ def slack_report_review():
                         "$in": juniors
                     }
                 }).sort("created_at", 1)
+                print("items in dab: ", dab.count())
                 dab = [checkin_data(serialize_doc(doc)) for doc in dab]
-                print(dab)
+
                 for data in dab:
                     ID = data['user']
+                    print("mkdsgmk", ID)
                     rap = mongo.db.users.find({
                         "_id": ObjectId(str(ID))
                     })
+                    print("jfhg", rap)
                     rap = [serialize_doc(doc) for doc in rap]
                     for dub in rap:
                         junior_name = dub['username']
@@ -185,8 +188,6 @@ def slack_report_review():
                                     weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                                     notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_reviewed_payload)
-                                    print(notification_message.text)
-                                    print(notification_message.text)
                                     expires = datetime.timedelta(minutes=5)
                                     access_token = create_access_token(identity=manager_name, expires_delta=expires)
                                     return "Report reviewed successfully.  <a href="+weekly_page_link+"&token="+access_token+">Add comment</a>"
@@ -273,8 +274,9 @@ def checkin_data(weekly_report):
     if select_days is None:
         select_days = None
     else:
-        select_days = [load_checkin(day) for day in select_days]
-    all_chekin = weekly_report['user']
+        select_days = [load_checkin(day) for day in select_days] #returns select days id
+    all_chekin = weekly_report['user'] # get user id
+ 
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
@@ -311,7 +313,6 @@ def add_checkin():
     current_user = get_current_user()
     username = current_user['username']
     slack = current_user['slack_id']
-
     if date is None:
         date_time = datetime.datetime.utcnow()
         formatted_date = date_time.strftime("%d-%B-%Y")
@@ -555,7 +556,6 @@ def get_week_reports():
     today = datetime.date.today()
     last_sunday = today - datetime.timedelta(days=(today.weekday() + 1))
     last_monday = today - datetime.timedelta(days=(today.weekday() + 8))
-
     docs = mongo.db.reports.find({
         "user": str(current_user["_id"]),
         "type": "weekly",
@@ -576,6 +576,7 @@ def add_weekly_checkin():
     today = datetime.datetime.utcnow()
     formated_date = today.strftime("%d-%B-%Y")
     last_monday = today - datetime.timedelta(days=today.weekday())
+    print(last_monday)
     if request.method == "GET":
         docs = mongo.db.reports.find({
             "type": "weekly",
@@ -641,8 +642,18 @@ def add_weekly_checkin():
         "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
-    descriptio = k_highlight[0]
-    description = descriptio['description']
+    # descriptio = k_highlight[0]
+    # description = descriptio['description']
+    description = []
+    
+    for day in select_days:
+        reports = mongo.db.reports.find({'_id': ObjectId(day)})
+        report = [serialize_doc(doc) for doc in reports]
+        text = re.sub('<.*?>', '', report[0]['report'])
+        description.append((text + '\n'))
+
+
+
     for element in managers_name:
         manager = element['Id']
         rec = mongo.db.recent_activity.update({
@@ -684,6 +695,7 @@ def add_weekly_checkin():
             extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
             weekly_payload = {"user":user,
             "data":{"junior":username, "report":description , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":easy_actions}
+            print("here")
             notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)        
         else:
             for action in actions:
