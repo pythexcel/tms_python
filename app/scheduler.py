@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 from app.util import serialize_doc
 from app import mongo
 import numpy as np
+import re
 from app.config import notification_system_url,button,tms_system_url,easy_actions,weekly_notification,accountname
 
 from app.util import secret_key
@@ -1195,11 +1196,17 @@ def weekly_rating_left():
         #finding require detials and sending report and msg to manager
         if dab is not None:
             weekly_id = dab['_id']
-            k_highlight = dab['k_highlight']
+            # k_highlight = dab['k_highlight']
             extra = dab['extra']
             junior_id = dab['user']
-            descriptio = k_highlight[0]
-            description = descriptio['description']
+            # descriptio = k_highlight[0]
+            # description = descriptio['description']
+            select_days = dab['select_days']
+            description = []
+            for day in select_days:
+                report = mongo.db.reports.find_one({'_id': ObjectId(day)})
+                text = re.sub('<.*?>', '', report['report'])
+                description.append((text + '\n'))
             user_details = mongo.db.users.find_one({"_id":ObjectId(junior_id),"status":"Enabled"},{"_id":0,"username":1})
             print(user_details)
             if user_details is not None:
