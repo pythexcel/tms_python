@@ -5,7 +5,6 @@ import requests
 
 
 def serialize_doc(doc):
-    print("djf", doc)
     doc["_id"] = str(doc["_id"])
     return doc
 

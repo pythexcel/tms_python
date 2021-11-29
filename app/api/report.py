@@ -70,14 +70,11 @@ def slack_report_review():
     
     #finding manager juniours
     juniors = get_manager_juniors(manager_id)
-    print("dksjgksd")
-    print(weekly_id)
     sap = mongo.db.reports.find_one({
                             "_id": ObjectId(weekly_id),
                             "review": {'$elemMatch': {"manager_id": str(manager_id)},
                         }
                      })
-    print("ksdngkdfnngkfd")
     print(sap)
     if sap is None:                 
         expire_checking = mongo.db.reports.find_one({
@@ -191,8 +188,6 @@ def slack_report_review():
                                     weekly_reviewed_payload = {"user":user,"data":{"manager":manager_name,"rating":str(rating),"comment":comment},
                                     "message_key":"weekly_reviewed_notification","message_type":"simple_message"}
                                     notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_reviewed_payload)
-                                    print(notification_message.text)
-                                    print(notification_message.text)
                                     expires = datetime.timedelta(minutes=5)
                                     access_token = create_access_token(identity=manager_name, expires_delta=expires)
                                     return "Report reviewed successfully.  <a href="+weekly_page_link+"&token="+access_token+">Add comment</a>"
@@ -529,9 +524,7 @@ def revoke_checkin_reports():
             "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
         }
     }).sort("created_at", 1)
-    print("docs",docs)
     docs = [serialize_doc(doc) for doc in docs]
-    print(docs)
     return jsonify(docs), 200
 
 
@@ -812,7 +805,7 @@ def add_weekly_automated():
                     extra_with_msg = (extra +"\nYou can review weekly reports directly from slack now! Just select the rating below.")
                     weekly_payload = {"user":user,
                     "data":{"junior":username, "report":"This is lazy weekly submit by your junior" , "extra":extra_with_msg},"message_key":"weekly_notification","message_type":"button_message","button":button}
-                    # notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
+                    notification_message = requests.post(url=notification_system_url+"notify/dispatch?account-name="+accountname,json=weekly_payload)
                     return jsonify({"msg":"weekly report has been successfully submitted"}), 200
             else:
                 return jsonify({"msg": "you don't have daily checkin to submit"}),403

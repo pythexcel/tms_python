@@ -64,15 +64,14 @@ def login():
 
         payload_user_login = {'username': log_username, "password": password, "action": "login", "token": None}
         response_user_token = requests.post(url=URL+"attendance/API_HR/api.php", json=payload_user_login)
-        # print("jdngjds", )
-        # token = response_user_token.json()
-        token = json.loads(response_user_token.text)
+        
+        token = response_user_token.json()
+        # token = json.loads(response_user_token.text)
         if token['data'] == {'message': 'Invalid Login'}:
             return jsonify(msg='invalid login'), 500
         else:
             payload_user_details = {"action": "get_user_profile_detail", "token": token['data']['token']}
             response_user_details = requests.post(url=URL+"attendance/sal_info/api.php", json=payload_user_details)
-            print("dfhskj", response_user_details.text)
             result = response_user_details.json()
             user_data = result['data']['user_profile_detail']
             status = user_data["status"]

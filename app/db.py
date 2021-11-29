@@ -7,6 +7,5 @@ def init_db():
 
 
 def get_db(app, mongo):
-    # app.config["MONGO_URI"] = "mongodb://tms:remotetms@localhost/tms?authSource=tms"
-    app.config["MONGO_URI"] = "mongodb+srv://akash:8jNYW8eVQCHORH6M@cluster0.k8zrx.mongodb.net/tms?retryWrites=true&w=majority"
+    app.config["MONGO_URI"] = "mongodb://tms:remotetms@localhost/tms?authSource=tms"
     mongo.init_app(app)
