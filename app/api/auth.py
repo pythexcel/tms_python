@@ -75,9 +75,6 @@ def login():
             print("dfhskj", response_user_details.text)
             result = response_user_details.json()
             user_data = result['data']['user_profile_detail']
-            user_data["profileImage"] = user_data["image"]
-            print(user_data)
-            # user_data = {"_id":{"$oid":"614db7a6039e749a2d37690a"},"username":"mohitsaini","id":"557","name":"Mohit Saini","user_Id":"576","status":"Enabled","jobtitle":"Python Backend Developer","dob":"1999-07-10","gender":"Male","email":"mohit_saini@excellencetechnologies.info","slack_id":"U025YC7ND8D","profileImage":"https://avatars.slack-edge.com/2021-09-18/2512679017764_d32b7d1337e79201aca9_original.jpg","dateofjoining":"2021-11-21","work_email":"mohit_saini@excellencetechnologies.info","last_login":"2021-11-22","team":"","role":"manager","cron_checkin":'false',"missed_chechkin_crone":'false',"profile":'null'}
             status = user_data["status"]
             role_response = jwt.decode(token['data']['token'], None, False)
             id = user_data["id"]

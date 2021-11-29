@@ -19,6 +19,7 @@ from flask_jwt_extended import (
 import json
 from bson import json_util
 import uuid
+import re
 
 bp = Blueprint('report', __name__, url_prefix='/')
 
@@ -97,7 +98,6 @@ def slack_report_review():
                     expire_time = manager_matching['expire_time']
             
             if expire_time > datetime.datetime.now():
-                print("744444444444444444444444444")
                 dab = mongo.db.reports.find({
                     "_id": ObjectId(weekly_id),
                     "type": "weekly",
@@ -106,8 +106,9 @@ def slack_report_review():
                         "$in": juniors
                     }
                 }).sort("created_at", 1)
+                print("items in dab: ", dab.count())
                 dab = [checkin_data(serialize_doc(doc)) for doc in dab]
-                print
+
                 for data in dab:
                     ID = data['user']
                     print("mkdsgmk", ID)
@@ -278,8 +279,9 @@ def checkin_data(weekly_report):
     if select_days is None:
         select_days = None
     else:
-        select_days = [load_checkin(day) for day in select_days]
-    all_chekin = weekly_report['user']
+        select_days = [load_checkin(day) for day in select_days] #returns select days id
+    all_chekin = weekly_report['user'] # get user id
+ 
     all_chekin = (load_all_checkin(all_chekin))
     weekly_report["select_days"] = select_days
     weekly_report['all_chekin'] = all_chekin
@@ -316,7 +318,6 @@ def add_checkin():
     current_user = get_current_user()
     username = current_user['username']
     slack = current_user['slack_id']
-
     if date is None:
         date_time = datetime.datetime.utcnow()
         formatted_date = date_time.strftime("%d-%B-%Y")
@@ -528,7 +529,9 @@ def revoke_checkin_reports():
             "$lte": datetime.datetime(last_sunday.year, last_sunday.month, last_sunday.day)
         }
     }).sort("created_at", 1)
+    print("docs",docs)
     docs = [serialize_doc(doc) for doc in docs]
+    print(docs)
     return jsonify(docs), 200
 
 
@@ -646,8 +649,18 @@ def add_weekly_checkin():
         "era_json": era_name,
         "difficulty": difficulty
     }).inserted_id
-    descriptio = k_highlight[0]
-    description = descriptio['description']
+    # descriptio = k_highlight[0]
+    # description = descriptio['description']
+    description = []
+    
+    for day in select_days:
+        reports = mongo.db.reports.find({'_id': ObjectId(day)})
+        report = [serialize_doc(doc) for doc in reports]
+        text = re.sub('<.*?>', '', report[0]['report'])
+        description.append((text + '\n'))
+
+
+
     for element in managers_name:
         manager = element['Id']
         rec = mongo.db.recent_activity.update({
